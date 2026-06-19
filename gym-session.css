@@ -1,0 +1,414 @@
+/**
+ * ESTILOS RESTAURADOS Y MEJORADOS: gym-session.css
+ * Devuelve el buscador de ejercicios a su estado original estable,
+ * mantiene el comportamiento elástico con el teclado móvil, y aplica un
+ * rediseño jerárquico de títulos apilados en el Editor de Sesiones.
+ */
+
+/* CORRECCIÓN CRÍTICA: Desactiva el overflow de la pantalla exterior para bloquear el scroll de fondo y fijar la cabecera arriba */
+#screen-editor {
+    overflow: hidden !important;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    display: block;
+}
+
+/* REESTRUCTURACIÓN ABSOLUTA: Fuerza al contenedor a ocupar el espacio completo elástico solucionando la pantalla en blanco */
+.editor-container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; 
+}
+
+/* Contenedor padre rígido superior que se mantiene fijo al hacer scroll */
+.editor-sticky-header {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    background-color: #ffffff;
+    z-index: 10;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+/* Fila 1: Barra de navegación superior */
+.editor-nav-top {
+    height: 56px;
+    padding: 0 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    border-bottom: 1px solid #f3f4f6;
+    flex-shrink: 0;
+}
+
+.btn-nav-close {
+    background: #f3f4f6;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--primary-color, #000000);
+    transition: transform 0.1s ease;
+}
+
+.btn-nav-close:active {
+    transform: scale(0.9);
+}
+
+.btn-nav-save {
+    background-color: var(--primary-color, #000000);
+    color: #ffffff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.1s ease, transform 0.1s ease;
+}
+
+.btn-nav-save:active {
+    transform: scale(0.96);
+    background-color: #222222;
+}
+
+/* ==========================================================================
+   FILA DE TÍTULO REDISEÑADA (DOS LÍNEAS VERTICALES)
+   ========================================================================== */
+.editor-title-row {
+    padding: 5px 5px 5px 5px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #f3f4f6;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column; /* Apila la etiqueta y el input uno encima del otro */
+    align-items: flex-start;
+    gap: 4px; /* Separación sutil entre las dos líneas */
+}
+
+/* Prefijo de etiqueta superior: Mismo color pero letra más pequeña */
+.session-label-prefix {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-color, #000000);
+    opacity: 0.5; /* Suavizado sutil para dar sensación jerárquica */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-left: 2px;
+}
+
+/* Campo de entrada del título: Tamaño reducido y estilizado */
+.session-input-field {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 22px; /* Reducido desde los 28px originales */
+    font-weight: 800;
+    color: var(--primary-color, #000000);
+    outline: none;
+    padding: 0;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.session-input-field::placeholder {
+    color: #cbd5e1;
+}
+
+/* Estado cuando el input está deshabilitado en Modo Lectura */
+.session-input-field:disabled {
+    color: var(--primary-color, #000000);
+    background: transparent;
+    cursor: default;
+}
+
+/* ==========================================================================
+   SELECTORES DE HERRAMIENTAS ADICIONALES
+   ========================================================================== */
+.editor-tools-selectors {
+    display: flex;
+    gap: 10px;
+    padding: 5px 5px;
+    background-color: #ffffff;
+    flex-shrink: 0;
+}
+
+.editor-tools-row {
+    display: flex;
+    gap: 10px;
+    padding: 0px 5px;
+    background-color: #ffffff;
+    flex-shrink: 0;
+}
+
+/* El contenedor del botón "Iniciar sesión" dentro de .editor-tools-row ocupa todo el espacio */
+.editor-tools-row .editor-tools-selectors {
+    flex: 1;
+}
+
+.btn-tool-toggle {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    padding: 9px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4b5563;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-tool-toggle i {
+    font-size: 14px;
+    color: #9ca3af;
+}
+
+.btn-tool-toggle.active {
+    background-color: #f3f4f6;
+    border-color: var(--primary-color, #000000);
+    color: var(--primary-color, #000000);
+}
+
+/* ==========================================================================
+   BOTÓN "INICIAR SESIÓN" PARA MODO LECTURA
+   ========================================================================== */
+
+.btn-start-session {
+    width: 100%;
+    background: var(--accent-color, #ccff00);
+    border: none;
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-color, #000000);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.1s ease, background-color 0.1s ease;
+}
+
+.btn-start-session:active {
+    transform: scale(0.96);
+    filter: brightness(0.9);
+}
+
+/* ==========================================================================
+   BOTÓN DE TRES PUNTOS Y MENÚ DESPLEGABLE
+   ========================================================================== */
+
+/* Contenedor relativo para posicionar el menú desplegable */
+.editor-options-wrapper {
+    position: relative;
+}
+
+/* Botón de tres puntos */
+.btn-options-dots {
+    background: none;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: #4b5563;
+    font-size: 18px;
+    transition: background-color 0.1s ease;
+}
+
+.btn-options-dots:active {
+    background-color: #f3f4f6;
+}
+
+/* Menú desplegable de opciones */
+.editor-options-dropdown {
+    position: absolute;
+    top: 48px;
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    width: 160px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    animation: fadeInMenu 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.editor-options-dropdown.hidden {
+    display: none;
+}
+
+/* Elementos del menú */
+.editor-option-item {
+    background: none;
+    border: none;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.12s ease;
+    width: 100%;
+}
+
+.editor-option-item i {
+    font-size: 13px;
+    width: 16px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.editor-option-item:active {
+    background-color: #f3f4f6;
+    color: #000000;
+}
+
+/* ==========================================================================
+   ÁREAS DESPLEGABLES CON ANIMACIÓN ELÁSTICA
+   ========================================================================== */
+.expandable-wrapper {
+    max-height: 0;
+    overflow: hidden;
+    background-color: #f9fafb;
+    transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.expandable-wrapper.open {
+    /* Permitimos un tamaño máximo para las herramientas fijas */
+    max-height: 240px; 
+    border-top: 1px solid #e5e7eb;
+}
+
+/* ==========================================================================
+   INSTANCIA PRINCIPAL DEL EDITOR ENRIQUECIDO QUILL (SCROLL TOTALMENTE INDEPENDIENTE)
+   ========================================================================== */
+#editor-instance {
+    flex: 1 1 auto;
+    overflow-y: hidden !important; /* El scroll lo delega internamente a .ql-editor */
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Eliminación de bordes internos molestos de la librería Quill */
+.ql-container.ql-snow {
+    border: none !important;
+    font-size: 16px;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* SOLUCIÓN FINAL DEL SCROLL VÍA HARDWARE MÓVIL: Transfiere por completo la propiedad táctil elástica a la caja de texto */
+.ql-editor {
+    flex: 1 1 auto;
+    overflow-y: scroll !important; /* Forza la aparición de la barra vertical independiente dentro del cuadro blanco */
+    -webkit-overflow-scrolling: touch !important; /* Enciende la inercia elástica nativa en iOS/Android */
+    touch-action: pan-y !important; /* Le dice al navegador móvil que procese el arrastre táctil vertical */
+    padding: 20px 16px 140px 16px !important;
+    color: #1f2937;
+    line-height: 1.6;
+}
+
+.ql-editor.ql-blank::before {
+    left: 16px !important;
+    color: #9ca3af;
+    font-style: normal;
+}
+
+/* Barra de herramientas original de Quill al 100% de ancho de pantalla */
+.ql-toolbar.ql-snow {
+    border: none !important;
+    padding: 12px 16px !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    background-color: #f9fafb;
+}
+
+/* Buscador de ejercicios (RESTAURADO) */
+.exercises-content { padding: 14px 16px; }
+
+.search-input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    outline: none;
+    margin-bottom: 10px;
+    background-color: #ffffff;
+}
+
+.search-input:focus { border-color: #000000; }
+
+.exercises-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 160px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+.exercise-item {
+    padding: 12px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+}
+
+.exercise-item:active {
+    background-color: #f3f4f6;
+}
+
+.no-results {
+    padding: 14px;
+    font-size: 14px;
+    color: #9ca3af;
+    text-align: center;
+}

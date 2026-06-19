@@ -1,0 +1,749 @@
+/**
+ * ESTILOS DE INTERFAZ: gym-exercises.css
+ * Controla la página de ejercicios, tarjetas, filtros, búsqueda y modal de edición.
+ */
+
+/* ==========================================================================
+   PÁGINA DE EJERCICIOS (SCREEN)
+   ========================================================================== */
+
+#screen-exercises {
+    background-color: var(--background-color, #fafafa);
+}
+
+.exercises-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--background-color, #fafafa);
+    padding: 16px 20px 14px 20px !important;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.exercises-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.exercises-header-top h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0;
+}
+
+.btn-exercises-options {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 20px;
+    padding: 8px 10px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-exercises-options:active {
+    background-color: #f3f4f6;
+    color: var(--primary-color, #000000);
+}
+
+/* ==========================================================================
+   BÚSQUEDA Y FILTROS
+   ========================================================================== */
+
+.exercises-search-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.exercises-search-wrapper .icon-search {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 14px;
+    z-index: 1;
+}
+
+.exercises-search-wrapper .clear-input-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    z-index: 2;
+}
+
+.exercises-search-wrapper .clear-input-btn:active {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+.exercises-search-wrapper.has-value .clear-input-btn {
+    display: flex;
+}
+
+.exercises-search-wrapper input {
+    width: 100%;
+    padding: 12px 40px 12px 40px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.15s ease;
+    color: var(--primary-color, #000000);
+}
+
+.exercises-search-wrapper input:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+.exercises-search-wrapper input::placeholder {
+    color: #9ca3af;
+}
+
+/* ==========================================================================
+   FILTRO POR GRUPOS (DROPDOWN)
+   ========================================================================== */
+
+.exercises-filter-bar {
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.exercises-filter-bar select {
+    width: 100%;
+    padding: 10px 15px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4b5563;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+
+.exercises-filter-bar select:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+.exercises-filter-bar select option {
+    padding: 8px;
+}
+
+/* ==========================================================================
+   CONTENEDOR DE TARJETAS
+   ========================================================================== */
+
+.exercises-grid {
+    padding: 12px 20px 100px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ==========================================================================
+   TARJETAS DE EJERCICIOS
+   ========================================================================== */
+
+.card-exercise {
+    background: var(--card-background, #ffffff);
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    transition: border-color 0.15s ease;
+}
+
+.card-exercise:active {
+    border-color: var(--primary-color, #000000);
+}
+
+.card-exercise-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 14px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.card-exercise-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    object-fit: cover;
+    background-color: #f3f4f6;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.card-exercise-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.card-exercise-group {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-color, #ccff00);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.card-exercise-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary-color, #000000);
+    margin: 0;
+    word-break: break-word;
+}
+
+.card-exercise-chevron {
+    color: #cbd5e1;
+    font-size: 14px;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.card-exercise.expanded .card-exercise-chevron {
+    transform: rotate(180deg);
+}
+
+/* ==========================================================================
+   CUERPO DE TARJETA (EXPANDIBLE)
+   ========================================================================== */
+
+.card-exercise-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0 16px;
+    background-color: #f9fafb;
+}
+
+.card-exercise.expanded .card-exercise-body {
+    padding: 16px 16px 20px 16px;
+}
+
+.card-exercise-notes {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #374151;
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding: 12px;
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #f3f4f6;
+}
+
+.card-exercise-notes a {
+    color: var(--accent-color, #ccff00);
+    text-decoration: underline;
+    word-break: break-word;
+}
+
+/* ==========================================================================
+   BOTONES DE ACCIÓN EN TARJETA
+   ========================================================================== */
+
+.card-exercise-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-exercise-action {
+    flex: 1;
+    min-width: 44px;
+    padding: 10px 0;
+    border: none;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+}
+
+.btn-exercise-action:active {
+    transform: scale(0.94);
+}
+
+.btn-exercise-action i {
+    font-size: 14px;
+}
+
+.btn-exercise-action:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn-exercise-action-video {
+    background: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+}
+
+.btn-exercise-action-share {
+    background: #e8eaf6;
+    color: #3949ab;
+}
+
+.btn-exercise-action-history {
+    background: #e3f2fd;
+    color: #0d47a1;
+}
+
+.btn-exercise-action-web {
+    background: #e0f7fa;
+    color: #006064;
+}
+
+.btn-exercise-action-edit {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.btn-exercise-action-delete {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+/* ==========================================================================
+   ESTADO VACÍO
+   ========================================================================== */
+
+.exercises-empty {
+    padding: 60px 40px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.exercises-empty i {
+    font-size: 48px;
+    color: #d1d5db;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.exercises-empty .btn-empty-add {
+    margin-top: 16px;
+    padding: 12px 28px;
+    background: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+    border: none;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.exercises-empty .btn-empty-add:active {
+    transform: scale(0.95);
+}
+
+/* ==========================================================================
+   MODAL DE EJERCICIO - PANTALLA COMPLETA (estilo consistente con la app)
+   ========================================================================== */
+
+#modal-exercise {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-color, #fafafa);
+    z-index: 2000;
+    display: none !important;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#modal-exercise.active {
+    display: flex !important;
+}
+
+#modal-exercise .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    flex-shrink: 0;
+    min-height: 60px;
+}
+
+#modal-exercise .modal-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--primary-color, #000000);
+}
+
+#modal-exercise .modal-header .modal-icon {
+    font-size: 20px;
+    color: var(--accent-color, #ccff00);
+    margin-right: 10px;
+}
+
+#modal-exercise .modal-header .btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background-color 0.15s ease;
+}
+
+#modal-exercise .modal-header .btn-close-modal:active {
+    background-color: #f3f4f6;
+}
+
+#modal-exercise .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px 20px 20px;
+    -webkit-overflow-scrolling: touch;
+}
+
+#modal-exercise .modal-body label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 4px;
+}
+
+#modal-exercise .modal-body input,
+#modal-exercise .modal-body select,
+#modal-exercise .modal-body textarea {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    font-size: 15px;
+    outline: none;
+    background-color: #ffffff;
+    transition: border-color 0.15s ease;
+    font-family: inherit;
+    color: var(--primary-color, #000000);
+    box-sizing: border-box;
+}
+
+#modal-exercise .modal-body input:focus,
+#modal-exercise .modal-body select:focus,
+#modal-exercise .modal-body textarea:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+#modal-exercise .modal-body textarea {
+    min-height: 80px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+/* Músculos implicados - toggle con grid de 2 columnas */
+.muscles-toggle {
+    display: block;
+    padding: 10px 0 6px 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-color, #ccff00);
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+
+.muscles-toggle i {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
+}
+
+.muscles-toggle.open i {
+    transform: rotate(90deg);
+}
+
+.muscles-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #f9fafb;
+    border-radius: 14px;
+    margin-bottom: 0;
+}
+
+.muscles-container.open {
+    max-height: 200px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    border: 1px solid #e5e7eb;
+    overflow-y: auto;
+}
+
+.muscles-container .muscles-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
+}
+
+.muscles-container .muscle-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #374151;
+    padding: 4px 0;
+}
+
+.muscles-container .muscle-check input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    accent-color: var(--accent-color, #ccff00);
+    cursor: pointer;
+}
+
+.muscles-container .muscle-check .muscle-label {
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.3;
+}
+
+/* Footer del modal */
+#modal-exercise .modal-footer {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    background-color: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    flex-shrink: 0;
+}
+
+#modal-exercise .modal-footer .btn-cancel {
+    flex: 1;
+    padding: 14px 0;
+    border: none;
+    border-radius: 40px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: #f3f4f6;
+    color: #4b5563;
+    transition: transform 0.1s ease, background-color 0.1s ease;
+}
+
+#modal-exercise .modal-footer .btn-cancel:active {
+    transform: scale(0.96);
+    background-color: #e5e7eb;
+}
+
+#modal-exercise .modal-footer .btn-save {
+    flex: 2;
+    padding: 14px 0;
+    border: none;
+    border-radius: 40px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    background-color: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+    transition: transform 0.1s ease, background-color 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#modal-exercise .modal-footer .btn-save:active {
+    transform: scale(0.96);
+    filter: brightness(0.9);
+}
+
+/* ==========================================================================
+   MENÚ DE OPCIONES (tres puntos)
+   ========================================================================== */
+
+.exercises-options-menu {
+    position: absolute;
+    top: 50px;
+    right: 16px;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    width: 200px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    animation: fadeInMenu 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.exercises-options-menu.hidden {
+    display: none !important;
+}
+
+@keyframes fadeInMenu {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.exercises-options-menu .menu-item {
+    background: none;
+    border: none;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.12s ease, color 0.12s ease;
+    width: 100%;
+}
+
+.exercises-options-menu .menu-item i {
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.exercises-options-menu .menu-item:active {
+    background-color: #f3f4f6;
+    color: #000000;
+}
+
+.exercises-options-menu .menu-divider {
+    height: 1px;
+    background-color: #f3f4f6;
+    margin: 4px 6px;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 480px) {
+    .card-exercise-actions {
+        gap: 6px;
+    }
+    
+    .btn-exercise-action {
+        font-size: 11px;
+        padding: 8px 0;
+        min-width: 36px;
+    }
+    
+    .btn-exercise-action i {
+        font-size: 12px;
+    }
+    
+    .card-exercise-thumb {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .card-exercise-name {
+        font-size: 15px;
+    }
+    
+    .exercises-header-top h1 {
+        font-size: 24px;
+    }
+    
+    .muscles-container .muscles-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 4px 12px;
+    }
+    
+    #modal-exercise .modal-body {
+        padding: 16px;
+    }
+}
+
+/* ==========================================================================
+   TOOLTIP PARA BOTONES
+   ========================================================================== */
+
+.btn-exercise-action[data-tooltip] {
+    position: relative;
+}
+
+@media (hover: hover) {
+    .btn-exercise-action[data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 100;
+    }
+}
