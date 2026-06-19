@@ -1,0 +1,201 @@
+/* ==========================================================================
+   COMPONENTES DE INTERFAZ (index-components.css)
+   ========================================================================== */
+
+/* ==========================================================================
+   ENCABEZADOS Y BOTONES DE NAVEGACIÓN
+   ========================================================================== */
+
+.screen-header {
+    padding: 24px 20px 12px 20px;
+    background-color: var(--background-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.screen-header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+}
+
+/* ==========================================================================
+   MENÚ DE NAVEGACIÓN INFERIOR
+   ========================================================================== */
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 64px;
+    background-color: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: var(--safe-area-bottom);
+    z-index: 100;
+    transition: transform 0.2s ease;
+}
+
+.bottom-nav.hidden-nav {
+    display: none !important;
+}
+
+.nav-item {
+    background: none;
+    border: none;
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    color: #9ca3af;
+    cursor: pointer;
+}
+
+.nav-item i {
+    font-size: 20px;
+}
+
+.nav-item span {
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.nav-item.active {
+    color: var(--primary-color);
+}
+
+/* ==========================================================================
+   TARJETAS Y CUADRÍCULA
+   ========================================================================== */
+
+.cards-grid {
+    padding: 10px 20px 100px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.card {
+    background: var(--card-background);
+    border-radius: 16px;
+    padding: 16px 20px;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0,02);
+}
+
+.card-content h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.card-content p {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.icon-arrow, .icon-edit {
+    color: #cbd5e1;
+    font-size: 14px;
+}
+
+/* ==========================================================================
+   BOTÓN FLOTANTE DE ACCIÓN (FAB)
+   ========================================================================== */
+
+.fab {
+    position: fixed;
+    right: 20px;
+    bottom: 84px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    color: var(--primary-color);
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    box-shadow: 0 4px 12px rgba(204, 255, 0, 0.3);
+    cursor: pointer;
+    z-index: 90;
+}
+
+/* ==========================================================================
+   ESTADO VACÍO
+   ========================================================================== */
+
+.empty-state {
+    padding: 60px 40px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   BOTÓN FLOTANTE DE SCROLL (VOLVER AL INICIO)
+   ========================================================================== */
+
+.btn-scroll-top {
+    position: fixed;
+    bottom: 84px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    z-index: 150;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(15px);
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                visibility 0.25s;
+}
+
+.btn-scroll-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.btn-scroll-top:active {
+    transform: scale(0.92);
+    background-color: #000000;
+}

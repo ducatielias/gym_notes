@@ -8,10 +8,13 @@
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <link rel="stylesheet" href="index.css">
-    <link rel="stylesheet" href="gym-plan.css">
-    <link rel="stylesheet" href="gym-session.css">
-    <link rel="stylesheet" href="gym-exercises.css">
+    <link rel="stylesheet" href="css/index-core.css">
+    <link rel="stylesheet" href="css/index-components.css">
+    <link rel="stylesheet" href="css/index-modals.css">
+    <link rel="stylesheet" href="css/index-workout.css">
+    <link rel="stylesheet" href="css/gym-session.css">
+    <link rel="stylesheet" href="css/gym-exercises.css">
+    <link rel="stylesheet" href="css/gym-plan.css">
 </head>
 <body>
 
@@ -45,6 +48,10 @@
 
         <section id="screen-editor" class="screen hidden">
             <div id="session-editor-ui"></div>
+        </section>
+
+        <section id="screen-exercise-editor" class="screen hidden">
+            <div id="exercise-editor-ui"></div>
         </section>
 
     </main>
@@ -180,62 +187,31 @@
         </div>
     </div>
 
-    <!-- MODAL DE EJERCICIO (CREAR / EDITAR) - PANTALLA COMPLETA -->
-    <div id="modal-exercise" class="modal-overlay hidden" style="display:none; z-index: 2000;">
-        <div class="modal-header">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <span class="modal-icon"><i class="fa-solid fa-dumbbell"></i></span>
-                <h2 id="exercise-modal-title">Nuevo Ejercicio</h2>
-            </div>
-            <button class="btn-close-modal" onclick="closeExerciseModal()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <form id="form-exercicio" onsubmit="event.preventDefault(); saveExercise();">
-                <input type="hidden" id="ex-id">
-                
-                <label for="ex-nombre">Nombre del ejercicio *</label>
-                <input type="text" id="ex-nombre" placeholder="Ej: Press de Banca" required autocomplete="off">
-                
-                <label for="ex-grupo">Grupo muscular</label>
-                <select id="ex-grupo">
-                    <option value="General">General</option>
-                </select>
-                
-                <button type="button" class="muscles-toggle" onclick="toggleMuscles()">
-                    <i class="fa-solid fa-chevron-right"></i> Músculos implicados
-                </button>
-                <div class="muscles-container" id="musclesContainer">
-                    <div id="musclesCheckboxes"></div>
-                </div>
-                
-                <label for="ex-notas">Notas / Técnica</label>
-                <textarea id="ex-notas" placeholder="Notas, técnica, series recomendadas..."></textarea>
-                
-                <label for="ex-img">URL de imagen (opcional)</label>
-                <input type="url" id="ex-img" placeholder="https://ejemplo.com/imagen.jpg" autocomplete="off">
-                
-                <label for="ex-video">URL de vídeo (opcional)</label>
-                <input type="url" id="ex-video" placeholder="https://youtube.com/watch?v=..." autocomplete="off">
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn-cancel" onclick="closeExerciseModal()">Cancelar</button>
-            <button type="button" class="btn-save" onclick="saveExercise()">
-                <i class="fa-solid fa-floppy-disk"></i> Guardar
-            </button>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    <script src="index.js"></script>
-    <script src="modal.js"></script>
-    <script src="ui-helpers.js"></script>
-    <script src="gym-plan.js"></script>
-    <script src="workout.js"></script>
-    <script src="gym-session.js"></script>
-    <script src="gym-exercises.js"></script>
+    
+    <!-- JS - CORE -->
+    <script src="js/index.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/ui-helpers.js"></script>
+    
+    <!-- JS - PLAN -->
+    <script src="js/plan-state.js"></script>
+    <script src="js/plan-menus.js"></script>
+    <script src="js/plan-routines.js"></script>
+    <script src="js/plan-sessions.js"></script>
+    <script src="js/plan.js"></script>
+    
+    <!-- JS - EXERCISES -->
+    <script src="js/exercises-state.js"></script>
+    <script src="js/exercises-render.js"></script>
+    <script src="js/exercises-crud.js"></script>
+    <script src="js/exercises-import-export.js"></script>
+    <script src="js/exercises-share.js"></script>
+    <script src="js/exercises.js"></script>
+    
+    <!-- JS - WORKOUT & SESSION -->
+    <script src="js/workout.js"></script>
+    <script src="js/gym-session.js"></script>
 
 </body>
 </html>
