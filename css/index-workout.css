@@ -9,7 +9,7 @@
 .aw-container {
     display: flex;
     flex-direction: column;
-    height: 100dvh; /* Usa dvh (dynamic viewport height) para recalcular con el teclado */
+    height: 100dvh;
     width: 100%;
     background-color: var(--background-color);
     overflow: hidden !important;
@@ -19,7 +19,7 @@
     background: white;
     padding: 16px 15px 12px 15px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    flex-shrink: 0; /* Impide que la cabecera se aplaste o reduzca */
+    flex-shrink: 0;
     position: sticky;
     top: 0;
     z-index: 10;
@@ -316,7 +316,7 @@
     flex: 1;
     overflow-y: auto !important; /* Solo aquí se permite scroll */
     -webkit-overflow-scrolling: touch !important; /* Inercia fluida en iOS */
-    padding: 20px 16px 180px 16px !important; /* Padding inferior alto para que el teclado no tape la última línea */
+    padding: 20px 16px 220px 16px !important; /* AUMENTADO a 220px para dar más espacio al teclado */
 }
 
 #aw-editor-container .ql-toolbar {

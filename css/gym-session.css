@@ -103,28 +103,26 @@
     border-bottom: 1px solid #f3f4f6;
     flex-shrink: 0;
     display: flex;
-    flex-direction: column; /* Apila la etiqueta y el input uno encima del otro */
+    flex-direction: column;
     align-items: flex-start;
-    gap: 4px; /* Separación sutil entre las dos líneas */
+    gap: 4px;
 }
 
-/* Prefijo de etiqueta superior: Mismo color pero letra más pequeña */
 .session-label-prefix {
     font-size: 13px;
     font-weight: 700;
     color: var(--primary-color, #000000);
-    opacity: 0.5; /* Suavizado sutil para dar sensación jerárquica */
+    opacity: 0.5;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding-left: 2px;
 }
 
-/* Campo de entrada del título: Tamaño reducido y estilizado */
 .session-input-field {
     width: 100%;
     border: none;
     background: transparent;
-    font-size: 22px; /* Reducido desde los 28px originales */
+    font-size: 22px;
     font-weight: 800;
     color: var(--primary-color, #000000);
     outline: none;
@@ -137,7 +135,6 @@
     color: #cbd5e1;
 }
 
-/* Estado cuando el input está deshabilitado en Modo Lectura */
 .session-input-field:disabled {
     color: var(--primary-color, #000000);
     background: transparent;
@@ -163,7 +160,6 @@
     flex-shrink: 0;
 }
 
-/* El contenedor del botón "Iniciar sesión" dentro de .editor-tools-row ocupa todo el espacio */
 .editor-tools-row .editor-tools-selectors {
     flex: 1;
 }
@@ -226,12 +222,10 @@
    BOTÓN DE TRES PUNTOS Y MENÚ DESPLEGABLE
    ========================================================================== */
 
-/* Contenedor relativo para posicionar el menú desplegable */
 .editor-options-wrapper {
     position: relative;
 }
 
-/* Botón de tres puntos */
 .btn-options-dots {
     background: none;
     border: none;
@@ -251,7 +245,6 @@
     background-color: #f3f4f6;
 }
 
-/* Menú desplegable de opciones */
 .editor-options-dropdown {
     position: absolute;
     top: 48px;
@@ -272,7 +265,6 @@
     display: none;
 }
 
-/* Elementos del menú */
 .editor-option-item {
     background: none;
     border: none;
@@ -314,8 +306,7 @@
 }
 
 .expandable-wrapper.open {
-    /* Permitimos un tamaño máximo para las herramientas fijas */
-    max-height: 240px; 
+    max-height: 240px;
     border-top: 1px solid #e5e7eb;
 }
 
@@ -348,7 +339,7 @@
     overflow-y: auto !important; /* Solo aquí se permite scroll */
     -webkit-overflow-scrolling: touch !important; /* Inercia fluida en iOS */
     touch-action: pan-y !important; /* Le dice al navegador móvil que procese el arrastre táctil vertical */
-    padding: 20px 16px 180px 16px !important; /* Padding inferior alto para que el teclado no tape la última línea */
+    padding: 20px 16px 220px 16px !important; /* AUMENTADO a 220px para dar más espacio al teclado */
     color: #1f2937;
     line-height: 1.6;
 }
