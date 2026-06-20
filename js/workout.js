@@ -1,443 +1,14 @@
 /**
  * MÓDULO: workout.js
- * Gestiona el entrenamiento activo: temporizadores, editor Quill en modo edición,
- * guardado en historial y visualización del historial de la sesión.
- * Incluye botones de Formato y Ejercicios Gym.
+ * PUNTO DE ENTRADA del módulo de Entrenamiento Activo
+ * Gestiona el entrenamiento activo: inicialización, finalización, cierre
+ * y funciones de ejercicios (Formato y Ejercicios Gym)
  */
 
-// ==================== VARIABLES GLOBALES ====================
-let aw_currentWorkout = null;          // Datos del entrenamiento actual
-let aw_quillInstance = null;            // Instancia de Quill para el entrenamiento
-let aw_totalTimerInterval = null;
-let aw_descansoTimerInterval = null;
-let aw_timerTrabajoInterval = null;
-let aw_totalSeconds = 0;
-let aw_descansoSeconds = 60;
-let aw_trabajoSeconds = 0;
-let aw_descansoActivo = false;
-let aw_timerActivo = false;
-let aw_intervaloTimer = null;
-let aw_rondasRestantes = 0;
-let aw_tiempoTrabajoIntervalo = 20;
-let aw_tiempoDescansoIntervalo = 10;
-let aw_enPeriodoTrabajo = true;
-let aw_intervaloActivo = false;
-let aw_intervaloPausado = false;
-let aw_tiempoActualIntervalo = 0;
-let aw_estadoIntervaloPausado = {
-    tiempoActual: 0,
-    trabajo: 20,
-    descanso: 10,
-    rondasRestantes: 0,
-    enPeriodoTrabajo: true,
-    areaBackground: '#d4edda'
-};
-let aw_audioCtx = null;
+// ==========================================================================
+// FUNCIONES DE RESETEO DE ESTADO
+// ==========================================================================
 
-// ==================== FUNCIONES AUXILIARES ====================
-function formatTime(s) {
-    return `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
-}
-
-function initAudio() {
-    if (!aw_audioCtx) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext) aw_audioCtx = new AudioContext();
-    }
-    if (aw_audioCtx && aw_audioCtx.state === 'suspended') {
-        aw_audioCtx.resume();
-    }
-}
-
-function reproducirSonido(tipo) {
-    if (!aw_audioCtx) return;
-    try {
-        const osc = aw_audioCtx.createOscillator();
-        const gain = aw_audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(aw_audioCtx.destination);
-        
-        if (tipo === 'fin') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, aw_audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.5, aw_audioCtx.currentTime);
-            osc.start();
-            osc.stop(aw_audioCtx.currentTime + 0.6);
-        } else if (tipo === 'cambio') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(660, aw_audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.5, aw_audioCtx.currentTime);
-            osc.start();
-            osc.stop(aw_audioCtx.currentTime + 0.2);
-        } else if (tipo === 'bip') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(1000, aw_audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.3, aw_audioCtx.currentTime);
-            osc.start();
-            osc.stop(aw_audioCtx.currentTime + 0.1);
-        }
-    } catch(e) {
-        console.warn('Error reproduciendo sonido:', e);
-    }
-}
-
-function actualizarDisplayTotal() {
-    const el = document.getElementById('aw-timer-total');
-    if (el) el.innerText = formatTime(aw_totalSeconds);
-}
-
-function actualizarDisplayDescanso() {
-    const el = document.getElementById('aw-timer-descanso');
-    if (el) el.innerText = formatTime(aw_descansoSeconds);
-}
-
-function actualizarDisplayTrabajo() {
-    const el = document.getElementById('aw-timer-trabajo');
-    if (el) el.innerText = formatTime(aw_trabajoSeconds);
-}
-
-function iniciarTotalTimer() {
-    if (aw_totalTimerInterval) clearInterval(aw_totalTimerInterval);
-    aw_totalTimerInterval = setInterval(() => {
-        aw_totalSeconds++;
-        actualizarDisplayTotal();
-    }, 1000);
-}
-
-function detenerTotalTimer() {
-    if (aw_totalTimerInterval) {
-        clearInterval(aw_totalTimerInterval);
-        aw_totalTimerInterval = null;
-    }
-}
-
-// ==================== TEMPORIZADORES ====================
-window.iniciarDescanso = function() {
-    initAudio();
-    if (aw_descansoActivo) return;
-    if (aw_descansoSeconds <= 0) {
-        aw_descansoSeconds = 60;
-        actualizarDisplayDescanso();
-    }
-    aw_descansoActivo = true;
-    const btnPlay = document.getElementById('btn-descanso-play');
-    const btnPause = document.getElementById('btn-descanso-pause');
-    if (btnPlay) btnPlay.style.display = 'none';
-    if (btnPause) btnPause.style.display = 'inline-flex';
-    
-    if (aw_descansoTimerInterval) clearInterval(aw_descansoTimerInterval);
-    
-    aw_descansoTimerInterval = setInterval(() => {
-        aw_descansoSeconds--;
-        if (aw_descansoSeconds > 0) {
-            actualizarDisplayDescanso();
-            if (aw_descansoSeconds <= 5) reproducirSonido('bip');
-        } else if (aw_descansoSeconds === 0) {
-            actualizarDisplayDescanso();
-            reproducirSonido('fin');
-            window.pausarDescanso();
-        }
-    }, 1000);
-};
-
-window.pausarDescanso = function() {
-    aw_descansoActivo = false;
-    if (aw_descansoTimerInterval) {
-        clearInterval(aw_descansoTimerInterval);
-        aw_descansoTimerInterval = null;
-    }
-    const btnPlay = document.getElementById('btn-descanso-play');
-    const btnPause = document.getElementById('btn-descanso-pause');
-    if (btnPlay) btnPlay.style.display = 'inline-flex';
-    if (btnPause) btnPause.style.display = 'none';
-};
-
-window.resetearDescanso = function() {
-    window.pausarDescanso();
-    aw_descansoSeconds = 60;
-    actualizarDisplayDescanso();
-};
-
-window.setTiempoDescanso = function(segundos) {
-    if (typeof segundos !== 'number' || segundos < 1) segundos = 60;
-    window.pausarDescanso();
-    aw_descansoSeconds = segundos;
-    actualizarDisplayDescanso();
-    document.getElementById('descanso-panel').style.display = 'none';
-};
-
-window.iniciarTimer = function() {
-    initAudio();
-    if (aw_timerActivo || aw_intervaloActivo) return;
-    
-    if (aw_intervaloPausado) {
-        reanudarIntervalo();
-        return;
-    }
-    
-    aw_timerActivo = true;
-    const btnPlay = document.getElementById('btn-timer-play');
-    const btnPause = document.getElementById('btn-timer-pause');
-    if (btnPlay) btnPlay.style.display = 'none';
-    if (btnPause) btnPause.style.display = 'inline-flex';
-    
-    if (aw_timerTrabajoInterval) clearInterval(aw_timerTrabajoInterval);
-    aw_timerTrabajoInterval = setInterval(() => {
-        aw_trabajoSeconds++;
-        actualizarDisplayTrabajo();
-    }, 1000);
-};
-
-window.pausarTimer = function() {
-    if (aw_intervaloActivo) {
-        pausarIntervalo();
-        return;
-    }
-    aw_timerActivo = false;
-    if (aw_timerTrabajoInterval) {
-        clearInterval(aw_timerTrabajoInterval);
-        aw_timerTrabajoInterval = null;
-    }
-    const btnPlay = document.getElementById('btn-timer-play');
-    const btnPause = document.getElementById('btn-timer-pause');
-    if (btnPlay) btnPlay.style.display = 'inline-flex';
-    if (btnPause) btnPause.style.display = 'none';
-};
-
-window.resetearTimer = function() {
-    window.pausarTimer();
-    detenerIntervalo();
-    aw_trabajoSeconds = 0;
-    actualizarDisplayTrabajo();
-};
-
-function pausarIntervalo() {
-    if (!aw_intervaloActivo || aw_intervaloPausado) return;
-    
-    aw_estadoIntervaloPausado.tiempoActual = aw_tiempoActualIntervalo;
-    aw_estadoIntervaloPausado.trabajo = aw_tiempoTrabajoIntervalo;
-    aw_estadoIntervaloPausado.descanso = aw_tiempoDescansoIntervalo;
-    aw_estadoIntervaloPausado.rondasRestantes = aw_rondasRestantes;
-    aw_estadoIntervaloPausado.enPeriodoTrabajo = aw_enPeriodoTrabajo;
-    const area = document.getElementById('timer-trabajo-area');
-    aw_estadoIntervaloPausado.areaBackground = area ? area.style.background : '#d4edda';
-    
-    if (aw_intervaloTimer) {
-        clearInterval(aw_intervaloTimer);
-        aw_intervaloTimer = null;
-    }
-    aw_intervaloActivo = false;
-    aw_intervaloPausado = true;
-    
-    const btnPlay = document.getElementById('btn-timer-play');
-    const btnPause = document.getElementById('btn-timer-pause');
-    if (btnPlay) btnPlay.style.display = 'inline-flex';
-    if (btnPause) btnPause.style.display = 'none';
-}
-
-function reanudarIntervalo() {
-    if (!aw_intervaloPausado) return;
-    
-    aw_tiempoTrabajoIntervalo = aw_estadoIntervaloPausado.trabajo;
-    aw_tiempoDescansoIntervalo = aw_estadoIntervaloPausado.descanso;
-    aw_rondasRestantes = aw_estadoIntervaloPausado.rondasRestantes;
-    aw_enPeriodoTrabajo = aw_estadoIntervaloPausado.enPeriodoTrabajo;
-    aw_tiempoActualIntervalo = aw_estadoIntervaloPausado.tiempoActual;
-    
-    aw_intervaloActivo = true;
-    aw_intervaloPausado = false;
-    aw_timerActivo = false;
-    
-    const btnPlay = document.getElementById('btn-timer-play');
-    const btnPause = document.getElementById('btn-timer-pause');
-    if (btnPlay) btnPlay.style.display = 'none';
-    if (btnPause) btnPause.style.display = 'inline-flex';
-    
-    const area = document.getElementById('timer-trabajo-area');
-    if (area) area.style.background = aw_estadoIntervaloPausado.areaBackground;
-    
-    const actualizarDisplay = () => {
-        document.getElementById('aw-timer-trabajo').innerText = formatTime(aw_tiempoActualIntervalo);
-    };
-    actualizarDisplay();
-    
-    aw_intervaloTimer = setInterval(() => {
-        aw_tiempoActualIntervalo--;
-        if (aw_tiempoActualIntervalo > 0) {
-            actualizarDisplay();
-            if (aw_tiempoActualIntervalo <= 5) reproducirSonido('bip');
-        } else if (aw_tiempoActualIntervalo === 0) {
-            if (aw_enPeriodoTrabajo) {
-                aw_rondasRestantes--;
-                if (aw_rondasRestantes > 0) {
-                    if (aw_tiempoDescansoIntervalo > 0) {
-                        aw_enPeriodoTrabajo = false;
-                        reproducirSonido('cambio');
-                        aw_tiempoActualIntervalo = aw_tiempoDescansoIntervalo;
-                        if (area) area.style.background = '#ffe5e5';
-                    } else {
-                        reproducirSonido('cambio');
-                        aw_tiempoActualIntervalo = aw_tiempoTrabajoIntervalo;
-                    }
-                    actualizarDisplay();
-                } else {
-                    actualizarDisplay();
-                    detenerIntervalo();
-                    reproducirSonido('fin');
-                    setTimeout(() => alert('¡Intervalo completado!'), 50);
-                }
-            } else {
-                aw_enPeriodoTrabajo = true;
-                reproducirSonido('cambio');
-                aw_tiempoActualIntervalo = aw_tiempoTrabajoIntervalo;
-                actualizarDisplay();
-                if (area) area.style.background = '#d4edda';
-            }
-        }
-    }, 1000);
-}
-
-function detenerIntervalo() {
-    if (aw_intervaloTimer) {
-        clearInterval(aw_intervaloTimer);
-        aw_intervaloTimer = null;
-    }
-    aw_intervaloActivo = false;
-    aw_intervaloPausado = false;
-    const btnPlay = document.getElementById('btn-timer-play');
-    const btnPause = document.getElementById('btn-timer-pause');
-    if (btnPlay) btnPlay.style.display = 'inline-flex';
-    if (btnPause) btnPause.style.display = 'none';
-    const area = document.getElementById('timer-trabajo-area');
-    if (area) area.style.background = '';
-}
-
-function iniciarIntervalo(config) {
-    initAudio();
-    detenerIntervalo();
-    
-    const { trabajo, descanso, rondas } = config;
-    aw_rondasRestantes = rondas;
-    aw_tiempoTrabajoIntervalo = trabajo;
-    aw_tiempoDescansoIntervalo = descanso;
-    aw_enPeriodoTrabajo = true;
-    aw_intervaloActivo = true;
-    aw_intervaloPausado = false;
-    aw_timerActivo = false;
-    
-    // Fase de preparación de 5 segundos
-    const area = document.getElementById('timer-trabajo-area');
-    if (area) area.style.background = '#ffe5e5';
-    
-    let tiempoPreparacion = 5;
-    aw_tiempoActualIntervalo = tiempoPreparacion;
-    
-    const btnPlay = document.getElementById('btn-timer-play');
-    const btnPause = document.getElementById('btn-timer-pause');
-    if (btnPlay) btnPlay.style.display = 'none';
-    if (btnPause) btnPause.style.display = 'inline-flex';
-    
-    const actualizarDisplay = () => {
-        document.getElementById('aw-timer-trabajo').innerText = formatTime(aw_tiempoActualIntervalo);
-    };
-    actualizarDisplay();
-    
-    aw_intervaloTimer = setInterval(() => {
-        aw_tiempoActualIntervalo--;
-        if (aw_tiempoActualIntervalo > 0) {
-            actualizarDisplay();
-            if (aw_tiempoActualIntervalo <= 3) reproducirSonido('bip');
-        } else if (aw_tiempoActualIntervalo === 0) {
-            clearInterval(aw_intervaloTimer);
-            reproducirSonido('cambio');
-            
-            if (area) area.style.background = '#d4edda';
-            
-            aw_tiempoActualIntervalo = trabajo;
-            aw_rondasRestantes = rondas;
-            aw_enPeriodoTrabajo = true;
-            
-            actualizarDisplay();
-            
-            aw_intervaloTimer = setInterval(() => {
-                aw_tiempoActualIntervalo--;
-                if (aw_tiempoActualIntervalo > 0) {
-                    actualizarDisplay();
-                    if (aw_tiempoActualIntervalo <= 5) reproducirSonido('bip');
-                } else if (aw_tiempoActualIntervalo === 0) {
-                    if (aw_enPeriodoTrabajo) {
-                        aw_rondasRestantes--;
-                        if (aw_rondasRestantes > 0) {
-                            if (descanso > 0) {
-                                aw_enPeriodoTrabajo = false;
-                                reproducirSonido('cambio');
-                                aw_tiempoActualIntervalo = descanso;
-                                if (area) area.style.background = '#ffe5e5';
-                            } else {
-                                reproducirSonido('cambio');
-                                aw_tiempoActualIntervalo = trabajo;
-                            }
-                            actualizarDisplay();
-                        } else {
-                            actualizarDisplay();
-                            detenerIntervalo();
-                            reproducirSonido('fin');
-                            setTimeout(() => alert('¡Intervalo completado!'), 50);
-                        }
-                    } else {
-                        aw_enPeriodoTrabajo = true;
-                        reproducirSonido('cambio');
-                        aw_tiempoActualIntervalo = trabajo;
-                        actualizarDisplay();
-                        if (area) area.style.background = '#d4edda';
-                    }
-                }
-            }, 1000);
-        }
-    }, 1000);
-}
-
-window.aplicarPresetTimer = function(preset) {
-    if (preset === 'tabata') {
-        document.getElementById('interval-trabajo').value = 20;
-        document.getElementById('interval-descanso').value = 10;
-        document.getElementById('interval-rondas').value = 8;
-        const info = document.getElementById('timer-preset-info');
-        if (info) info.innerText = 'Tabata: 20" trabajo / 10" descanso x8';
-    } else if (preset === 'emom') {
-        document.getElementById('interval-trabajo').value = 60;
-        document.getElementById('interval-descanso').value = 0;
-        document.getElementById('interval-rondas').value = 10;
-        const info = document.getElementById('timer-preset-info');
-        if (info) info.innerText = 'EMOM: cada minuto en punto, 10 rondas';
-    }
-};
-
-window.iniciarIntervaloPersonalizado = function() {
-    const trabajo = parseInt(document.getElementById('interval-trabajo').value) || 20;
-    const descanso = parseInt(document.getElementById('interval-descanso').value) || 0;
-    const rondas = parseInt(document.getElementById('interval-rondas').value) || 1;
-    
-    if (trabajo <= 0) {
-        alert('El tiempo de trabajo debe ser mayor a 0');
-        return;
-    }
-    iniciarIntervalo({ trabajo, descanso, rondas });
-    document.getElementById('timer-panel').style.display = 'none';
-};
-
-// Alternar paneles de configuración de temporizadores
-function togglePanel(panelId) {
-    const panel = document.getElementById(panelId);
-    if (panel.style.display === 'none' || panel.style.display === '') {
-        document.querySelectorAll('.timer-panel').forEach(p => p.style.display = 'none');
-        panel.style.display = 'flex';
-    } else {
-        panel.style.display = 'none';
-    }
-}
-
-// ==================== FUNCIONES PRINCIPALES DEL ENTRENAMIENTO ====================
 function resetAllTimersAndState() {
     if (aw_totalTimerInterval) { clearInterval(aw_totalTimerInterval); aw_totalTimerInterval = null; }
     if (aw_descansoTimerInterval) { clearInterval(aw_descansoTimerInterval); aw_descansoTimerInterval = null; }
@@ -469,6 +40,10 @@ function resetAllTimersAndState() {
     const area = document.getElementById('timer-trabajo-area');
     if (area) area.style.background = '';
 }
+
+// ==========================================================================
+// FUNCIÓN PRINCIPAL: INICIAR ENTRENAMIENTO
+// ==========================================================================
 
 window.iniciarEntrenamiento = function(sessionData) {
     // Limpiar estados previos
@@ -506,85 +81,7 @@ window.iniciarEntrenamiento = function(sessionData) {
         console.log('[iniciarEntrenamiento] Modal mostrado');
     }
     
-    // Limpiar y preparar el contenedor del editor (ahora el modal está visible)
-    const container = document.getElementById('aw-editor-container');
-    if (!container) {
-        console.error('[iniciarEntrenamiento] Contenedor aw-editor-container no encontrado');
-        return;
-    }
-    
-    // Crear el elemento donde se montará Quill (solo el contenido del editor, NO el header)
-    container.innerHTML = '<div id="aw-quill-editor" style="height: 100%;"></div>';
-    
-    // Esperar a que el DOM se actualice antes de inicializar Quill y enlazar eventos
-    setTimeout(() => {
-        // Inicializar Quill en modo edición (sin toolbar fija, usará la del contenedor expandible)
-        aw_quillInstance = new Quill('#aw-quill-editor', {
-            theme: 'snow',
-            modules: {
-                toolbar: '#aw-toolbar-container'  // Enlazado al contenedor de herramientas del entrenamiento
-            },
-            placeholder: 'Anota aquí tus series, repeticiones, sensaciones...'
-        });
-        
-        // Cargar el contenido original (copia)
-        if (aw_currentWorkout.sessionContent) {
-            aw_quillInstance.clipboard.dangerouslyPasteHTML(aw_currentWorkout.sessionContent);
-        }
-        
-        // Habilitar edición
-        aw_quillInstance.enable();
-        aw_quillInstance.focus();
-        
-        console.log('[iniciarEntrenamiento] Quill inicializado correctamente');
-        
-        // ============================================================
-        // SOLUCIÓN DEFINITIVA: Enlazar el botón de historial por JS
-        // ============================================================
-        const historyBtn = document.querySelector('.aw-history-btn');
-        if (historyBtn) {
-            // Eliminar listeners previos
-            historyBtn.onclick = null;
-            // Asignar directamente la función global
-            historyBtn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('[Workout] Botón de historial pulsado (click enlazado por JS)');
-                // Verificar que aw_currentWorkout existe
-                if (!aw_currentWorkout) {
-                    console.warn('[Workout] aw_currentWorkout es null, intentando recuperar...');
-                    // Intentar recuperar el título desde el DOM
-                    const titleSpan2 = document.getElementById('aw-session-title');
-                    if (titleSpan2 && titleSpan2.textContent) {
-                        const titleText = titleSpan2.textContent;
-                        const parts = titleText.split(' - ');
-                        if (parts.length === 2) {
-                            // Reconstruir aw_currentWorkout temporalmente
-                            aw_currentWorkout = {
-                                sessionTitle: parts[1] || 'Sesión',
-                                routineName: parts[0] || 'Rutina'
-                            };
-                            console.log('[Workout] aw_currentWorkout reconstruido:', aw_currentWorkout);
-                        }
-                    }
-                }
-                // Llamar a la función global
-                if (typeof window.mostrarHistorialEntrenamientoActual === 'function') {
-                    window.mostrarHistorialEntrenamientoActual();
-                } else {
-                    console.error('[Workout] window.mostrarHistorialEntrenamientoActual no es una función');
-                    alert('Error: La función de historial no está disponible.');
-                }
-            };
-            console.log('[Workout] Evento de historial enlazado correctamente al botón.');
-        } else {
-            console.warn('[Workout] No se encontró el botón .aw-history-btn para enlazar el evento');
-        }
-        // ============================================================
-        
-    }, 100);
-    
-    // Configurar listeners para los paneles de temporizadores
+    // Configurar listeners para los paneles de temporizadores (antes de inicializar Quill)
     const timerDescansoArea = document.getElementById('timer-descanso-area');
     const timerTrabajoArea = document.getElementById('timer-trabajo-area');
     if (timerDescansoArea) {
@@ -604,11 +101,19 @@ window.iniciarEntrenamiento = function(sessionData) {
     if (descansoPanel) descansoPanel.style.display = 'none';
     if (timerPanel) timerPanel.style.display = 'none';
     
+    // Inicializar el editor y enlazar el botón de historial
+    setTimeout(() => {
+        inicializarEditorEntrenamiento();
+    }, 50);
+    
     // Iniciar temporizador total
     iniciarTotalTimer();
 };
 
-// ==================== FUNCIÓN FINALIZAR ENTRENAMIENTO ====================
+// ==========================================================================
+// FUNCIÓN FINALIZAR ENTRENAMIENTO
+// ==========================================================================
+
 window.finalizarEntrenamiento = async function() {
     if (!aw_currentWorkout) {
         alert('No hay entrenamiento activo.');
@@ -625,10 +130,7 @@ window.finalizarEntrenamiento = async function() {
     detenerIntervalo();
     
     // Obtener el contenido editado del Quill
-    let contenidoEditado = '';
-    if (aw_quillInstance) {
-        contenidoEditado = aw_quillInstance.getSemanticHTML();
-    }
+    let contenidoEditado = obtenerContenidoEditado();
     
     // Calcular duración en minutos
     const duracionMinutos = Math.floor(aw_totalSeconds / 60);
@@ -720,6 +222,10 @@ window.finalizarEntrenamiento = async function() {
     aw_quillInstance = null;
 };
 
+// ==========================================================================
+// FUNCIÓN CERRAR ENTRENAMIENTO
+// ==========================================================================
+
 window.cerrarEntrenamiento = async function() {
     if (aw_currentWorkout) {
         if (typeof window.showConfirm === 'function') {
@@ -779,7 +285,9 @@ window.cerrarEntrenamiento = async function() {
     console.log('[cerrarEntrenamiento] Entrenamiento cerrado correctamente');
 };
 
-// ==================== FUNCIONES PARA BOTONES DE FORMATO Y EJERCICIOS (entrenamiento) ====================
+// ==========================================================================
+// FUNCIONES PARA BOTONES DE FORMATO Y EJERCICIOS (entrenamiento)
+// ==========================================================================
 
 // Lista de ejercicios por defecto (copia de gym-session.js)
 function obtenerListaEjerciciosPorDefecto() {
@@ -911,3 +419,9 @@ window.toggleSectionEntrenamiento = function(type) {
         }
     }
 };
+
+// ==========================================================================
+// EXPOSICIÓN GLOBAL DE FUNCIONES PRINCIPALES
+// ==========================================================================
+
+window.resetAllTimersAndState = resetAllTimersAndState;
