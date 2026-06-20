@@ -9,16 +9,20 @@
 .aw-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 100dvh; /* Usa dvh (dynamic viewport height) para recalcular con el teclado */
     width: 100%;
     background-color: var(--background-color);
+    overflow: hidden !important;
 }
 
 .aw-header {
     background: white;
     padding: 16px 15px 12px 15px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    flex-shrink: 0;
+    flex-shrink: 0; /* Impide que la cabecera se aplaste o reduzca */
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .aw-header-top {
@@ -243,52 +247,6 @@
     margin-left: auto;
 }
 
-.aw-content {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding: 15px;
-    -webkit-overflow-scrolling: touch;
-}
-
-.aw-editor-container {
-    height: 100%;
-    min-height: 400px;
-    display: flex;
-    flex-direction: column;
-}
-
-.aw-editor-container .ql-container {
-    flex: 1;
-    min-height: 0;
-}
-
-.aw-editor-container .ql-editor {
-    padding: 20px 16px 140px 16px;
-}
-
-#modal-historial-entreno-actual .modal-content {
-    background: #fafafa;
-}
-
-#aw-editor-container .ql-toolbar {
-    flex-shrink: 0;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px 12px 0 0;
-}
-
-#aw-editor-container .ql-container {
-    border: 1px solid #e5e7eb;
-    border-top: none;
-    border-radius: 0 0 12px 12px;
-    background: white;
-}
-
-/* ==========================================================================
-   BOTONES DE FORMATO Y EJERCICIOS (entrenamiento)
-   ========================================================================== */
-
 .aw-tools-row {
     display: flex;
     gap: 10px;
@@ -325,6 +283,54 @@
     background-color: #f3f4f6;
     border-color: var(--primary-color, #000000);
     color: var(--primary-color, #000000);
+}
+
+/* ==========================================================================
+   CONTENIDO DEL EDITOR - DELEGAR SCROLL AL CONTENIDO INTERNO
+   ========================================================================== */
+
+.aw-content {
+    flex: 1;
+    min-height: 0; /* Crucial en flexbox para que respete el desbordamiento */
+    overflow: hidden !important;
+    padding: 0;
+}
+
+.aw-editor-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.aw-editor-container .ql-container {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.aw-editor-container .ql-editor {
+    flex: 1;
+    overflow-y: auto !important; /* Solo aquí se permite scroll */
+    -webkit-overflow-scrolling: touch !important; /* Inercia fluida en iOS */
+    padding: 20px 16px 180px 16px !important; /* Padding inferior alto para que el teclado no tape la última línea */
+}
+
+#aw-editor-container .ql-toolbar {
+    flex-shrink: 0;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px 12px 0 0;
+}
+
+#aw-editor-container .ql-container {
+    border: 1px solid #e5e7eb;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    background: white;
 }
 
 /* ==========================================================================

@@ -393,18 +393,21 @@
 .exercise-editor-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 100dvh; /* Usa dvh (dynamic viewport height) para recalcular con el teclado */
     width: 100%;
     background-color: #ffffff;
+    overflow: hidden !important;
 }
 
 .exercise-editor-sticky-header {
     display: flex;
     flex-direction: column;
-    flex-shrink: 0;
+    flex-shrink: 0; /* Impide que la cabecera se aplaste o reduzca */
     background-color: #ffffff;
     z-index: 10;
     border-bottom: 1px solid #f3f4f6;
+    position: sticky;
+    top: 0;
 }
 
 .exercise-editor-nav-top {
@@ -497,9 +500,10 @@
 
 .exercise-editor-body {
     flex: 1;
-    overflow-y: auto;
+    min-height: 0; /* Crucial en flexbox para que respete el desbordamiento */
+    overflow-y: auto !important; /* Permitimos scroll solo aquí */
+    -webkit-overflow-scrolling: touch !important;
     padding: 16px 16px 100px 16px;
-    -webkit-overflow-scrolling: touch;
     background-color: #ffffff;
 }
 
