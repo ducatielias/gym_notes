@@ -102,18 +102,29 @@
     margin-top: 5px;
     justify-content: center;
     align-items: center;
+    width: 100%;
 }
 
 .timer-controls button {
     background: white;
     border: 1px solid #ddd;
     border-radius: 6px;
-    padding: 4px 8px;
+    padding: 2px 20px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #333;
+    font-size: 11px;
+    height: 30px;
+    min-height: 24px;
+    flex: 1;
+    min-width: 0;
+    width: auto;
+}
+
+.timer-controls button i {
+    font-size: 10px;
 }
 
 .timer-controls button:active {

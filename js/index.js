@@ -16,7 +16,7 @@ function switchTab(tabId) {
     const bottomNav = document.querySelector('.bottom-nav');
 
     // SOLUCIÓN AL TECLADO: Si entramos al editor, ocultamos por completo el menú de pestañas
-    if (tabId === 'editor') {
+    if (tabId === 'editor' || tabId === 'exercise-editor' || tabId === 'history-detail') {
         if (bottomNav) bottomNav.classList.add('hidden-nav');
     } else {
         // Al regresar a cualquier otra pestaña, volvemos a mostrar el menú de inmediato
@@ -33,7 +33,7 @@ function switchTab(tabId) {
     }
 
     // 5. Buscar el botón correspondiente en el menú inferior y activarlo (si no estamos en el editor)
-    if (tabId !== 'editor') {
+    if (tabId !== 'editor' && tabId !== 'exercise-editor' && tabId !== 'history-detail') {
         const currentBtn = Array.from(navItems).find(btn => btn.getAttribute('onclick').includes(`'${tabId}'`));
         if (currentBtn) {
             currentBtn.classList.add('active');
@@ -47,15 +47,27 @@ function switchTab(tabId) {
 
     // NUEVO: Si el usuario entra a 'Exercises', inicializar la página de ejercicios
     if (tabId === 'exercises') {
-        // Esperar a que el DOM se renderice completamente
         setTimeout(function() {
             if (typeof initExercisesPage === 'function') {
                 initExercisesPage();
             } else {
-                // Fallback: si la función no está disponible, forzar renderizado
                 const container = document.getElementById('exercises-container');
                 if (container && typeof renderExercises === 'function') {
                     renderExercises();
+                }
+            }
+        }, 50);
+    }
+
+    // NUEVO: Si el usuario entra a 'History', inicializar la página de historial
+    if (tabId === 'history') {
+        setTimeout(function() {
+            if (typeof initHistoryPage === 'function') {
+                initHistoryPage();
+            } else {
+                const container = document.getElementById('history-container');
+                if (container && typeof renderHistory === 'function') {
+                    renderHistory();
                 }
             }
         }, 50);
@@ -64,21 +76,29 @@ function switchTab(tabId) {
 
 // Inicialización de la App al cargar el documento
 document.addEventListener('DOMContentLoaded', () => {
-    // Definimos "Hoy" como la pantalla de arranque por defecto de la aplicación
-    switchTab('today'); // CORREGIDO: antes era 'hoy', ahora usa el ID correcto 'today'
+    switchTab('today');
 
-    // Vincular la detección de scroll individual en cada una de las pantallas principales
     const scrollableScreens = document.querySelectorAll('.screen');
     scrollableScreens.forEach(screen => {
         screen.addEventListener('scroll', handleScreenScrollDetection);
     });
 
-    // NUEVO: Inicializar la página de ejercicios si está visible al cargar
+    // Inicializar ejercicios si está visible
     const exercisesScreen = document.getElementById('screen-exercises');
     if (exercisesScreen && !exercisesScreen.classList.contains('hidden')) {
         setTimeout(function() {
             if (typeof initExercisesPage === 'function') {
                 initExercisesPage();
+            }
+        }, 100);
+    }
+
+    // Inicializar historial si está visible
+    const historyScreen = document.getElementById('screen-history');
+    if (historyScreen && !historyScreen.classList.contains('hidden')) {
+        setTimeout(function() {
+            if (typeof initHistoryPage === 'function') {
+                initHistoryPage();
             }
         }, 100);
     }
@@ -93,7 +113,6 @@ function handleScreenScrollDetection(event) {
     
     if (!globalBtn) return;
 
-    // Si el usuario baja más de 250px en la pantalla activa, mostramos el botón flotante
     if (currentScreen.scrollTop > 250) {
         globalBtn.classList.add('visible');
     } else {

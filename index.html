@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gym Notes</title>
+    <title>Shark: Gym & Fitness</title>
     
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="css/gym-session.css">
     <link rel="stylesheet" href="css/gym-exercises.css">
     <link rel="stylesheet" href="css/gym-plan.css">
+    <link rel="stylesheet" href="css/history.css">
 </head>
 <body>
 
@@ -34,12 +35,7 @@
         </section>
 
         <section id="screen-history" class="screen hidden">
-            <header class="screen-header">
-                <h1>Historial</h1>
-            </header>
-            <div class="empty-state">
-                <p>⏳ No hay sesiones registradas aún.</p>
-            </div>
+            <div id="history-container"></div>
         </section>
 
         <section id="screen-exercises" class="screen hidden">
@@ -52,6 +48,10 @@
 
         <section id="screen-exercise-editor" class="screen hidden">
             <div id="exercise-editor-ui"></div>
+        </section>
+
+        <section id="screen-history-detail" class="screen hidden">
+            <div id="history-detail-ui"></div>
         </section>
 
     </main>
@@ -119,6 +119,37 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- PANEL DE CONFIGURACIÓN DE DESCANSO -->
+                <div id="descanso-panel" class="timer-panel aw-rest-panel" style="display:none; flex-wrap: wrap; align-items: center; gap: 10px; background: white; padding: 10px 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+                    <div class="preset-buttons">
+                        <button onclick="setTiempoDescanso(30)">30s</button>
+                        <button onclick="setTiempoDescanso(45)">45s</button>
+                        <button onclick="setTiempoDescanso(60)">60s</button>
+                        <button onclick="setTiempoDescanso(90)">90s</button>
+                        <button onclick="setTiempoDescanso(120)">120s</button>
+                    </div>
+                    <div class="custom-rest">
+                        <input type="number" id="custom-descanso-input" value="60" min="5" max="300">
+                        <button onclick="setTiempoDescanso(parseInt(document.getElementById('custom-descanso-input').value) || 60)">Aplicar</button>
+                    </div>
+                </div>
+
+                <!-- PANEL DE CONFIGURACIÓN DE TIMER (INTERVALOS) -->
+                <div id="timer-panel" class="timer-panel aw-rest-panel" style="display:none; flex-wrap: wrap; align-items: center; gap: 10px; background: white; padding: 10px 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+                    <div class="preset-buttons">
+                        <button onclick="aplicarPresetTimer('tabata')">Tabata</button>
+                        <button onclick="aplicarPresetTimer('emom')">EMOM</button>
+                    </div>
+                    <div class="custom-interval">
+                        <label>Trabajo: <input type="number" id="interval-trabajo" value="20" min="1" max="300"></label>
+                        <label>Descanso: <input type="number" id="interval-descanso" value="10" min="0" max="300"></label>
+                        <label>Rondas: <input type="number" id="interval-rondas" value="8" min="1" max="99"></label>
+                        <button onclick="iniciarIntervaloPersonalizado()">Iniciar</button>
+                    </div>
+                    <span id="timer-preset-info" class="timer-preset-info" style="font-size:0.7rem; color:#666; margin-left:auto;">Tabata: 20" trabajo / 10" descanso x8</span>
+                </div>
+
             </div>
 
             <div class="aw-tools-row">
@@ -175,18 +206,6 @@
         </div>
     </div>
 
-    <!-- MODAL HISTORIAL DE ENTRENAMIENTO -->
-    <div id="modal-historial-entreno-actual" class="modal-overlay hidden" style="z-index: 2500;">
-        <div class="modal-content" style="max-height: 85vh; display: flex; flex-direction: column;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h2 style="margin:0; font-size:1.4rem;">Historial de esta sesión</h2>
-                <button onclick="cerrarModalHistorialEntrenoActual()" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">&times;</button>
-            </div>
-            <div id="historial-entreno-lista" style="flex:1; overflow-y:auto;"></div>
-            <button onclick="cerrarModalHistorialEntrenoActual()" style="margin-top:15px; padding:12px; border:none; border-radius:12px; background:#eee; font-weight:bold;">Cerrar</button>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     
     <!-- JS - CORE -->
@@ -209,7 +228,14 @@
     <script src="js/exercises-share.js"></script>
     <script src="js/exercises.js"></script>
     
-    <!-- JS - WORKOUT & SESSION -->
+    <!-- JS - HISTORY (DEBE CARGARSE ANTES DE WORKOUT) -->
+    <script src="js/history-state.js"></script>
+    <script src="js/history-filters.js"></script>
+    <script src="js/history-render.js"></script>
+    <script src="js/history-export.js"></script>
+    <script src="js/history.js"></script>
+    
+    <!-- JS - WORKOUT & SESSION (DEBE CARGARSE DESPUÉS DE HISTORY) -->
     <script src="js/workout.js"></script>
     <script src="js/gym-session.js"></script>
 

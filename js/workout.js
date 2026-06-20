@@ -34,9 +34,6 @@ let aw_estadoIntervaloPausado = {
 };
 let aw_audioCtx = null;
 
-// Historial (se carga desde localStorage)
-let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
-
 // ==================== FUNCIONES AUXILIARES ====================
 function formatTime(s) {
     return `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
@@ -595,9 +592,29 @@ window.finalizarEntrenamiento = async function() {
         timestamp_fin: new Date().toISOString()
     };
     
-    // Guardar en historyDB
-    historyDB.unshift(historyRecord); // Añadir al principio (más reciente primero)
-    localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
+    // Guardar en historyDB usando la función de history-state.js
+    try {
+        if (typeof window.addHistoryRecord === 'function') {
+            window.addHistoryRecord(historyRecord);
+            console.log('[workout.js] Historial guardado correctamente mediante addHistoryRecord');
+        } else {
+            // Fallback: guardar directamente en localStorage
+            console.warn('[workout.js] addHistoryRecord no disponible, usando fallback');
+            let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
+            historyDB.unshift(historyRecord);
+            localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
+            // Intentar actualizar window.historyDB
+            if (window.historyDB !== undefined) {
+                window.historyDB = historyDB;
+            }
+        }
+    } catch (error) {
+        console.error('[workout.js] Error guardando historial:', error);
+        // Fallback de emergencia
+        let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
+        historyDB.unshift(historyRecord);
+        localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
+    }
     
     // Cerrar el modal
     const modal = document.getElementById('active-workout');
@@ -643,62 +660,19 @@ window.cerrarEntrenamiento = async function() {
     aw_quillInstance = null;
 };
 
-// ==================== FUNCIONES CORREGIDAS PARA EL HISTORIAL ====================
-window.mostrarHistorialEntrenamientoActual = function() {
-    if (!aw_currentWorkout) {
-        console.log('No hay entrenamiento activo');
-        return;
-    }
-    
-    const sessionTitle = aw_currentWorkout.sessionTitle;
-    const registrosAnteriores = historyDB.filter(h => h.nombre_sesion === sessionTitle);
-    
-    const modal = document.getElementById('modal-historial-entreno-actual');
-    const listaDiv = document.getElementById('historial-entreno-lista');
-    
-    if (!modal || !listaDiv) return;
-    
-    // Remover la clase hidden para mostrar el modal
-    modal.classList.remove('hidden');
-    
-    if (registrosAnteriores.length === 0) {
-        listaDiv.innerHTML = '<p style="text-align:center; color:#666;">No hay entrenamientos previos de esta sesión.</p>';
-    } else {
-        listaDiv.innerHTML = '';
-        registrosAnteriores.forEach(h => {
-            const fecha = new Date(h.fecha).toLocaleString('es-ES');
-            const item = document.createElement('div');
-            item.style.cssText = 'background:#fff; border-radius:12px; padding:12px; margin-bottom:12px; border-left:4px solid var(--accent-color);';
-            item.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <div><i class="fa-regular fa-calendar"></i> ${fecha}</div>
-                    <div><i class="fa-regular fa-clock"></i> ${h.duracion_minutos} min</div>
-                </div>
-                <div style="font-size:0.85rem; color:#555; max-height:150px; overflow-y:auto;">
-                    ${h.contenido_editado || 'Sin anotaciones'}
-                </div>
-            `;
-            listaDiv.appendChild(item);
-        });
-    }
-    
-    modal.classList.add('active');
-    modal.style.display = 'flex';
-};
-
-window.cerrarModalHistorialEntrenoActual = function() {
-    const modal = document.getElementById('modal-historial-entreno-actual');
-    if (modal) {
-        modal.classList.remove('active');
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-    }
-};
-
 // ==================== FUNCIONES PARA BOTONES DE FORMATO Y EJERCICIOS (entrenamiento) ====================
 
 // Lista de ejercicios por defecto (copia de gym-session.js)
 function obtenerListaEjerciciosPorDefecto() {
+    // Obtener ejercicios desde el sistema de ejercicios
+    if (typeof window.getExerciseAutocompleteList === 'function') {
+        const exercises = window.getExerciseAutocompleteList('');
+        if (exercises && exercises.length > 0) {
+            return exercises.map(ex => ex.nombre);
+        }
+    }
+    
+    // Fallback: lista por defecto si no hay ejercicios guardados
     return [
         "Press de Banca (Barra)", "Press Inclinado (Mancuernas)", "Aperturas en Polea",
         "Fondos en Paralelas", "Sentadillas Traseras", "Prensa de Piernas",
@@ -733,13 +707,22 @@ function filtrarEjerciciosEntrenamiento() {
     if (!searchInput) return;
 
     const query = searchInput.value.toLowerCase().trim();
+    
+    // Usar el sistema de autocompletado de ejercicios
+    if (typeof window.getExerciseAutocompleteList === 'function') {
+        const exercises = window.getExerciseAutocompleteList(query);
+        if (exercises && exercises.length > 0) {
+            renderExercisesListEntrenamiento(exercises.map(ex => ex.nombre));
+            return;
+        }
+    }
+    
+    // Fallback: usar lista por defecto
     const todosLosEjercicios = obtenerListaEjerciciosPorDefecto();
-
     if (query === "") {
         renderExercisesListEntrenamiento(todosLosEjercicios);
         return;
     }
-
     const filtrados = todosLosEjercicios.filter(ej => ej.toLowerCase().includes(query));
     renderExercisesListEntrenamiento(filtrados);
 }
