@@ -78,8 +78,33 @@ function toggleSessionOptionsMenu(event) {
 async function handleSessionHistory() {
     const session = window.editingSession;
     if (session) {
-        await window.showAlert(`Historial de modificaciones de "${session.title}"\n\nÚltima modificación: ${new Date(session.lastModified).toLocaleString()}`, "Historial");
+        // Obtener el nombre de la sesión
+        const sessionTitle = session.title;
+        
+        // Guardar origen para el botón de retroceso
+        historyReturnScreen = 'session';
+        window.historyReturnScreen = 'session';
+        
+        // Establecer el filtro de búsqueda
+        historySearchTerm = sessionTitle;
+        window.historySearchTerm = historySearchTerm;
+        
+        // Navegar a la pantalla de historial
+        switchTab('history');
+        
+        // Esperar a que el DOM se renderice y luego aplicar el filtro
+        setTimeout(() => {
+            const input = document.getElementById('historySearchInput');
+            if (input) {
+                input.value = sessionTitle;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            updateHistoryClearButton();
+            renderHistory();
+        }, 100);
     }
+    
+    // Cerrar el menú
     const menu = document.getElementById('editorOptionsMenu');
     if (menu) menu.classList.add('hidden');
 }

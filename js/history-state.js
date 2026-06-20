@@ -12,6 +12,7 @@ let historyFilter = 'todos'; // 'todos', 'hoy', 'semana', 'mes'
 let historyRoutineFilter = 'todos';
 let historySearchTerm = '';
 let historyViewingItem = null;
+let historyReturnScreen = null; // 'workout' o 'session' para saber a dónde volver
 
 // ==========================================================================
 // FUNCIONES DE ALMACENAMIENTO
@@ -100,6 +101,7 @@ window.historyFilter = historyFilter;
 window.historyRoutineFilter = historyRoutineFilter;
 window.historySearchTerm = historySearchTerm;
 window.historyViewingItem = historyViewingItem;
+window.historyReturnScreen = historyReturnScreen;
 window.saveHistory = saveHistory;
 window.getHistory = getHistory;
 window.setHistory = setHistory;

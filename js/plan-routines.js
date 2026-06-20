@@ -102,11 +102,46 @@ async function renameRoutine(routineId) {
     const routine = appData.routines.find(r => r.id === routineId);
     if (!routine) return;
 
+    const oldName = routine.name;
     const newName = await window.showPrompt("Modificar nombre de la rutina:", routine.name, "Editar nombre");
     if (!newName || newName.trim() === "") return;
 
-    routine.name = newName.trim();
+    const newNameTrimmed = newName.trim();
+    routine.name = newNameTrimmed;
     saveData();
+    
+    // ACTUALIZAR EL HISTORIAL: Cambiar el nombre de la rutina en todos los registros del historial
+    try {
+        // Obtener el historial actual
+        let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
+        let actualizados = 0;
+        
+        // Recorrer y actualizar los registros que coincidan con el nombre antiguo
+        historyDB = historyDB.map(record => {
+            if (record.nombre_rutina === oldName) {
+                actualizados++;
+                return { ...record, nombre_rutina: newNameTrimmed };
+            }
+            return record;
+        });
+        
+        // Guardar el historial actualizado
+        localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
+        
+        // Actualizar la variable global si existe
+        if (window.historyDB !== undefined) {
+            window.historyDB = historyDB;
+        }
+        
+        console.log(`[renameRoutine] Historial actualizado: ${actualizados} registros modificados de "${oldName}" a "${newNameTrimmed}"`);
+        
+        if (actualizados > 0 && typeof window.showAlert === 'function') {
+            await window.showAlert(`Rutina renombrada correctamente.\n${actualizados} registro(s) del historial actualizados.`, "Completado");
+        }
+    } catch (error) {
+        console.error('[renameRoutine] Error actualizando el historial:', error);
+    }
+    
     renderRoutineList();
 }
 

@@ -152,24 +152,63 @@ function enableSessionEditing() {
 function saveCurrentSession() {
     if (!window.editingSession || !window.quillInstance) return;
     
+    const oldTitle = window.editingSession.title;
     const inputTitulo = document.getElementById('sessionTitleInput');
+    let newTitle = oldTitle;
+    
     if (inputTitulo && inputTitulo.value.trim() !== "") {
-        window.editingSession.title = inputTitulo.value.trim();
+        newTitle = inputTitulo.value.trim();
+        window.editingSession.title = newTitle;
     } else {
         window.editingSession.title = "Sesión sin título";
+        newTitle = "Sesión sin título";
     }
     
     window.editingSession.content = window.quillInstance.getSemanticHTML();
     window.editingSession.lastModified = Date.now();
 
+    // Persistimos en LocalStorage de inmediato
     saveData();
     
+    // ACTUALIZAR EL HISTORIAL: Si el título de la sesión cambió, actualizar los registros del historial
+    if (oldTitle !== newTitle) {
+        try {
+            let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
+            let actualizados = 0;
+            
+            // Buscar la rutina actual para obtener su nombre
+            const routine = appData.routines.find(r => r.id === currentRoutineId);
+            const routineName = routine ? routine.name : '';
+            
+            historyDB = historyDB.map(record => {
+                // Coincidir por nombre_sesion y nombre_rutina para mayor precisión
+                if (record.nombre_sesion === oldTitle && record.nombre_rutina === routineName) {
+                    actualizados++;
+                    return { ...record, nombre_sesion: newTitle };
+                }
+                return record;
+            });
+            
+            localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
+            
+            if (window.historyDB !== undefined) {
+                window.historyDB = historyDB;
+            }
+            
+            console.log(`[saveCurrentSession] Historial actualizado: ${actualizados} registros modificados de "${oldTitle}" a "${newTitle}"`);
+        } catch (error) {
+            console.error('[saveCurrentSession] Error actualizando el historial:', error);
+        }
+    }
+    
+    // Aseguramos el cierre de cualquier menú colapsable que estuviera abierto
     const activeBtn = document.querySelector('.btn-tool-toggle.active');
     if (activeBtn) {
         const type = activeBtn.getAttribute('data-type');
         toggleSection(type);
     }
 
+    // RETORNO DE INTERFAZ A MODO LECTURA SIN CERRAR LA PANTALLA
     const actionBtn = document.getElementById('editorMainActionBtn');
     const titleInput = document.getElementById('sessionTitleInput');
     const editorStickyHeader = document.querySelector('.editor-sticky-header');
@@ -181,6 +220,7 @@ function saveCurrentSession() {
 
     if (titleInput) titleInput.setAttribute('disabled', 'true');
     
+    // Restaurar la estructura del modo lectura con el botón de tres puntos (sin bloqueo)
     if (editorStickyHeader) {
         const oldToolsSelectors = document.getElementById('editorToolsSelectorsBar');
         if (oldToolsSelectors) {

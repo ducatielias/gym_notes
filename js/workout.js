@@ -616,11 +616,31 @@ window.finalizarEntrenamiento = async function() {
         localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
     }
     
-    // Cerrar el modal
+    // Cerrar el modal de entrenamiento
     const modal = document.getElementById('active-workout');
     if (modal) {
         modal.style.display = 'none';
     }
+    
+    // LIMPIAR EL FILTRO Y NAVEGAR AL HISTORIAL
+    // Limpiar el filtro de búsqueda
+    historySearchTerm = '';
+    window.historySearchTerm = '';
+    
+    // Navegar al historial
+    switchTab('history');
+    
+    // Renderizar el historial después de un breve delay
+    setTimeout(() => {
+        // Limpiar el input visualmente
+        const input = document.getElementById('historySearchInput');
+        if (input) {
+            input.value = '';
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        updateHistoryClearButton();
+        renderHistory();
+    }, 100);
     
     // Mostrar mensaje de éxito
     if (typeof window.showAlert === 'function') {
@@ -635,6 +655,9 @@ window.finalizarEntrenamiento = async function() {
 };
 
 window.cerrarEntrenamiento = async function() {
+    // Guardar referencia al nombre de la sesión antes de limpiar
+    const sessionName = aw_currentWorkout ? aw_currentWorkout.sessionTitle : null;
+    
     if (aw_currentWorkout) {
         if (typeof window.showConfirm === 'function') {
             const confirmar = await window.showConfirm("¿Cerrar sin guardar? Se perderán las anotaciones.", "Cancelar entrenamiento");
@@ -656,8 +679,15 @@ window.cerrarEntrenamiento = async function() {
         modal.style.display = 'none';
     }
     
+    // Si estábamos viendo el historial, limpiar el filtro
+    if (typeof window.cerrarModalHistorialEntrenoActual === 'function') {
+        window.cerrarModalHistorialEntrenoActual();
+    }
+    
     aw_currentWorkout = null;
     aw_quillInstance = null;
+    
+    console.log('[cerrarEntrenamiento] Entrenamiento cerrado correctamente');
 };
 
 // ==================== FUNCIONES PARA BOTONES DE FORMATO Y EJERCICIOS (entrenamiento) ====================

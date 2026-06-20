@@ -23,38 +23,102 @@ function mostrarHistorialEntrenamientoActual() {
     }
     
     const sessionTitle = aw_currentWorkout.sessionTitle;
+    console.log('[mostrarHistorialEntrenamientoActual] Buscando sesión:', sessionTitle);
     
-    // Establecer filtro para mostrar solo esta sesión
+    // Guardar origen para el botón de retroceso
+    historyReturnScreen = 'workout';
+    window.historyReturnScreen = 'workout';
+    
+    // Establecer el filtro de búsqueda
     historySearchTerm = sessionTitle;
+    window.historySearchTerm = historySearchTerm;
     
     // Navegar a la pantalla de historial
     switchTab('history');
     
-    // Esperar a que se renderice y luego aplicar el filtro
+    // Esperar a que el DOM se renderice y luego aplicar el filtro
     setTimeout(() => {
         const input = document.getElementById('historySearchInput');
         if (input) {
             input.value = sessionTitle;
-            updateHistoryClearButton();
+            console.log('[mostrarHistorialEntrenamientoActual] Input actualizado:', input.value);
+            // Forzar el evento input para que los listeners se activen
+            input.dispatchEvent(new Event('input', { bubbles: true }));
         }
+        
+        // Actualizar el botón de limpiar
+        updateHistoryClearButton();
+        
+        // Renderizar el historial con el filtro aplicado
         renderHistory();
-    }, 50);
+        
+        console.log('[mostrarHistorialEntrenamientoActual] Filtro aplicado:', historySearchTerm);
+    }, 100);
 }
 
 function cerrarModalHistorialEntrenoActual() {
-    // Limpiar el filtro y volver al entrenamiento
+    console.log('[cerrarModalHistorialEntrenoActual] Cerrando modal de historial');
+    
+    // Limpiar el filtro de búsqueda
     historySearchTerm = '';
+    window.historySearchTerm = '';
+    historyReturnScreen = null;
+    window.historyReturnScreen = null;
+    
+    // Limpiar el input visualmente
     const input = document.getElementById('historySearchInput');
     if (input) {
         input.value = '';
-        updateHistoryClearButton();
+        input.dispatchEvent(new Event('input', { bubbles: true }));
     }
-    // Volver al entrenamiento (si está visible)
-    const modal = document.getElementById('active-workout');
-    if (modal && modal.style.display !== 'none') {
-        // Ya estamos en el entrenamiento, solo recargamos la vista
-        renderHistory();
+    
+    // Actualizar el botón de limpiar
+    updateHistoryClearButton();
+    
+    // Renderizar el historial sin filtro
+    renderHistory();
+    
+    console.log('[cerrarModalHistorialEntrenoActual] Filtro limpiado, historial renderizado');
+}
+
+function goBackFromHistory() {
+    console.log('[goBackFromHistory] Volviendo a la pantalla anterior, origen:', historyReturnScreen);
+    
+    if (historyReturnScreen === 'workout') {
+        // Volver al entrenamiento activo
+        const modal = document.getElementById('active-workout');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+        // Ocultar el menú inferior
+        const bottomNav = document.querySelector('.bottom-nav');
+        if (bottomNav) bottomNav.classList.add('hidden-nav');
+        // Limpiar el filtro para no dejar rastro
+        historySearchTerm = '';
+        window.historySearchTerm = '';
+        historyReturnScreen = null;
+        window.historyReturnScreen = null;
+    } else if (historyReturnScreen === 'session') {
+        // Volver a la sesión (pantalla de edición)
+        historyReturnScreen = null;
+        window.historyReturnScreen = null;
+        // Limpiar el filtro
+        historySearchTerm = '';
+        window.historySearchTerm = '';
+        // Volver a la pantalla de plan (donde estaba la sesión)
+        switchTab('plan');
+        // Reabrir la rutina actual para mostrar las sesiones
+        if (currentRoutineId) {
+            openRoutine(currentRoutineId);
+        } else {
+            renderRoutineList();
+        }
     } else {
+        // Si no hay origen, volver a la pantalla de inicio
+        historyReturnScreen = null;
+        window.historyReturnScreen = null;
+        historySearchTerm = '';
+        window.historySearchTerm = '';
         switchTab('today');
     }
 }
@@ -146,5 +210,6 @@ function closeHistoryDetail() {
 window.initHistoryPage = initHistoryPage;
 window.mostrarHistorialEntrenamientoActual = mostrarHistorialEntrenamientoActual;
 window.cerrarModalHistorialEntrenoActual = cerrarModalHistorialEntrenoActual;
+window.goBackFromHistory = goBackFromHistory;
 window.viewHistoryDetail = viewHistoryDetail;
 window.closeHistoryDetail = closeHistoryDetail;

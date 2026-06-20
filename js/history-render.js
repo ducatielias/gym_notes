@@ -11,10 +11,23 @@ function renderHistory() {
     const container = document.getElementById('history-container');
     if (!container) return;
 
+    // Asegurar que historyDB esté actualizado
     const history = getHistory();
+    
+    // Sincronizar el input con historySearchTerm
+    const input = document.getElementById('historySearchInput');
+    if (input && input.value !== historySearchTerm) {
+        input.value = historySearchTerm;
+        updateHistoryClearButton();
+    }
+    
     const searchTerm = historySearchTerm.toLowerCase().trim();
     const filter = historyFilter;
     const routineFilter = historyRoutineFilter;
+
+    console.log('[renderHistory] Filtros aplicados - searchTerm:', searchTerm, 'filter:', filter, 'routineFilter:', routineFilter);
+    console.log('[renderHistory] Total registros en historyDB:', history.length);
+    console.log('[renderHistory] Origen (historyReturnScreen):', historyReturnScreen);
 
     // Aplicar filtros
     let filtered = [...history];
@@ -46,6 +59,7 @@ function renderHistory() {
             (item.contenido_editado && item.contenido_editado.toLowerCase().includes(searchTerm)) ||
             (item.contenido_original && item.contenido_original.toLowerCase().includes(searchTerm))
         );
+        console.log('[renderHistory] Registros después del filtro de búsqueda:', filtered.length);
     }
 
     // Ordenar por fecha (más reciente primero)
@@ -54,6 +68,10 @@ function renderHistory() {
     // Estadísticas
     const stats = getHistoryStats();
 
+    // Determinar si mostrar botón de retroceso
+    const showBackButton = historyReturnScreen === 'workout' || historyReturnScreen === 'session';
+    const backButtonLabel = historyReturnScreen === 'workout' ? 'Volver al entrenamiento' : 'Volver a la sesión';
+
     // Construir HTML
     let html = '';
 
@@ -61,7 +79,13 @@ function renderHistory() {
     html += `
         <header class="history-header">
             <div class="history-header-top">
-                <h1>Historial</h1>
+                ${showBackButton ? `
+                    <button class="btn-back" onclick="goBackFromHistory()" style="background:none; border:none; color:var(--primary-color); font-size:16px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; padding:4px 0;">
+                        <i class="fa-solid fa-chevron-left"></i> ${backButtonLabel}
+                    </button>
+                ` : `
+                    <h1>Historial</h1>
+                `}
                 <div style="position:relative;">
                     <button class="btn-history-options" onclick="toggleHistoryOptionsMenu(event)" title="Opciones">
                         <i class="fa-solid fa-ellipsis-vertical"></i>
@@ -83,7 +107,7 @@ function renderHistory() {
             
             <div class="history-search-wrapper" id="historySearchWrapper">
                 <i class="fa-solid fa-search icon-search"></i>
-                <input type="text" id="historySearchInput" placeholder="Buscar en el historial..." autocomplete="off" oninput="onHistorySearch()">
+                <input type="text" id="historySearchInput" placeholder="Buscar en el historial..." autocomplete="off" oninput="onHistorySearch()" value="${historySearchTerm}">
                 <button class="clear-input-btn" onclick="clearHistorySearch()">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -163,6 +187,15 @@ function renderHistory() {
 
     container.innerHTML = html;
     updateHistoryClearButton();
+    
+    // Sincronizar el input después de renderizar
+    setTimeout(() => {
+        const inputAfterRender = document.getElementById('historySearchInput');
+        if (inputAfterRender && inputAfterRender.value !== historySearchTerm) {
+            inputAfterRender.value = historySearchTerm;
+            updateHistoryClearButton();
+        }
+    }, 10);
 }
 
 function buildRoutineFilterOptions(selected) {
@@ -218,6 +251,7 @@ function toggleHistoryCard(id) {
 function onHistorySearch() {
     const input = document.getElementById('historySearchInput');
     historySearchTerm = input ? input.value : '';
+    window.historySearchTerm = historySearchTerm;
     updateHistoryClearButton();
     renderHistory();
 }
@@ -227,6 +261,7 @@ function clearHistorySearch() {
     if (input) {
         input.value = '';
         historySearchTerm = '';
+        window.historySearchTerm = '';
         updateHistoryClearButton();
         renderHistory();
         input.focus();
@@ -248,12 +283,14 @@ function updateHistoryClearButton() {
 function onHistoryFilterChange() {
     const select = document.getElementById('historyFilterSelect');
     historyFilter = select ? select.value : 'todos';
+    window.historyFilter = historyFilter;
     renderHistory();
 }
 
 function onHistoryRoutineFilterChange() {
     const select = document.getElementById('historyRoutineFilterSelect');
     historyRoutineFilter = select ? select.value : 'todos';
+    window.historyRoutineFilter = historyRoutineFilter;
     renderHistory();
 }
 
