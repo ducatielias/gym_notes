@@ -286,7 +286,7 @@
 }
 
 /* ==========================================================================
-   CONTENIDO DEL EDITOR - DELEGAR SCROLL AL CONTENIDO INTERNO
+   CONTENEDORES INTERMEDIOS - SCROLL DELEGADO AL .ql-editor
    ========================================================================== */
 
 .aw-content {
@@ -316,7 +316,11 @@
     flex: 1;
     overflow-y: auto !important; /* Solo aquí se permite scroll */
     -webkit-overflow-scrolling: touch !important; /* Inercia fluida en iOS */
-    padding: 20px 16px 220px 16px !important; /* AUMENTADO a 220px para dar más espacio al teclado */
+    padding: 20px 16px 160px 16px !important;
+}
+
+.aw-editor-container .ql-editor:focus {
+    outline: none;
 }
 
 #aw-editor-container .ql-toolbar {

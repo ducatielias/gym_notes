@@ -383,7 +383,7 @@
 }
 
 /* ==========================================================================
-   EDITOR DE EJERCICIOS - PANTALLA COMPLETA (estilo consistente con gym-session)
+   EDITOR DE EJERCICIOS - PANTALLA COMPLETA
    ========================================================================== */
 
 #screen-exercise-editor {
@@ -406,8 +406,6 @@
     background-color: #ffffff;
     z-index: 10;
     border-bottom: 1px solid #f3f4f6;
-    position: sticky;
-    top: 0;
 }
 
 .exercise-editor-nav-top {

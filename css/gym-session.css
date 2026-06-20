@@ -5,42 +5,43 @@
  * rediseño jerárquico de títulos apilados en el Editor de Sesiones.
  */
 
-/* CORRECCIÓN CRÍTICA: Desactiva el overflow de la pantalla exterior para bloquear el scroll de fondo y fijar la cabecera arriba */
+/* ==========================================================================
+   CONTENEDOR PRINCIPAL DEL EDITOR (BLOQUEO ABSOLUTO)
+   ========================================================================== */
 #screen-editor {
     overflow: hidden !important;
-    position: absolute;
-    width: 100%;
-    height: 100%;
+    position: fixed; /* CAMBIO CLAVE: fixed en lugar de absolute evita saltos por scroll heredado */
+    width: 100vw;
+    height: 100dvh; /* Asegura el tamaño exacto del viewport dinámico */
     top: 0;
     left: 0;
+    z-index: 999; /* Asegura quedar por encima de las pestañas inferiores u otros modales */
     display: block;
 }
 
-/* REESTRUCTURACIÓN ABSOLUTA: Fuerza al contenedor a ocupar el espacio completo elástico solucionando la pantalla en blanco */
 .editor-container {
     position: absolute;
     top: 0;
-    bottom: 0;
     left: 0;
-    right: 0;
-    height: 100dvh; /* Usa dvh (dynamic viewport height) para recalcular con el teclado */
     width: 100%;
+    height: 100%; /* Toma el 100% de su padre fijo, no se estirará de más */
     background: #ffffff;
     display: flex;
     flex-direction: column;
-    overflow: hidden !important; /* Estricto: el padre NO se desplaza */
+    overflow: hidden !important; /* Desactiva por completo el scroll en la raíz del modal */
 }
 
-/* Contenedor padre rígido superior que se mantiene fijo al hacer scroll */
+/* ==========================================================================
+   CABECERA INTEGRAL (TOTALMENTE RÍGIDA)
+   ========================================================================== */
 .editor-sticky-header {
     display: flex;
     flex-direction: column;
-    flex-shrink: 0; /* Impide que la cabecera se aplaste o reduzca */
+    flex-shrink: 0; /* Evita que la cabecera se deforme o aplaste si falta espacio */
     background-color: #ffffff;
     z-index: 10;
     border-bottom: 1px solid #f3f4f6;
-    position: sticky;
-    top: 0;
+    /* Al estar dentro de un flex vertical sin scroll, no necesita position: sticky; */
 }
 
 /* Fila 1: Barra de navegación superior */
@@ -311,37 +312,42 @@
 }
 
 /* ==========================================================================
-   INSTANCIA PRINCIPAL DEL EDITOR ENRIQUECIDO QUILL (SCROLL TOTALMENTE INDEPENDIENTE)
+   CONTENEDORES INTERMEDIOS DE QUILL
    ========================================================================== */
 #editor-instance {
-    flex: 1;
-    min-height: 0; /* Crucial en flexbox para que respete el desbordamiento */
-    overflow: hidden !important;
+    flex: 1; /* Ocupa todo el espacio restante exacto bajo la cabecera */
+    min-height: 0; /* Propiedad crítica anti-desbordamiento en Flexbox */
+    overflow: hidden !important; /* Mantiene el área rígida */
     background: #ffffff;
     display: flex;
     flex-direction: column;
 }
 
-/* Eliminación de bordes internos molestos de la librería Quill */
 .ql-container.ql-snow {
     border: none !important;
     font-size: 16px;
-    flex: 1;
+    flex: 1; /* Sigue rellenando el espacio vertical remanente */
     display: flex;
     flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
+    min-height: 0; /* Evita que Quill empuje los límites hacia abajo */
+    overflow: hidden !important; /* Bloquea el scroll aquí */
 }
 
-/* SOLUCIÓN FINAL DEL SCROLL VÍA HARDWARE MÓVIL: Transfiere por completo la propiedad táctil elástica a la caja de texto */
+/* ==========================================================================
+   ZONA ÚNICA DE SCROLL EXCLUSIVO (.ql-editor)
+   ========================================================================== */
 .ql-editor {
     flex: 1;
-    overflow-y: auto !important; /* Solo aquí se permite scroll */
-    -webkit-overflow-scrolling: touch !important; /* Inercia fluida en iOS */
-    touch-action: pan-y !important; /* Le dice al navegador móvil que procese el arrastre táctil vertical */
-    padding: 20px 16px 220px 16px !important; /* AUMENTADO a 220px para dar más espacio al teclado */
+    overflow-y: auto !important; /* Único punto de scroll vertical permitido en toda la pantalla */
+    -webkit-overflow-scrolling: touch !important; /* Inercia nativa ultra suave en iOS */
+    touch-action: pan-y !important; /* Permite solo gestos verticales, evitando scrolls horizontales erráticos */
+    padding: 20px 16px 160px 16px !important;
     color: #1f2937;
     line-height: 1.6;
+}
+
+.ql-editor:focus {
+    outline: none;
 }
 
 .ql-editor.ql-blank::before {
