@@ -85,7 +85,8 @@
             <div class="aw-header">
                 <div class="aw-header-top">
                     <div id="aw-title-small" class="aw-title">Entrenando: <span id="aw-session-title"></span></div>
-                    <button onclick="mostrarHistorialEntrenamientoActual()" class="aw-history-btn" title="Historial de esta sesión">
+                    <!-- BOTÓN DE HISTORIAL CON ID Y ESTILOS PARA GARANTIZAR CLIC -->
+                    <button id="aw-history-btn" class="aw-history-btn" title="Historial de esta sesión" style="position: relative; z-index: 10; pointer-events: auto;">
                         <i class="fa-solid fa-clock-rotate-left"></i>
                     </button>
                     <button onclick="cerrarEntrenamiento()" class="aw-close-btn" title="Cerrar (sin guardar)">

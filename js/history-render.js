@@ -21,6 +21,12 @@ function renderHistory() {
         updateHistoryClearButton();
     }
     
+    // Sincronizar el select de rutinas con historyRoutineFilter
+    const routineSelect = document.getElementById('historyRoutineFilterSelect');
+    if (routineSelect && routineSelect.value !== historyRoutineFilter) {
+        routineSelect.value = historyRoutineFilter;
+    }
+    
     const searchTerm = historySearchTerm.toLowerCase().trim();
     const filter = historyFilter;
     const routineFilter = historyRoutineFilter;
@@ -46,15 +52,15 @@ function renderHistory() {
         filtered = filtered.filter(item => new Date(item.fecha) >= monthAgo);
     }
 
-    // Filtro de rutina
+    // Filtro de rutina (AHORA SE APLICA CORRECTAMENTE)
     if (routineFilter !== 'todos') {
         filtered = filtered.filter(item => item.nombre_rutina === routineFilter);
+        console.log('[renderHistory] Registros después del filtro de rutina:', filtered.length);
     }
 
-    // Búsqueda
+    // Búsqueda (por nombre de sesión)
     if (searchTerm) {
         filtered = filtered.filter(item =>
-            item.nombre_rutina.toLowerCase().includes(searchTerm) ||
             item.nombre_sesion.toLowerCase().includes(searchTerm) ||
             (item.contenido_editado && item.contenido_editado.toLowerCase().includes(searchTerm)) ||
             (item.contenido_original && item.contenido_original.toLowerCase().includes(searchTerm))
@@ -107,7 +113,7 @@ function renderHistory() {
             
             <div class="history-search-wrapper" id="historySearchWrapper">
                 <i class="fa-solid fa-search icon-search"></i>
-                <input type="text" id="historySearchInput" placeholder="Buscar en el historial..." autocomplete="off" oninput="onHistorySearch()" value="${historySearchTerm}">
+                <input type="text" id="historySearchInput" placeholder="Buscar por nombre de sesión..." autocomplete="off" oninput="onHistorySearch()" value="${historySearchTerm}">
                 <button class="clear-input-btn" onclick="clearHistorySearch()">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -194,6 +200,12 @@ function renderHistory() {
         if (inputAfterRender && inputAfterRender.value !== historySearchTerm) {
             inputAfterRender.value = historySearchTerm;
             updateHistoryClearButton();
+        }
+        
+        // Sincronizar el select de rutinas después de renderizar
+        const routineSelectAfterRender = document.getElementById('historyRoutineFilterSelect');
+        if (routineSelectAfterRender && routineSelectAfterRender.value !== historyRoutineFilter) {
+            routineSelectAfterRender.value = historyRoutineFilter;
         }
     }, 10);
 }

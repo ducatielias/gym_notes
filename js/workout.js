@@ -490,14 +490,20 @@ window.iniciarEntrenamiento = function(sessionData) {
         duracion_minutos: 0
     };
     
-    // Actualizar título en el modal
+    // Actualizar título en el modal (usando textContent, no innerHTML)
     const titleSpan = document.getElementById('aw-session-title');
-    if (titleSpan) titleSpan.innerText = `${aw_currentWorkout.routineName} - ${aw_currentWorkout.sessionTitle}`;
+    if (titleSpan) {
+        titleSpan.textContent = `${aw_currentWorkout.routineName} - ${aw_currentWorkout.sessionTitle}`;
+        console.log('[iniciarEntrenamiento] Título actualizado:', titleSpan.textContent);
+    } else {
+        console.warn('[iniciarEntrenamiento] No se encontró el elemento aw-session-title');
+    }
     
     // --- CORRECCIÓN: Mostrar el modal ANTES de inicializar Quill ---
     const modal = document.getElementById('active-workout');
     if (modal) {
         modal.style.display = 'flex';
+        console.log('[iniciarEntrenamiento] Modal mostrado');
     }
     
     // Limpiar y preparar el contenedor del editor (ahora el modal está visible)
@@ -507,10 +513,10 @@ window.iniciarEntrenamiento = function(sessionData) {
         return;
     }
     
-    // Crear el elemento donde se montará Quill
+    // Crear el elemento donde se montará Quill (solo el contenido del editor, NO el header)
     container.innerHTML = '<div id="aw-quill-editor" style="height: 100%;"></div>';
     
-    // Esperar a que el DOM se actualice antes de inicializar Quill
+    // Esperar a que el DOM se actualice antes de inicializar Quill y enlazar eventos
     setTimeout(() => {
         // Inicializar Quill en modo edición (sin toolbar fija, usará la del contenedor expandible)
         aw_quillInstance = new Quill('#aw-quill-editor', {
@@ -531,7 +537,52 @@ window.iniciarEntrenamiento = function(sessionData) {
         aw_quillInstance.focus();
         
         console.log('[iniciarEntrenamiento] Quill inicializado correctamente');
-    }, 50);
+        
+        // ============================================================
+        // SOLUCIÓN DEFINITIVA: Enlazar el botón de historial por JS
+        // ============================================================
+        const historyBtn = document.querySelector('.aw-history-btn');
+        if (historyBtn) {
+            // Eliminar listeners previos
+            historyBtn.onclick = null;
+            // Asignar directamente la función global
+            historyBtn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('[Workout] Botón de historial pulsado (click enlazado por JS)');
+                // Verificar que aw_currentWorkout existe
+                if (!aw_currentWorkout) {
+                    console.warn('[Workout] aw_currentWorkout es null, intentando recuperar...');
+                    // Intentar recuperar el título desde el DOM
+                    const titleSpan2 = document.getElementById('aw-session-title');
+                    if (titleSpan2 && titleSpan2.textContent) {
+                        const titleText = titleSpan2.textContent;
+                        const parts = titleText.split(' - ');
+                        if (parts.length === 2) {
+                            // Reconstruir aw_currentWorkout temporalmente
+                            aw_currentWorkout = {
+                                sessionTitle: parts[1] || 'Sesión',
+                                routineName: parts[0] || 'Rutina'
+                            };
+                            console.log('[Workout] aw_currentWorkout reconstruido:', aw_currentWorkout);
+                        }
+                    }
+                }
+                // Llamar a la función global
+                if (typeof window.mostrarHistorialEntrenamientoActual === 'function') {
+                    window.mostrarHistorialEntrenamientoActual();
+                } else {
+                    console.error('[Workout] window.mostrarHistorialEntrenamientoActual no es una función');
+                    alert('Error: La función de historial no está disponible.');
+                }
+            };
+            console.log('[Workout] Evento de historial enlazado correctamente al botón.');
+        } else {
+            console.warn('[Workout] No se encontró el botón .aw-history-btn para enlazar el evento');
+        }
+        // ============================================================
+        
+    }, 100);
     
     // Configurar listeners para los paneles de temporizadores
     const timerDescansoArea = document.getElementById('timer-descanso-area');
@@ -548,8 +599,10 @@ window.iniciarEntrenamiento = function(sessionData) {
     }
     
     // Ocultar paneles al inicio
-    document.getElementById('descanso-panel').style.display = 'none';
-    document.getElementById('timer-panel').style.display = 'none';
+    const descansoPanel = document.getElementById('descanso-panel');
+    const timerPanel = document.getElementById('timer-panel');
+    if (descansoPanel) descansoPanel.style.display = 'none';
+    if (timerPanel) timerPanel.style.display = 'none';
     
     // Iniciar temporizador total
     iniciarTotalTimer();
@@ -622,12 +675,20 @@ window.finalizarEntrenamiento = async function() {
         modal.style.display = 'none';
     }
     
-    // LIMPIAR EL FILTRO Y NAVEGAR AL HISTORIAL
-    // Limpiar el filtro de búsqueda
-    historySearchTerm = '';
-    window.historySearchTerm = '';
+    // LIMPIAR FILTROS Y NAVEGAR AL HISTORIAL NORMAL (SIN FILTRO, SIN BOTÓN DE RETROCESO)
+    // Limpiar todos los filtros
+    if (typeof window.resetHistoryFilters === 'function') {
+        window.resetHistoryFilters();
+    } else {
+        historySearchTerm = '';
+        window.historySearchTerm = '';
+        historyRoutineFilter = 'todos';
+        window.historyRoutineFilter = 'todos';
+        historyReturnScreen = null;
+        window.historyReturnScreen = null;
+    }
     
-    // Navegar al historial
+    // Navegar al historial normal
     switchTab('history');
     
     // Renderizar el historial después de un breve delay
@@ -637,6 +698,11 @@ window.finalizarEntrenamiento = async function() {
         if (input) {
             input.value = '';
             input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        // Actualizar el select de rutinas
+        const routineSelect = document.getElementById('historyRoutineFilterSelect');
+        if (routineSelect) {
+            routineSelect.value = 'todos';
         }
         updateHistoryClearButton();
         renderHistory();
@@ -655,9 +721,6 @@ window.finalizarEntrenamiento = async function() {
 };
 
 window.cerrarEntrenamiento = async function() {
-    // Guardar referencia al nombre de la sesión antes de limpiar
-    const sessionName = aw_currentWorkout ? aw_currentWorkout.sessionTitle : null;
-    
     if (aw_currentWorkout) {
         if (typeof window.showConfirm === 'function') {
             const confirmar = await window.showConfirm("¿Cerrar sin guardar? Se perderán las anotaciones.", "Cancelar entrenamiento");
@@ -679,10 +742,36 @@ window.cerrarEntrenamiento = async function() {
         modal.style.display = 'none';
     }
     
-    // Si estábamos viendo el historial, limpiar el filtro
-    if (typeof window.cerrarModalHistorialEntrenoActual === 'function') {
-        window.cerrarModalHistorialEntrenoActual();
+    // LIMPIAR FILTROS Y NAVEGAR AL HISTORIAL NORMAL (SIN FILTRO, SIN BOTÓN DE RETROCESO)
+    // Limpiar todos los filtros
+    if (typeof window.resetHistoryFilters === 'function') {
+        window.resetHistoryFilters();
+    } else {
+        historySearchTerm = '';
+        window.historySearchTerm = '';
+        historyRoutineFilter = 'todos';
+        window.historyRoutineFilter = 'todos';
+        historyReturnScreen = null;
+        window.historyReturnScreen = null;
     }
+    
+    // Navegar al historial normal
+    switchTab('history');
+    
+    // Renderizar el historial después de un breve delay
+    setTimeout(() => {
+        const input = document.getElementById('historySearchInput');
+        if (input) {
+            input.value = '';
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        const routineSelect = document.getElementById('historyRoutineFilterSelect');
+        if (routineSelect) {
+            routineSelect.value = 'todos';
+        }
+        updateHistoryClearButton();
+        renderHistory();
+    }, 100);
     
     aw_currentWorkout = null;
     aw_quillInstance = null;

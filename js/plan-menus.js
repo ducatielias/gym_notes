@@ -78,16 +78,28 @@ function toggleSessionOptionsMenu(event) {
 async function handleSessionHistory() {
     const session = window.editingSession;
     if (session) {
-        // Obtener el nombre de la sesión
+        // Obtener el nombre de la sesión y la rutina actual
         const sessionTitle = session.title;
+        const routine = appData.routines.find(r => r.id === currentRoutineId);
+        const routineName = routine ? routine.name : '';
+        
+        console.log('[handleSessionHistory] Buscando sesión:', sessionTitle, 'en rutina:', routineName);
         
         // Guardar origen para el botón de retroceso
         historyReturnScreen = 'session';
         window.historyReturnScreen = 'session';
         
-        // Establecer el filtro de búsqueda
+        // Guardar el nombre de la rutina para filtrar
+        historyOriginalRoutineFilter = routineName;
+        window.historyOriginalRoutineFilter = routineName;
+        
+        // Establecer el filtro de búsqueda por nombre de sesión
         historySearchTerm = sessionTitle;
-        window.historySearchTerm = historySearchTerm;
+        window.historySearchTerm = sessionTitle;
+        
+        // Establecer el filtro de rutina
+        historyRoutineFilter = routineName;
+        window.historyRoutineFilter = routineName;
         
         // Navegar a la pantalla de historial
         switchTab('history');
@@ -99,6 +111,13 @@ async function handleSessionHistory() {
                 input.value = sessionTitle;
                 input.dispatchEvent(new Event('input', { bubbles: true }));
             }
+            
+            // Actualizar el select de rutinas
+            const routineSelect = document.getElementById('historyRoutineFilterSelect');
+            if (routineSelect) {
+                routineSelect.value = routineName;
+            }
+            
             updateHistoryClearButton();
             renderHistory();
         }, 100);

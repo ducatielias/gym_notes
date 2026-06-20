@@ -13,6 +13,7 @@ let historyRoutineFilter = 'todos';
 let historySearchTerm = '';
 let historyViewingItem = null;
 let historyReturnScreen = null; // 'workout' o 'session' para saber a dónde volver
+let historyOriginalRoutineFilter = 'todos'; // Guarda el filtro de rutina original cuando se aplica desde origen
 
 // ==========================================================================
 // FUNCIONES DE ALMACENAMIENTO
@@ -93,6 +94,23 @@ function getUniqueSessionsFromHistory() {
 }
 
 // ==========================================================================
+// FUNCIÓN PARA RESTAURAR FILTROS AL VOLVER
+// ==========================================================================
+
+function resetHistoryFilters() {
+    historySearchTerm = '';
+    window.historySearchTerm = '';
+    historyRoutineFilter = 'todos';
+    window.historyRoutineFilter = 'todos';
+    historyFilter = 'todos';
+    window.historyFilter = 'todos';
+    historyReturnScreen = null;
+    window.historyReturnScreen = null;
+    historyOriginalRoutineFilter = 'todos';
+    window.historyOriginalRoutineFilter = 'todos';
+}
+
+// ==========================================================================
 // EXPOSICIÓN GLOBAL
 // ==========================================================================
 
@@ -102,6 +120,7 @@ window.historyRoutineFilter = historyRoutineFilter;
 window.historySearchTerm = historySearchTerm;
 window.historyViewingItem = historyViewingItem;
 window.historyReturnScreen = historyReturnScreen;
+window.historyOriginalRoutineFilter = historyOriginalRoutineFilter;
 window.saveHistory = saveHistory;
 window.getHistory = getHistory;
 window.setHistory = setHistory;
@@ -112,3 +131,4 @@ window.clearAllHistory = clearAllHistory;
 window.getHistoryStats = getHistoryStats;
 window.getUniqueRoutinesFromHistory = getUniqueRoutinesFromHistory;
 window.getUniqueSessionsFromHistory = getUniqueSessionsFromHistory;
+window.resetHistoryFilters = resetHistoryFilters;
