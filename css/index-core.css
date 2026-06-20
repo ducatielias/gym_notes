@@ -44,6 +44,7 @@ body {
     left: 0;
     overflow-y: auto;
     background-color: var(--background-color);
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 20px));
 }
 
 .screen.hidden {

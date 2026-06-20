@@ -171,11 +171,11 @@
 }
 
 /* ==========================================================================
-   CONTENEDOR DE TARJETAS DEL HISTORIAL
+   CONTENEDOR DE TARJETAS DEL HISTORIAL - PADDING BOTTOM AUMENTADO PARA MÓVILES
    ========================================================================== */
 
 .history-grid {
-    padding: 12px 20px 100px 20px;
+    padding: 12px 20px calc(100px + env(safe-area-inset-bottom, 20px)) 20px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -385,9 +385,10 @@
 .history-detail-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 100dvh;
     width: 100%;
     background-color: #ffffff;
+    overflow: hidden !important;
 }
 
 .history-detail-sticky-header {
@@ -397,6 +398,8 @@
     background-color: #ffffff;
     z-index: 10;
     border-bottom: 1px solid #f3f4f6;
+    position: sticky;
+    top: 0;
 }
 
 .history-detail-nav-top {
@@ -466,9 +469,10 @@
 
 .history-detail-body {
     flex: 1;
-    overflow-y: auto;
+    min-height: 0;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
     padding: 16px 16px 100px 16px;
-    -webkit-overflow-scrolling: touch;
     background-color: #ffffff;
 }
 
@@ -626,5 +630,9 @@
     
     .history-detail-body {
         padding: 12px 12px 100px 12px;
+    }
+    
+    .history-grid {
+        padding: 12px 12px calc(100px + env(safe-area-inset-bottom, 20px)) 12px;
     }
 }

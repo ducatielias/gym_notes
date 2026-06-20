@@ -164,11 +164,11 @@
 }
 
 /* ==========================================================================
-   CONTENEDOR DE TARJETAS
+   CONTENEDOR DE TARJETAS - PADDING BOTTOM AUMENTADO PARA MÓVILES
    ========================================================================== */
 
 .exercises-grid {
-    padding: 12px 20px 100px 20px;
+    padding: 12px 20px calc(100px + env(safe-area-inset-bottom, 20px)) 20px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -393,7 +393,7 @@
 .exercise-editor-container {
     display: flex;
     flex-direction: column;
-    height: 100dvh; /* Usa dvh (dynamic viewport height) para recalcular con el teclado */
+    height: 100dvh;
     width: 100%;
     background-color: #ffffff;
     overflow: hidden !important;
@@ -402,7 +402,7 @@
 .exercise-editor-sticky-header {
     display: flex;
     flex-direction: column;
-    flex-shrink: 0; /* Impide que la cabecera se aplaste o reduzca */
+    flex-shrink: 0;
     background-color: #ffffff;
     z-index: 10;
     border-bottom: 1px solid #f3f4f6;
@@ -500,8 +500,8 @@
 
 .exercise-editor-body {
     flex: 1;
-    min-height: 0; /* Crucial en flexbox para que respete el desbordamiento */
-    overflow-y: auto !important; /* Permitimos scroll solo aquí */
+    min-height: 0;
+    overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     padding: 16px 16px 100px 16px;
     background-color: #ffffff;
@@ -739,6 +739,10 @@
     
     .exercise-editor-body {
         padding: 12px 12px 100px 12px;
+    }
+    
+    .exercises-grid {
+        padding: 12px 12px calc(100px + env(safe-area-inset-bottom, 20px)) 12px;
     }
 }
 
