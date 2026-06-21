@@ -4,9 +4,8 @@
  * Gestiona el entrenamiento activo: inicialización, finalización, cierre
  * y funciones de ejercicios (Formato y Ejercicios Gym)
  * 
- * MODIFICADO: La lista de ejercicios en el entrenamiento ahora muestra SOLO
- * los ejercicios guardados en la base de datos, con su imagen correspondiente.
- * Eliminados los ejercicios predefinidos.
+ * MODIFICADO: Los ejercicios insertados ahora son enlaces cliqueables
+ * que abren el visor de ejercicios con todos los detalles.
  */
 
 // ==========================================================================
@@ -321,9 +320,10 @@ function renderExercisesListEntrenamiento(lista) {
     listContainer.innerHTML = lista.map(ejercicio => {
         const imgSrc = ejercicio.img || getPlaceholderImage(ejercicio.nombre);
         const nombreEscapado = ejercicio.nombre.replace(/'/g, "\\'");
+        const idEscapado = ejercicio.id.replace(/'/g, "\\'");
         
         return `
-            <li class="exercise-item" onclick="insertarEjercicioEnEntrenamiento('${nombreEscapado}')">
+            <li class="exercise-item" onclick="insertarEjercicioEnEntrenamiento('${nombreEscapado}', '${idEscapado}')">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <img src="${imgSrc}" 
                          style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover; background: #f3f4f6; flex-shrink: 0;" 
@@ -367,20 +367,30 @@ function filtrarEjerciciosEntrenamiento() {
 }
 
 // Insertar el ejercicio seleccionado en el editor del entrenamiento
-function insertarEjercicioEnEntrenamiento(nombreEjercicio) {
+// MODIFICADO: Ahora inserta un enlace HTML cliqueable con data-exercise-id
+function insertarEjercicioEnEntrenamiento(nombreEjercicio, ejercicioId) {
     if (!aw_quillInstance) return;
 
     // Obtener la posición actual del cursor
     const range = aw_quillInstance.getSelection(true);
     
-    // Insertar el texto formateado en negrita seguido de un salto de línea
-    aw_quillInstance.insertText(range.index, `\n• ${nombreEjercicio}: `, { 'bold': true });
+    // Construir el HTML del enlace
+    const linkHTML = `<br><span class="exercise-link" data-exercise-id="${ejercicioId || nombreEjercicio}" style="color: var(--accent-color, #ccff00); font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 2px;">• ${nombreEjercicio}</span>: `;
+    
+    // Insertar el HTML en el editor
+    aw_quillInstance.clipboard.dangerouslyPasteHTML(range.index, linkHTML);
     
     // Desplazar el cursor al final del bloque insertado
-    aw_quillInstance.setSelection(range.index + nombreEjercicio.length + 4);
+    const newRange = aw_quillInstance.getSelection();
+    if (newRange) {
+        aw_quillInstance.setSelection(newRange.index + linkHTML.length, 0);
+    }
     
     // Cerrar el panel de ejercicios automáticamente
     toggleSectionEntrenamiento('exercises');
+    
+    // Reconfigurar el listener para los nuevos enlaces en el entrenamiento
+    setTimeout(configurarListenerEjerciciosEnEntrenamiento, 100);
 }
 
 // Controlar la conmutación de los paneles de formato y ejercicios (entrenamiento)
@@ -432,8 +442,46 @@ window.toggleSectionEntrenamiento = function(type) {
     }
 };
 
+// Configurar listener para clics en enlaces de ejercicios dentro del entrenamiento
+function configurarListenerEjerciciosEnEntrenamiento() {
+    const editorContainer = document.querySelector('#aw-editor-container .ql-editor');
+    if (!editorContainer) {
+        setTimeout(configurarListenerEjerciciosEnEntrenamiento, 300);
+        return;
+    }
+    
+    // Eliminar listener anterior si existe
+    if (editorContainer._exerciseLinkListener) {
+        editorContainer.removeEventListener('click', editorContainer._exerciseLinkListener);
+    }
+    
+    // Crear nuevo listener
+    const listener = function(e) {
+        const target = e.target.closest('.exercise-link');
+        if (target) {
+            e.preventDefault();
+            e.stopPropagation();
+            const exerciseId = target.getAttribute('data-exercise-id');
+            if (exerciseId) {
+                console.log('[workout] Clic en ejercicio:', exerciseId);
+                if (typeof window.openExerciseViewer === 'function') {
+                    window.openExerciseViewer(exerciseId);
+                } else {
+                    console.warn('[workout] openExerciseViewer no está disponible');
+                    window.showAlert('El visor de ejercicios no está disponible.', 'Error');
+                }
+            }
+        }
+    };
+    
+    editorContainer._exerciseLinkListener = listener;
+    editorContainer.addEventListener('click', listener);
+}
+
 // ==========================================================================
 // EXPOSICIÓN GLOBAL DE FUNCIONES PRINCIPALES
 // ==========================================================================
 
 window.resetAllTimersAndState = resetAllTimersAndState;
+window.insertarEjercicioEnEntrenamiento = insertarEjercicioEnEntrenamiento;
+window.configurarListenerEjerciciosEnEntrenamiento = configurarListenerEjerciciosEnEntrenamiento;

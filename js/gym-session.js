@@ -4,9 +4,8 @@
  * la gestión del filtrado dinámico en el buscador de ejercicios, y las
  * animaciones de los menús colapsables de herramientas.
  * 
- * MODIFICADO: La lista de ejercicios ahora muestra SOLO los ejercicios
- * guardados en la base de datos, con su imagen correspondiente.
- * Eliminados los ejercicios predefinidos.
+ * MODIFICADO: Los ejercicios insertados ahora son enlaces cliqueables
+ * que abren el visor de ejercicios con todos los detalles.
  */
 
 window.quillInstance = null;
@@ -30,6 +29,47 @@ function initEditorInstance(initialContent) {
     if (initialContent) {
         window.quillInstance.clipboard.dangerouslyPasteHTML(initialContent);
     }
+    
+    // Añadir listener para clics en enlaces de ejercicios dentro del editor
+    configurarListenerEjerciciosEnEditor();
+}
+
+// Configurar listener para clics en enlaces de ejercicios dentro del editor
+function configurarListenerEjerciciosEnEditor() {
+    const editorContainer = document.querySelector('#editor-instance .ql-editor');
+    if (!editorContainer) {
+        // Si no existe, intentar después de un breve delay
+        setTimeout(configurarListenerEjerciciosEnEditor, 300);
+        return;
+    }
+    
+    // Eliminar listener anterior si existe
+    if (editorContainer._exerciseLinkListener) {
+        editorContainer.removeEventListener('click', editorContainer._exerciseLinkListener);
+    }
+    
+    // Crear nuevo listener
+    const listener = function(e) {
+        // Buscar si el clic fue en un enlace de ejercicio o en un elemento hijo
+        const target = e.target.closest('.exercise-link');
+        if (target) {
+            e.preventDefault();
+            e.stopPropagation();
+            const exerciseId = target.getAttribute('data-exercise-id');
+            if (exerciseId) {
+                console.log('[gym-session] Clic en ejercicio:', exerciseId);
+                if (typeof window.openExerciseViewer === 'function') {
+                    window.openExerciseViewer(exerciseId);
+                } else {
+                    console.warn('[gym-session] openExerciseViewer no está disponible');
+                    window.showAlert('El visor de ejercicios no está disponible.', 'Error');
+                }
+            }
+        }
+    };
+    
+    editorContainer._exerciseLinkListener = listener;
+    editorContainer.addEventListener('click', listener);
 }
 
 // Controlar la conmutación y animación elástica de las barras secundarias
@@ -122,9 +162,10 @@ function renderExercisesList(lista) {
     listContainer.innerHTML = lista.map(ejercicio => {
         const imgSrc = ejercicio.img || getPlaceholderImage(ejercicio.nombre);
         const nombreEscapado = ejercicio.nombre.replace(/'/g, "\\'");
+        const idEscapado = ejercicio.id.replace(/'/g, "\\'");
         
         return `
-            <li class="exercise-item" onclick="insertarEjercicioEnTexto('${nombreEscapado}')">
+            <li class="exercise-item" onclick="insertarEjercicioEnTexto('${nombreEscapado}', '${idEscapado}')">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <img src="${imgSrc}" 
                          style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover; background: #f3f4f6; flex-shrink: 0;" 
@@ -168,18 +209,41 @@ function filtrarEjercicios() {
 }
 
 // Insertar de manera limpia el ejercicio seleccionado en la posición actual del cursor de Quill
-function insertarEjercicioEnTexto(nombreEjercicio) {
+// MODIFICADO: Ahora inserta un enlace HTML cliqueable con data-exercise-id
+function insertarEjercicioEnTexto(nombreEjercicio, ejercicioId) {
     if (!window.quillInstance) return;
 
     // Obtener la posición actual del foco/cursor del usuario
     const range = window.quillInstance.getSelection(true);
     
-    // Inyectar el texto formateado en negrita seguido de un salto de línea
-    window.quillInstance.insertText(range.index, `\n• ${nombreEjercicio}: `, { 'bold': true });
+    // Construir el HTML del enlace
+    const linkHTML = `<br><span class="exercise-link" data-exercise-id="${ejercicioId || nombreEjercicio}" style="color: var(--accent-color, #ccff00); font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 2px;">• ${nombreEjercicio}</span>: `;
     
-    // Desplazar el cursor inmediatamente al final del bloque insertado para facilitar la escritura
-    window.quillInstance.setSelection(range.index + nombreEjercicio.length + 4);
+    // Insertar el HTML en el editor
+    window.quillInstance.clipboard.dangerouslyPasteHTML(range.index, linkHTML);
+    
+    // Desplazar el cursor inmediatamente al final del bloque insertado
+    const newRange = window.quillInstance.getSelection();
+    if (newRange) {
+        window.quillInstance.setSelection(newRange.index + linkHTML.length, 0);
+    }
     
     // Cerramos el menú elástico automáticamente tras la inserción para mejorar la usabilidad
     toggleSection('exercises');
+    
+    // Reconfigurar el listener para los nuevos enlaces
+    setTimeout(configurarListenerEjerciciosEnEditor, 100);
 }
+
+// ==========================================================================
+// EXPOSICIÓN GLOBAL
+// ==========================================================================
+
+window.initEditorInstance = initEditorInstance;
+window.toggleSection = toggleSection;
+window.filtrarEjercicios = filtrarEjercicios;
+window.insertarEjercicioEnTexto = insertarEjercicioEnTexto;
+window.obtenerListaEjerciciosDesdeBD = obtenerListaEjerciciosDesdeBD;
+window.cargarEjerciciosDesdeBD = cargarEjerciciosDesdeBD;
+window.renderExercisesList = renderExercisesList;
+window.configurarListenerEjerciciosEnEditor = configurarListenerEjerciciosEnEditor;
