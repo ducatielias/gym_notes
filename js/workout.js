@@ -3,6 +3,10 @@
  * PUNTO DE ENTRADA del módulo de Entrenamiento Activo
  * Gestiona el entrenamiento activo: inicialización, finalización, cierre
  * y funciones de ejercicios (Formato y Ejercicios Gym)
+ * 
+ * MODIFICADO: La lista de ejercicios en el entrenamiento ahora muestra SOLO
+ * los ejercicios guardados en la base de datos, con su imagen correspondiente.
+ * Eliminados los ejercicios predefinidos.
  */
 
 // ==========================================================================
@@ -289,26 +293,18 @@ window.cerrarEntrenamiento = async function() {
 // FUNCIONES PARA BOTONES DE FORMATO Y EJERCICIOS (entrenamiento)
 // ==========================================================================
 
-// Lista de ejercicios por defecto (copia de gym-session.js)
-function obtenerListaEjerciciosPorDefecto() {
+// Obtener lista de ejercicios SOLO desde la base de datos (para entrenamiento)
+function obtenerListaEjerciciosDesdeBD() {
     // Obtener ejercicios desde el sistema de ejercicios
     if (typeof window.getExerciseAutocompleteList === 'function') {
         const exercises = window.getExerciseAutocompleteList('');
         if (exercises && exercises.length > 0) {
-            return exercises.map(ex => ex.nombre);
+            return exercises;
         }
     }
     
-    // Fallback: lista por defecto si no hay ejercicios guardados
-    return [
-        "Press de Banca (Barra)", "Press Inclinado (Mancuernas)", "Aperturas en Polea",
-        "Fondos en Paralelas", "Sentadillas Traseras", "Prensa de Piernas",
-        "Extensión de Cuádriceps", "Peso Muerto Rumano", "Curl de Piernas",
-        "Elevaciones de Gemelos", "Dominadas", "Remo con Barra",
-        "Jalón al Pecho", "Remo con Mancuerna", "Press Militar (Barra)",
-        "Elevaciones Laterales", "Pájaros (Hombro Posterior)", "Curl de Bíceps (Barra)",
-        "Curl Martillo", "Extensiones de Tríceps (Polea)", "Press Francés"
-    ];
+    // Si no hay ejercicios en la base de datos, devolver array vacío
+    return [];
 }
 
 // Renderizar la lista de ejercicios dentro del entrenamiento
@@ -316,42 +312,58 @@ function renderExercisesListEntrenamiento(lista) {
     const listContainer = document.getElementById('aw-exercises-list');
     if (!listContainer) return;
 
-    if (lista.length === 0) {
-        listContainer.innerHTML = `<li class="no-results">No se encontraron ejercicios</li>`;
+    if (!lista || lista.length === 0) {
+        listContainer.innerHTML = `<li class="no-results">No hay ejercicios guardados. <br>Ve a la pestaña "Ejercicios" para crear uno.</li>`;
         return;
     }
 
-    listContainer.innerHTML = lista.map(ejercicio => `
-        <li class="exercise-item" onclick="insertarEjercicioEnEntrenamiento('${ejercicio.replace(/'/g, "\\'")}')">
-            ${ejercicio}
-        </li>
-    `).join('');
+    // Obtener la URL de la imagen o usar un placeholder
+    listContainer.innerHTML = lista.map(ejercicio => {
+        const imgSrc = ejercicio.img || getPlaceholderImage(ejercicio.nombre);
+        const nombreEscapado = ejercicio.nombre.replace(/'/g, "\\'");
+        
+        return `
+            <li class="exercise-item" onclick="insertarEjercicioEnEntrenamiento('${nombreEscapado}')">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="${imgSrc}" 
+                         style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover; background: #f3f4f6; flex-shrink: 0;" 
+                         onerror="this.src='${getPlaceholderImage(ejercicio.nombre)}'"
+                         alt="${ejercicio.nombre}">
+                    <span>${ejercicio.nombre}</span>
+                </div>
+            </li>
+        `;
+    }).join('');
 }
 
-// Filtrar ejercicios en tiempo real (entrenamiento)
+// Función para obtener imagen placeholder (entrenamiento)
+function getPlaceholderImage(text) {
+    return 'data:image/svg+xml,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+            <rect width="32" height="32" fill="#f3f4f6" rx="8"/>
+            <text x="16" y="20" font-family="Arial" font-size="16" text-anchor="middle" fill="#9ca3af">💪</text>
+        </svg>
+    `);
+}
+
+// Filtrar ejercicios en tiempo real (entrenamiento) - SOLO desde la base de datos
 function filtrarEjerciciosEntrenamiento() {
     const searchInput = document.getElementById('aw-search-exercise');
     if (!searchInput) return;
 
     const query = searchInput.value.toLowerCase().trim();
     
-    // Usar el sistema de autocompletado de ejercicios
+    // Usar el sistema de autocompletado de ejercicios SOLO de la base de datos
     if (typeof window.getExerciseAutocompleteList === 'function') {
         const exercises = window.getExerciseAutocompleteList(query);
         if (exercises && exercises.length > 0) {
-            renderExercisesListEntrenamiento(exercises.map(ex => ex.nombre));
+            renderExercisesListEntrenamiento(exercises);
             return;
         }
     }
     
-    // Fallback: usar lista por defecto
-    const todosLosEjercicios = obtenerListaEjerciciosPorDefecto();
-    if (query === "") {
-        renderExercisesListEntrenamiento(todosLosEjercicios);
-        return;
-    }
-    const filtrados = todosLosEjercicios.filter(ej => ej.toLowerCase().includes(query));
-    renderExercisesListEntrenamiento(filtrados);
+    // Si no hay ejercicios en la base de datos o no hay coincidencias
+    renderExercisesListEntrenamiento([]);
 }
 
 // Insertar el ejercicio seleccionado en el editor del entrenamiento
@@ -408,10 +420,10 @@ window.toggleSectionEntrenamiento = function(type) {
             exercisesWrapper.style.maxHeight = '240px';
             exercisesBtn.classList.add('active');
             
-            // Limpiar buscador y cargar lista por defecto
+            // Limpiar buscador y cargar lista desde la base de datos
             const searchInput = document.getElementById('aw-search-exercise');
             if (searchInput) searchInput.value = "";
-            renderExercisesListEntrenamiento(obtenerListaEjerciciosPorDefecto());
+            renderExercisesListEntrenamiento(obtenerListaEjerciciosDesdeBD());
 
             toolbarWrapper.classList.remove('open');
             toolbarWrapper.style.maxHeight = '0px';

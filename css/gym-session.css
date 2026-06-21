@@ -3,6 +3,9 @@
  * Devuelve el buscador de ejercicios a su estado original estable,
  * mantiene el comportamiento elástico con el teclado móvil, y aplica un
  * rediseño jerárquico de títulos apilados en el Editor de Sesiones.
+ * 
+ * CORRECCIÓN: Solucionado el problema del placeholder de Quill en móviles
+ * que se solapaba con el texto ingresado.
  */
 
 /* ==========================================================================
@@ -352,11 +355,63 @@
     outline: none;
 }
 
+/* ==========================================================================
+   CORRECCIÓN DEL PLACEHOLDER DE QUILL EN MÓVILES
+   Solución al problema de solapamiento del placeholder en dispositivos móviles
+   ========================================================================== */
+
+/* Estilo base del placeholder - aseguramos que no interfiera con el texto */
 .ql-editor.ql-blank::before {
     left: 16px !important;
     color: #9ca3af;
     font-style: normal;
+    pointer-events: none !important; /* Evita que el placeholder capture eventos táctiles */
+    user-select: none !important; /* Evita que el placeholder sea seleccionable */
+    -webkit-user-select: none !important;
 }
+
+/* Cuando el editor tiene contenido, aseguramos que el placeholder se oculte completamente */
+.ql-editor:not(.ql-blank)::before {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    content: none !important;
+}
+
+/* Forzamos que el placeholder solo sea visible cuando el editor está vacío */
+.ql-editor.ql-blank:empty::before {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Solución específica para móviles: asegurar que el texto ingresado esté siempre por encima del placeholder */
+.ql-editor {
+    position: relative;
+    z-index: 1;
+}
+
+.ql-editor.ql-blank::before {
+    position: absolute;
+    top: 20px;
+    left: 16px;
+    z-index: 0; /* El placeholder está por debajo del contenido */
+}
+
+.ql-editor > * {
+    position: relative;
+    z-index: 1; /* El contenido del editor está por encima del placeholder */
+}
+
+/* Ajuste fino para que el placeholder no se superponga con el padding del editor */
+.ql-editor.ql-blank::before {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* ==========================================================================
+   BARRA DE HERRAMIENTAS DE QUILL
+   ========================================================================== */
 
 /* Barra de herramientas original de Quill al 100% de ancho de pantalla */
 .ql-toolbar.ql-snow {
@@ -413,4 +468,44 @@
     font-size: 14px;
     color: #9ca3af;
     text-align: center;
+}
+
+/* ==========================================================================
+   RESPONSIVE: Ajustes adicionales para móviles
+   ========================================================================== */
+
+@media (max-width: 480px) {
+    /* Ajuste del padding del editor en móviles para mejor experiencia táctil */
+    .ql-editor {
+        padding: 20px 14px 180px 14px !important;
+        font-size: 15px;
+    }
+    
+    /* Ajuste de la posición del placeholder en móviles */
+    .ql-editor.ql-blank::before {
+        left: 14px !important;
+        top: 20px !important;
+        font-size: 15px !important;
+    }
+    
+    /* Ajuste del padding de la barra de herramientas en móviles */
+    .ql-toolbar.ql-snow {
+        padding: 8px 10px !important;
+        gap: 4px;
+    }
+    
+    .ql-toolbar.ql-snow .ql-formats {
+        margin-right: 4px !important;
+    }
+    
+    .ql-toolbar.ql-snow button {
+        width: 30px !important;
+        height: 30px !important;
+        padding: 4px !important;
+    }
+    
+    .ql-toolbar.ql-snow .ql-picker-label {
+        padding: 2px 8px !important;
+        font-size: 12px !important;
+    }
 }

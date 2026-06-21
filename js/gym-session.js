@@ -3,6 +3,10 @@
  * Controla la inicialización de la instancia enriquecida de Quill,
  * la gestión del filtrado dinámico en el buscador de ejercicios, y las
  * animaciones de los menús colapsables de herramientas.
+ * 
+ * MODIFICADO: La lista de ejercicios ahora muestra SOLO los ejercicios
+ * guardados en la base de datos, con su imagen correspondiente.
+ * Eliminados los ejercicios predefinidos.
  */
 
 window.quillInstance = null;
@@ -69,10 +73,13 @@ function toggleSection(type) {
             exercisesWrapper.style.maxHeight = '240px';
             exercisesBtn.classList.add('active');
             
-            // Limpiamos el buscador e inyectamos los datos por defecto
+            // Limpiamos el buscador e inyectamos los datos de la base de datos
             const searchInput = document.getElementById('searchExercise');
             if (searchInput) searchInput.value = "";
-            renderExercisesList(obtenerListaEjerciciosPorDefecto());
+            renderExercisesList(obtenerListaEjerciciosDesdeBD());
+            
+            // Cargar ejercicios de la base de datos
+            cargarEjerciciosDesdeBD();
 
             toolbarWrapper.classList.remove('open');
             toolbarWrapper.style.maxHeight = '0px';
@@ -81,26 +88,24 @@ function toggleSection(type) {
     }
 }
 
-// MODIFICADO: Obtener lista de ejercicios desde el sistema de ejercicios
-function obtenerListaEjerciciosPorDefecto() {
+// Obtener lista de ejercicios SOLO desde la base de datos
+function obtenerListaEjerciciosDesdeBD() {
     // Obtener ejercicios desde el sistema de ejercicios
     if (typeof window.getExerciseAutocompleteList === 'function') {
         const exercises = window.getExerciseAutocompleteList('');
         if (exercises && exercises.length > 0) {
-            return exercises.map(ex => ex.nombre);
+            return exercises;
         }
     }
     
-    // Fallback: lista por defecto si no hay ejercicios guardados
-    return [
-        "Press de Banca (Barra)", "Press Inclinado (Mancuernas)", "Aperturas en Polea",
-        "Fondos en Paralelas", "Sentadillas Traseras", "Prensa de Piernas",
-        "Extensión de Cuádriceps", "Peso Muerto Rumano", "Curl de Piernas",
-        "Elevaciones de Gemelos", "Dominadas", "Remo con Barra",
-        "Jalón al Pecho", "Remo con Mancuerna", "Press Militar (Barra)",
-        "Elevaciones Laterales", "Pájaros (Hombro Posterior)", "Curl de Bíceps (Barra)",
-        "Curl Martillo", "Extensiones de Tríceps (Polea)", "Press Francés"
-    ];
+    // Si no hay ejercicios en la base de datos, devolver array vacío
+    return [];
+}
+
+// Cargar ejercicios desde la base de datos
+function cargarEjerciciosDesdeBD() {
+    const exercises = obtenerListaEjerciciosDesdeBD();
+    renderExercisesList(exercises);
 }
 
 // Renderizar dinámicamente los elementos LI dentro del contenedor UL buscador
@@ -109,15 +114,37 @@ function renderExercisesList(lista) {
     if (!listContainer) return;
 
     if (!lista || lista.length === 0) {
-        listContainer.innerHTML = `<li class="no-results">No se encontraron ejercicios</li>`;
+        listContainer.innerHTML = `<li class="no-results">No hay ejercicios guardados. <br>Ve a la pestaña "Ejercicios" para crear uno.</li>`;
         return;
     }
 
-    listContainer.innerHTML = lista.map(ejercicio => `
-        <li class="exercise-item" onclick="insertarEjercicioEnTexto('${ejercicio.replace(/'/g, "\\'")}')">
-            ${ejercicio}
-        </li>
-    `).join('');
+    // Obtener la URL de la imagen o usar un placeholder
+    listContainer.innerHTML = lista.map(ejercicio => {
+        const imgSrc = ejercicio.img || getPlaceholderImage(ejercicio.nombre);
+        const nombreEscapado = ejercicio.nombre.replace(/'/g, "\\'");
+        
+        return `
+            <li class="exercise-item" onclick="insertarEjercicioEnTexto('${nombreEscapado}')">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="${imgSrc}" 
+                         style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover; background: #f3f4f6; flex-shrink: 0;" 
+                         onerror="this.src='${getPlaceholderImage(ejercicio.nombre)}'"
+                         alt="${ejercicio.nombre}">
+                    <span>${ejercicio.nombre}</span>
+                </div>
+            </li>
+        `;
+    }).join('');
+}
+
+// Función para obtener imagen placeholder
+function getPlaceholderImage(text) {
+    return 'data:image/svg+xml,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+            <rect width="32" height="32" fill="#f3f4f6" rx="8"/>
+            <text x="16" y="20" font-family="Arial" font-size="16" text-anchor="middle" fill="#9ca3af">💪</text>
+        </svg>
+    `);
 }
 
 // MODIFICADO: Filtrar en tiempo real los ejercicios mediante la caja de entrada de texto
@@ -127,23 +154,17 @@ function filtrarEjercicios() {
 
     const query = searchInput.value.toLowerCase().trim();
     
-    // Usar el sistema de autocompletado de ejercicios
+    // Usar el sistema de autocompletado de ejercicios SOLO de la base de datos
     if (typeof window.getExerciseAutocompleteList === 'function') {
         const exercises = window.getExerciseAutocompleteList(query);
         if (exercises && exercises.length > 0) {
-            renderExercisesList(exercises.map(ex => ex.nombre));
+            renderExercisesList(exercises);
             return;
         }
     }
     
-    // Fallback: usar lista por defecto
-    const todosLosEjercicios = obtenerListaEjerciciosPorDefecto();
-    if (query === "") {
-        renderExercisesList(todosLosEjercicios);
-        return;
-    }
-    const filtrados = todosLosEjercicios.filter(ej => ej.toLowerCase().includes(query));
-    renderExercisesList(filtrados);
+    // Si no hay ejercicios en la base de datos o no hay coincidencias
+    renderExercisesList([]);
 }
 
 // Insertar de manera limpia el ejercicio seleccionado en la posición actual del cursor de Quill
