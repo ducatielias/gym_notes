@@ -1,6 +1,8 @@
 /**
  * MÓDULO CENTRAL: index.js
  * Controla la navegación global por pestañas de la aplicación.
+ * 
+ * MODIFICADO: Añadido soporte para exercise-viewer con gestión de menú inferior.
  */
 
 function switchTab(tabId) {
@@ -17,6 +19,9 @@ function switchTab(tabId) {
 
     // SOLUCIÓN AL TECLADO: Si entramos al editor, ocultamos por completo el menú de pestañas
     if (tabId === 'editor' || tabId === 'exercise-editor' || tabId === 'history-detail') {
+        if (bottomNav) bottomNav.classList.add('hidden-nav');
+    } else if (tabId === 'exercise-viewer') {
+        // El visor de ejercicios siempre oculta el menú inferior
         if (bottomNav) bottomNav.classList.add('hidden-nav');
     } else if (tabId === 'history') {
         // Si entramos al historial desde entrenamiento o sesión, ocultamos el menú
@@ -40,7 +45,7 @@ function switchTab(tabId) {
     }
 
     // 5. Buscar el botón correspondiente en el menú inferior y activarlo (si no estamos en el editor)
-    if (tabId !== 'editor' && tabId !== 'exercise-editor' && tabId !== 'history-detail' && tabId !== 'history') {
+    if (tabId !== 'editor' && tabId !== 'exercise-editor' && tabId !== 'history-detail' && tabId !== 'history' && tabId !== 'exercise-viewer') {
         const currentBtn = Array.from(navItems).find(btn => btn.getAttribute('onclick').includes(`'${tabId}'`));
         if (currentBtn) {
             currentBtn.classList.add('active');

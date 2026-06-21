@@ -32,10 +32,10 @@ function renderRoutineList() {
                         </button>
                         <div class="menu-divider"></div>
                         <button class="menu-item" onclick="document.getElementById('file-import-routine-list').click(); closeRoutineListOptionsMenu();">
-                            <i class="fa-solid fa-file-import"></i> Importar rutina
+                            <i class="fa-solid fa-file-import"></i> Importar rutinas
                         </button>
                         <button class="menu-item" onclick="exportAllRoutines(); closeRoutineListOptionsMenu();">
-                            <i class="fa-solid fa-file-export"></i> Exportar rutina
+                            <i class="fa-solid fa-file-export"></i> Exportar rutinas
                         </button>
                         <div class="menu-divider"></div>
                         <button class="menu-item menu-delete" onclick="borrarTodasRutinas(); closeRoutineListOptionsMenu();" style="color:#ef4444;">

@@ -3,9 +3,15 @@
  * Controla la visualización de ejercicios en una ventana emergente
  * desde enlaces dentro del editor de sesiones y entrenamiento activo.
  * 
- * MODIFICADO: Detecta clics en texto con formato (negrita + color azul)
- * sin necesidad de que tenga • o clase .exercise-link.
+ * MODIFICADO: Ahora usa pantalla completa con header fijo, footer fijo y scroll central.
+ * Guarda la pantalla de origen para volver correctamente (sesión o entrenamiento).
  */
+
+// ==========================================================================
+// VARIABLES GLOBALES
+// ==========================================================================
+
+let exerciseViewerOrigen = null; // 'session', 'workout', 'exercises'
 
 // ==========================================================================
 // ABRIR VISOR DE EJERCICIOS
@@ -26,7 +32,6 @@ function openExerciseViewer(exerciseId) {
         // Si no se encuentra por ID, intentar buscar por nombre
         if (typeof window.getExercises === 'function') {
             const exercises = window.getExercises();
-            // Buscar por nombre (puede ser que el ID no esté disponible en enlaces antiguos)
             const nombreBuscado = exerciseId;
             exercise = exercises.find(ex => ex.nombre === nombreBuscado);
         }
@@ -38,95 +43,165 @@ function openExerciseViewer(exerciseId) {
         return;
     }
     
-    // Crear y mostrar el visor
-    mostrarVisorEjercicio(exercise);
-}
-
-function mostrarVisorEjercicio(exercise) {
-    console.log('[exercise-viewer] Mostrando visor para:', exercise.nombre);
+    // DETECTAR ORIGEN: desde dónde se abrió el visor
+    // Verificar si estamos en entrenamiento activo
+    const workoutModal = document.getElementById('active-workout');
+    const isWorkoutVisible = workoutModal && workoutModal.style.display === 'flex';
     
-    // Crear el overlay si no existe
-    let overlay = document.getElementById('exercise-viewer-overlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'exercise-viewer-overlay';
-        overlay.className = 'exercise-viewer-overlay';
-        document.body.appendChild(overlay);
+    // Verificar si estamos en el editor de sesiones
+    const editorScreen = document.getElementById('screen-editor');
+    const isEditorVisible = editorScreen && !editorScreen.classList.contains('hidden');
+    
+    if (isWorkoutVisible) {
+        exerciseViewerOrigen = 'workout';
+        console.log('[exercise-viewer] Origen: entrenamiento activo');
+    } else if (isEditorVisible) {
+        exerciseViewerOrigen = 'session';
+        console.log('[exercise-viewer] Origen: editor de sesión');
+    } else {
+        exerciseViewerOrigen = 'exercises';
+        console.log('[exercise-viewer] Origen: página de ejercicios');
     }
     
-    // Determinar si hay vídeo
+    // Crear y mostrar el visor a pantalla completa
+    mostrarVisorEjercicioCompleto(exercise);
+}
+
+function mostrarVisorEjercicioCompleto(exercise) {
+    console.log('[exercise-viewer] Mostrando visor completo para:', exercise.nombre);
+    
+    const container = document.getElementById('screen-exercise-viewer');
+    if (!container) {
+        console.error('[exercise-viewer] Contenedor screen-exercise-viewer no encontrado');
+        return;
+    }
+    
     const hasVideo = exercise.video && exercise.video.trim() !== '';
     const imgSrc = exercise.img || getExerciseViewerPlaceholder(exercise.nombre);
     const notas = exercise.notas || 'Sin notas adicionales.';
     const nombreEscapado = exercise.nombre.replace(/'/g, "\\'");
     
-    // Construir HTML del visor
-    overlay.innerHTML = `
-        <div class="exercise-viewer-container">
-            <div class="exercise-viewer-header">
-                <div class="exercise-viewer-header-top">
-                    <button class="exercise-viewer-close" onclick="closeExerciseViewer()" title="Cerrar">
-                        <i class="fa-solid fa-xmark"></i>
+    container.innerHTML = `
+        <div class="exercise-viewer-full-container">
+            <!-- HEADER FIJO -->
+            <div class="exercise-viewer-full-header">
+                <div class="exercise-viewer-full-nav-top">
+                    <button class="btn-exercise-viewer-close" onclick="closeExerciseViewerFull()" title="Volver">
+                        <i class="fa-solid fa-chevron-left"></i>
                     </button>
-                    <span class="exercise-viewer-badge">${exercise.grupo || 'General'}</span>
+                    <span class="exercise-viewer-full-badge">${exercise.grupo || 'General'}</span>
                 </div>
-                <div class="exercise-viewer-title-row">
-                    <h2 class="exercise-viewer-title">${exercise.nombre}</h2>
+                <div class="exercise-viewer-full-title-row">
+                    <h2 class="exercise-viewer-full-title">${exercise.nombre}</h2>
                 </div>
             </div>
             
-            <div class="exercise-viewer-body">
-                <div class="exercise-viewer-image-container">
+            <!-- CONTENIDO SCROLLABLE -->
+            <div class="exercise-viewer-full-body">
+                <div class="exercise-viewer-full-image-container">
                     <img src="${imgSrc}" 
-                         class="exercise-viewer-image" 
+                         class="exercise-viewer-full-image" 
                          onerror="this.src='${getExerciseViewerPlaceholder(exercise.nombre)}'"
                          alt="${exercise.nombre}"
                          onclick="openExerciseLightbox('${imgSrc}')">
                 </div>
                 
-                <div class="exercise-viewer-info">
-                    <div class="exercise-viewer-group">
-                        <span class="exercise-viewer-label">Grupo muscular:</span>
-                        <span class="exercise-viewer-value">${exercise.grupo || 'General'}</span>
+                <div class="exercise-viewer-full-info">
+                    <div class="exercise-viewer-full-group">
+                        <span class="exercise-viewer-full-label">Grupo muscular:</span>
+                        <span class="exercise-viewer-full-value">${exercise.grupo || 'General'}</span>
                     </div>
                     
-                    <div class="exercise-viewer-notes">
-                        <span class="exercise-viewer-label">Notas / Técnica:</span>
-                        <div class="exercise-viewer-notes-content">${linkifyExerciseViewerHTML(notas)}</div>
+                    <div class="exercise-viewer-full-notes">
+                        <span class="exercise-viewer-full-label">Notas / Técnica:</span>
+                        <div class="exercise-viewer-full-notes-content">${linkifyExerciseViewerHTML(notas)}</div>
                     </div>
                 </div>
-                
-                <div class="exercise-viewer-actions">
-                    <button class="exercise-viewer-btn exercise-viewer-btn-video" onclick="openExerciseViewerVideo('${exercise.video || ''}')" ${!hasVideo ? 'disabled' : ''}>
-                        <i class="fa-solid fa-play"></i> Vídeo
-                    </button>
-                    <button class="exercise-viewer-btn exercise-viewer-btn-web" onclick="searchExerciseOnViewerWeb('${nombreEscapado}')">
-                        <i class="fa-solid fa-globe"></i> Buscar en web
-                    </button>
-                    <button class="exercise-viewer-btn exercise-viewer-btn-edit" onclick="closeExerciseViewerAndEdit('${exercise.id}')">
-                        <i class="fa-solid fa-pen"></i> Editar
-                    </button>
-                </div>
+            </div>
+            
+            <!-- FOOTER FIJO CON 3 BOTONES -->
+            <div class="exercise-viewer-full-footer">
+                <button class="exercise-viewer-full-btn exercise-viewer-full-btn-video" onclick="openExerciseViewerVideo('${exercise.video || ''}')" ${!hasVideo ? 'disabled' : ''}>
+                    <i class="fa-solid fa-play"></i> Vídeo
+                </button>
+                <button class="exercise-viewer-full-btn exercise-viewer-full-btn-web" onclick="searchExerciseOnViewerWeb('${nombreEscapado}')">
+                    <i class="fa-solid fa-globe"></i> Buscar en web
+                </button>
+                <button class="exercise-viewer-full-btn exercise-viewer-full-btn-edit" onclick="closeExerciseViewerFullAndEdit('${exercise.id}')">
+                    <i class="fa-solid fa-pen"></i> Editar
+                </button>
             </div>
         </div>
     `;
     
-    // Mostrar el overlay
-    overlay.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+    // OCULTAR EL MENÚ INFERIOR
+    const bottomNav = document.querySelector('.bottom-nav');
+    if (bottomNav) bottomNav.classList.add('hidden-nav');
+    
+    // Navegar a la pantalla del visor
+    switchTab('exercise-viewer');
+    
+    // Asegurar que el scroll del body esté en la parte superior
+    setTimeout(() => {
+        const bodyEl = container.querySelector('.exercise-viewer-full-body');
+        if (bodyEl) bodyEl.scrollTop = 0;
+    }, 50);
 }
 
-function closeExerciseViewer() {
-    const overlay = document.getElementById('exercise-viewer-overlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-        overlay.innerHTML = '';
+function closeExerciseViewerFull() {
+    console.log('[exercise-viewer] Cerrando visor, origen:', exerciseViewerOrigen);
+    
+    // Limpiar el contenedor
+    const container = document.getElementById('screen-exercise-viewer');
+    if (container) {
+        container.innerHTML = '';
     }
-    document.body.style.overflow = '';
+    
+    // Ocultar el visor
+    const viewerScreen = document.getElementById('screen-exercise-viewer');
+    if (viewerScreen) viewerScreen.classList.add('hidden');
+    
+    // Volver a la pantalla según el origen
+    if (exerciseViewerOrigen === 'workout') {
+        // Volver al entrenamiento activo
+        const modal = document.getElementById('active-workout');
+        if (modal) {
+            modal.style.display = 'flex';
+            console.log('[exercise-viewer] Modal de entrenamiento restaurado');
+        }
+        // Ocultar el menú inferior (el entrenamiento lo oculta)
+        const bottomNav = document.querySelector('.bottom-nav');
+        if (bottomNav) bottomNav.classList.add('hidden-nav');
+        
+        // Navegar a la pantalla de hoy (donde está el entrenamiento)
+        // Pero el entrenamiento está en un modal overlay, no en una screen
+        // Así que simplemente mostramos el modal y aseguramos que la pantalla today esté visible
+        switchTab('today');
+        // Re-ocultar el menú inferior
+        if (bottomNav) bottomNav.classList.add('hidden-nav');
+        
+    } else if (exerciseViewerOrigen === 'session') {
+        // Volver al editor de sesiones
+        const bottomNav = document.querySelector('.bottom-nav');
+        if (bottomNav) bottomNav.classList.add('hidden-nav');
+        switchTab('editor');
+        
+    } else {
+        // Volver a la página de ejercicios
+        const bottomNav = document.querySelector('.bottom-nav');
+        if (bottomNav) bottomNav.classList.remove('hidden-nav');
+        switchTab('exercises');
+        // Asegurar que el menú inferior esté visible
+        if (bottomNav) bottomNav.classList.remove('hidden-nav');
+    }
+    
+    // Limpiar el origen
+    exerciseViewerOrigen = null;
 }
 
-function closeExerciseViewerAndEdit(exerciseId) {
-    closeExerciseViewer();
+function closeExerciseViewerFullAndEdit(exerciseId) {
+    // Cerrar el visor
+    closeExerciseViewerFull();
     // Abrir el editor de ejercicios
     if (typeof window.openExerciseModal === 'function') {
         setTimeout(() => {
@@ -136,6 +211,20 @@ function closeExerciseViewerAndEdit(exerciseId) {
         window.showAlert('No se puede abrir el editor de ejercicios.', 'Error');
     }
 }
+
+// Mantener la función original para compatibilidad
+function closeExerciseViewer() {
+    closeExerciseViewerFull();
+}
+
+// Mantener la función original para compatibilidad
+function closeExerciseViewerAndEdit(exerciseId) {
+    closeExerciseViewerFullAndEdit(exerciseId);
+}
+
+// ==========================================================================
+// FUNCIONES AUXILIARES
+// ==========================================================================
 
 function openExerciseViewerVideo(url) {
     if (!url || url.trim() === '') {
@@ -192,11 +281,8 @@ function configurarListenerPorFormato() {
         const target = e.target;
         if (!target) return;
         
-        // Buscar si el clic fue en un elemento con formato de ejercicio
-        // Buscamos elementos strong que contengan texto (ejercicios en negrita)
         let elemento = target;
         
-        // Si el clic no es directamente en un strong, buscar el strong más cercano
         if (elemento.tagName !== 'STRONG') {
             elemento = target.closest('strong');
         }
@@ -204,16 +290,13 @@ function configurarListenerPorFormato() {
         if (elemento && elemento.tagName === 'STRONG') {
             const textContent = elemento.textContent || '';
             
-            // Verificar que el texto no esté vacío y tenga al menos 2 caracteres
             if (textContent.length > 1) {
-                // Verificar si el strong tiene color azul (estilo inline o clase)
                 const style = elemento.getAttribute('style') || '';
                 const isBlue = style.includes('color: #2563eb') || 
                               style.includes('color:#2563eb') ||
                               style.includes('color: rgb(37, 99, 235)') ||
                               style.includes('color:rgb(37, 99, 235)');
                 
-                // También verificar si el color está en el estilo calculado
                 let computedBlue = false;
                 try {
                     const computedStyle = window.getComputedStyle(elemento);
@@ -226,10 +309,8 @@ function configurarListenerPorFormato() {
                     
                     if (typeof window.getExercises === 'function') {
                         const exercises = window.getExercises();
-                        // Buscar por coincidencia exacta o parcial
                         let exercise = exercises.find(ex => ex.nombre === textContent);
                         if (!exercise) {
-                            // Buscar por coincidencia parcial (si el nombre contiene el texto)
                             exercise = exercises.find(ex => ex.nombre.includes(textContent) || textContent.includes(ex.nombre));
                         }
                         if (exercise && typeof window.openExerciseViewer === 'function') {
@@ -263,9 +344,7 @@ function configurarListenerGlobalEjercicios() {
         console.log('[exercise-viewer] Listener global anterior eliminado');
     }
     
-    // Crear nuevo listener a nivel de documento para enlaces con clase .exercise-link
     const listener = function(e) {
-        // Buscar si el clic fue en un enlace de ejercicio o en un elemento hijo
         const target = e.target.closest('.exercise-link');
         if (target) {
             e.preventDefault();
@@ -288,7 +367,6 @@ function configurarListenerGlobalEjercicios() {
     document.addEventListener('click', listener);
     console.log('[exercise-viewer] Listener global configurado correctamente');
     
-    // También configurar el listener por formato para ejercicios con formato nativo de Quill
     configurarListenerPorFormato();
 }
 
@@ -296,14 +374,12 @@ function configurarListenerGlobalEjercicios() {
 // INICIALIZACIÓN
 // ==========================================================================
 
-// Configurar el listener global cuando el DOM esté listo
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', configurarListenerGlobalEjercicios);
 } else {
     configurarListenerGlobalEjercicios();
 }
 
-// También configurar cuando Quill esté listo (por si el DOM ya estaba cargado)
 setTimeout(configurarListenerGlobalEjercicios, 500);
 
 // ==========================================================================
@@ -312,7 +388,9 @@ setTimeout(configurarListenerGlobalEjercicios, 500);
 
 window.openExerciseViewer = openExerciseViewer;
 window.closeExerciseViewer = closeExerciseViewer;
+window.closeExerciseViewerFull = closeExerciseViewerFull;
 window.closeExerciseViewerAndEdit = closeExerciseViewerAndEdit;
+window.closeExerciseViewerFullAndEdit = closeExerciseViewerFullAndEdit;
 window.openExerciseViewerVideo = openExerciseViewerVideo;
 window.searchExerciseOnViewerWeb = searchExerciseOnViewerWeb;
 window.openExerciseLightbox = openExerciseLightbox;
@@ -320,3 +398,5 @@ window.linkifyExerciseViewerHTML = linkifyExerciseViewerHTML;
 window.getExerciseViewerPlaceholder = getExerciseViewerPlaceholder;
 window.configurarListenerGlobalEjercicios = configurarListenerGlobalEjercicios;
 window.configurarListenerPorFormato = configurarListenerPorFormato;
+window.mostrarVisorEjercicioCompleto = mostrarVisorEjercicioCompleto;
+window.exerciseViewerOrigen = exerciseViewerOrigen;

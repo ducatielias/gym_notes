@@ -2,88 +2,56 @@
  * ESTILOS DE INTERFAZ: exercise-viewer.css
  * Controla la ventana emergente de visualización de ejercicios
  * que se abre desde enlaces en el editor de sesiones y entrenamiento activo.
+ * 
+ * MODIFICADO: Ahora usa pantalla completa con header fijo, footer fijo y scroll central.
  */
 
 /* ==========================================================================
-   OVERLAY DEL VISOR
+   CONTENEDOR PRINCIPAL - PANTALLA COMPLETA
    ========================================================================== */
 
-.exercise-viewer-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    padding: 20px;
-    animation: exerciseViewerFadeIn 0.25s cubic-bezier(0.2, 0.9, 0.4, 1);
+#screen-exercise-viewer {
+    background-color: var(--background-color, #fafafa);
+    overflow: hidden !important;
 }
 
-@keyframes exerciseViewerFadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-/* ==========================================================================
-   CONTENEDOR PRINCIPAL
-   ========================================================================== */
-
-.exercise-viewer-container {
-    background-color: #ffffff;
-    border-radius: 24px;
-    width: 100%;
-    max-width: 420px;
-    max-height: 90vh;
-    overflow: hidden;
+.exercise-viewer-full-container {
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: exerciseViewerSlideUp 0.3s cubic-bezier(0.2, 0.9, 0.4, 1);
-}
-
-@keyframes exerciseViewerSlideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px) scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+    height: 100dvh;
+    width: 100%;
+    background-color: #ffffff;
+    overflow: hidden !important;
 }
 
 /* ==========================================================================
-   CABECERA DEL VISOR
+   HEADER FIJO
    ========================================================================== */
 
-.exercise-viewer-header {
-    padding: 16px 20px 12px 20px;
-    border-bottom: 1px solid #f3f4f6;
+.exercise-viewer-full-header {
+    display: flex;
+    flex-direction: column;
     flex-shrink: 0;
     background-color: #ffffff;
+    z-index: 10;
+    border-bottom: 1px solid #f3f4f6;
+    position: sticky;
+    top: 0;
 }
 
-.exercise-viewer-header-top {
+.exercise-viewer-full-nav-top {
+    height: 56px;
+    padding: 0 5px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #f3f4f6;
+    flex-shrink: 0;
 }
 
-.exercise-viewer-close {
-    background: none;
+.btn-exercise-viewer-close {
+    background: #f3f4f6;
     border: none;
     width: 36px;
     height: 36px;
@@ -91,18 +59,17 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 20px;
-    color: #6b7280;
+    font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.15s ease, transform 0.1s ease;
+    color: var(--primary-color, #000000);
+    transition: transform 0.1s ease;
 }
 
-.exercise-viewer-close:active {
-    background-color: #f3f4f6;
+.btn-exercise-viewer-close:active {
     transform: scale(0.9);
 }
 
-.exercise-viewer-badge {
+.exercise-viewer-full-badge {
     font-size: 11px;
     font-weight: 700;
     color: var(--accent-color, #ccff00);
@@ -113,12 +80,19 @@
     letter-spacing: 0.5px;
 }
 
-.exercise-viewer-title-row {
-    padding: 0 2px;
+.exercise-viewer-full-title-row {
+    padding: 5px 16px 8px 16px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #f3f4f6;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
 }
 
-.exercise-viewer-title {
-    font-size: 24px;
+.exercise-viewer-full-title {
+    font-size: 22px;
     font-weight: 800;
     color: var(--primary-color, #000000);
     margin: 0;
@@ -127,21 +101,23 @@
 }
 
 /* ==========================================================================
-   CUERPO DEL VISOR (SCROLLABLE)
+   CUERPO CENTRAL - SCROLLABLE
    ========================================================================== */
 
-.exercise-viewer-body {
+.exercise-viewer-full-body {
     flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 16px 20px 20px 20px;
+    min-height: 0;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 16px 16px 20px 16px;
+    background-color: #ffffff;
 }
 
 /* ==========================================================================
    IMAGEN DEL EJERCICIO
    ========================================================================== */
 
-.exercise-viewer-image-container {
+.exercise-viewer-full-image-container {
     width: 100%;
     border-radius: 16px;
     overflow: hidden;
@@ -155,14 +131,14 @@
     cursor: pointer;
 }
 
-.exercise-viewer-image {
+.exercise-viewer-full-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 0.2s ease;
 }
 
-.exercise-viewer-image:active {
+.exercise-viewer-full-image:active {
     transform: scale(1.02);
 }
 
@@ -170,21 +146,21 @@
    INFORMACIÓN DEL EJERCICIO
    ========================================================================== */
 
-.exercise-viewer-info {
+.exercise-viewer-full-info {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-bottom: 16px;
 }
 
-.exercise-viewer-group {
+.exercise-viewer-full-group {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
 }
 
-.exercise-viewer-label {
+.exercise-viewer-full-label {
     font-size: 13px;
     font-weight: 600;
     color: #6b7280;
@@ -192,19 +168,19 @@
     letter-spacing: 0.3px;
 }
 
-.exercise-viewer-value {
+.exercise-viewer-full-value {
     font-size: 14px;
     font-weight: 700;
     color: var(--primary-color, #000000);
 }
 
-.exercise-viewer-notes {
+.exercise-viewer-full-notes {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.exercise-viewer-notes-content {
+.exercise-viewer-full-notes-content {
     font-size: 14px;
     line-height: 1.7;
     color: #374151;
@@ -217,26 +193,30 @@
     min-height: 40px;
 }
 
-.exercise-viewer-notes-content a {
+.exercise-viewer-full-notes-content a {
     color: var(--accent-color, #ccff00);
     text-decoration: underline;
     word-break: break-word;
 }
 
 /* ==========================================================================
-   BOTONES DE ACCIÓN
+   FOOTER FIJO CON 3 BOTONES
    ========================================================================== */
 
-.exercise-viewer-actions {
+.exercise-viewer-full-footer {
+    flex-shrink: 0;
+    background-color: #ffffff;
+    border-top: 1px solid #f3f4f6;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
-    padding-top: 4px;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
 }
 
-.exercise-viewer-btn {
+.exercise-viewer-full-btn {
     flex: 1;
-    min-width: 60px;
     padding: 12px 0;
     border: none;
     border-radius: 12px;
@@ -250,36 +230,36 @@
     transition: transform 0.1s ease, opacity 0.15s ease;
 }
 
-.exercise-viewer-btn:active {
+.exercise-viewer-full-btn:active {
     transform: scale(0.94);
 }
 
-.exercise-viewer-btn:disabled {
+.exercise-viewer-full-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
     transform: none;
 }
 
-.exercise-viewer-btn i {
+.exercise-viewer-full-btn i {
     font-size: 14px;
 }
 
-.exercise-viewer-btn-video {
+.exercise-viewer-full-btn-video {
     background: var(--accent-color, #ccff00);
     color: var(--primary-color, #000000);
 }
 
-.exercise-viewer-btn-web {
+.exercise-viewer-full-btn-web {
     background: #e0f7fa;
     color: #006064;
 }
 
-.exercise-viewer-btn-edit {
+.exercise-viewer-full-btn-edit {
     background: #f3f4f6;
     color: #4b5563;
 }
 
-.exercise-viewer-btn-edit:active {
+.exercise-viewer-full-btn-edit:active {
     background: #e5e7eb;
 }
 
@@ -288,60 +268,55 @@
    ========================================================================== */
 
 @media (max-width: 480px) {
-    .exercise-viewer-overlay {
-        padding: 10px;
+    .exercise-viewer-full-title {
+        font-size: 19px;
     }
     
-    .exercise-viewer-container {
-        max-height: 95vh;
-        border-radius: 20px;
+    .exercise-viewer-full-title-row {
+        padding: 4px 14px 6px 14px;
     }
     
-    .exercise-viewer-title {
-        font-size: 20px;
+    .exercise-viewer-full-body {
+        padding: 12px 14px 16px 14px;
     }
     
-    .exercise-viewer-header {
-        padding: 12px 16px 10px 16px;
-    }
-    
-    .exercise-viewer-body {
-        padding: 12px 16px 16px 16px;
-    }
-    
-    .exercise-viewer-image-container {
+    .exercise-viewer-full-image-container {
         aspect-ratio: 16 / 10;
         border-radius: 12px;
+        margin-bottom: 12px;
     }
     
-    .exercise-viewer-notes-content {
+    .exercise-viewer-full-notes-content {
         font-size: 13px;
         padding: 10px 12px;
     }
     
-    .exercise-viewer-btn {
-        font-size: 12px;
-        padding: 10px 0;
-        min-width: 50px;
+    .exercise-viewer-full-footer {
+        padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+        gap: 6px;
     }
     
-    .exercise-viewer-btn i {
+    .exercise-viewer-full-btn {
+        font-size: 12px;
+        padding: 10px 0;
+    }
+    
+    .exercise-viewer-full-btn i {
         font-size: 12px;
     }
 }
 
 @media (max-width: 360px) {
-    .exercise-viewer-actions {
-        gap: 5px;
+    .exercise-viewer-full-footer {
+        gap: 4px;
     }
     
-    .exercise-viewer-btn {
+    .exercise-viewer-full-btn {
         font-size: 10px;
         padding: 8px 0;
-        min-width: 40px;
     }
     
-    .exercise-viewer-btn i {
+    .exercise-viewer-full-btn i {
         font-size: 10px;
     }
 }
