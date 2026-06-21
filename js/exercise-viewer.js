@@ -3,8 +3,8 @@
  * Controla la visualización de ejercicios en una ventana emergente
  * desde enlaces dentro del editor de sesiones y entrenamiento activo.
  * 
- * MODIFICADO: Añadida detección por texto para ejercicios insertados
- * con formato nativo de Quill (negrita + subrayado + color).
+ * MODIFICADO: Detecta clics en texto con formato (negrita + color azul)
+ * sin necesidad de que tenga • o clase .exercise-link.
  */
 
 // ==========================================================================
@@ -179,84 +179,77 @@ function getExerciseViewerPlaceholder(text) {
 }
 
 // ==========================================================================
-// DETECTAR CLIC EN EJERCICIOS POR TEXTO (cuando no tienen clase .exercise-link)
+// DETECTAR CLIC EN EJERCICIOS POR FORMATO (negrita + color azul)
 // ==========================================================================
 
-function configurarListenerPorTexto() {
+function configurarListenerPorFormato() {
     // Eliminar listener anterior si existe
-    if (window._textLinkListener) {
-        document.removeEventListener('click', window._textLinkListener);
+    if (window._formatLinkListener) {
+        document.removeEventListener('click', window._formatLinkListener);
     }
     
     const listener = function(e) {
-        // Buscar si el clic fue en un elemento con formato de ejercicio
         const target = e.target;
         if (!target) return;
         
-        // Verificar si el texto contiene el formato de ejercicio (negrita + subrayado + color)
-        const textContent = target.textContent || '';
-        const parentContent = target.parentElement ? target.parentElement.textContent || '' : '';
+        // Buscar si el clic fue en un elemento con formato de ejercicio
+        // Buscamos elementos strong que contengan texto (ejercicios en negrita)
+        let elemento = target;
         
-        // Buscar patrones de ejercicio: "• Nombre: " en negrita
-        // El elemento puede ser strong, u, o cualquier elemento que contenga el texto
-        const isExercise = 
-            (textContent.includes('•') || parentContent.includes('•')) &&
-            (target.tagName === 'STRONG' || target.tagName === 'U' || 
-             target.closest('strong') || target.closest('u') ||
-             (target.style && target.style.fontWeight === 'bold') ||
-             (target.style && target.style.textDecoration === 'underline'));
+        // Si el clic no es directamente en un strong, buscar el strong más cercano
+        if (elemento.tagName !== 'STRONG') {
+            elemento = target.closest('strong');
+        }
         
-        if (isExercise) {
-            // Extraer el nombre del ejercicio
-            let fullText = textContent;
-            if (!fullText.includes('•') && parentContent.includes('•')) {
-                fullText = parentContent;
-            }
+        if (elemento && elemento.tagName === 'STRONG') {
+            const textContent = elemento.textContent || '';
             
-            // Limpiar el texto para obtener solo el nombre
-            let nombre = fullText.replace('•', '').replace(':', '').trim();
-            // Si hay más texto después del nombre, limitar
-            const parts = nombre.split(':');
-            nombre = parts[0].trim();
-            
-            // También verificar si hay un elemento strong que contiene el nombre
-            const strongElement = target.closest('strong');
-            if (strongElement && strongElement.textContent) {
-                const strongText = strongElement.textContent.replace('•', '').trim();
-                if (strongText.length > 0) {
-                    nombre = strongText;
-                }
-            }
-            
-            // Verificar si el nombre coincide con algún ejercicio
-            if (nombre && nombre.length > 1) {
-                console.log('[exercise-viewer] Detectado clic en ejercicio por texto:', nombre);
+            // Verificar que el texto no esté vacío y tenga al menos 2 caracteres
+            if (textContent.length > 1) {
+                // Verificar si el strong tiene color azul (estilo inline o clase)
+                const style = elemento.getAttribute('style') || '';
+                const isBlue = style.includes('color: #2563eb') || 
+                              style.includes('color:#2563eb') ||
+                              style.includes('color: rgb(37, 99, 235)') ||
+                              style.includes('color:rgb(37, 99, 235)');
                 
-                if (typeof window.getExercises === 'function') {
-                    const exercises = window.getExercises();
-                    // Buscar por nombre exacto o por coincidencia parcial
-                    let exercise = exercises.find(ex => ex.nombre === nombre);
-                    if (!exercise) {
-                        // Buscar por coincidencia parcial (si el nombre contiene el texto)
-                        exercise = exercises.find(ex => ex.nombre.includes(nombre) || nombre.includes(ex.nombre));
-                    }
-                    if (exercise && typeof window.openExerciseViewer === 'function') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('[exercise-viewer] Abriendo visor para:', exercise.nombre, 'ID:', exercise.id);
-                        window.openExerciseViewer(exercise.id);
-                        return;
-                    } else {
-                        console.warn('[exercise-viewer] No se encontró ejercicio con nombre:', nombre);
+                // También verificar si el color está en el estilo calculado
+                let computedBlue = false;
+                try {
+                    const computedStyle = window.getComputedStyle(elemento);
+                    const color = computedStyle.color;
+                    computedBlue = color === 'rgb(37, 99, 235)' || color === '#2563eb';
+                } catch(e) {}
+                
+                if (isBlue || computedBlue) {
+                    console.log('[exercise-viewer] Detectado clic en ejercicio por formato:', textContent);
+                    
+                    if (typeof window.getExercises === 'function') {
+                        const exercises = window.getExercises();
+                        // Buscar por coincidencia exacta o parcial
+                        let exercise = exercises.find(ex => ex.nombre === textContent);
+                        if (!exercise) {
+                            // Buscar por coincidencia parcial (si el nombre contiene el texto)
+                            exercise = exercises.find(ex => ex.nombre.includes(textContent) || textContent.includes(ex.nombre));
+                        }
+                        if (exercise && typeof window.openExerciseViewer === 'function') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('[exercise-viewer] Abriendo visor para:', exercise.nombre, 'ID:', exercise.id);
+                            window.openExerciseViewer(exercise.id);
+                            return;
+                        } else {
+                            console.warn('[exercise-viewer] No se encontró ejercicio con nombre:', textContent);
+                        }
                     }
                 }
             }
         }
     };
     
-    window._textLinkListener = listener;
+    window._formatLinkListener = listener;
     document.addEventListener('click', listener);
-    console.log('[exercise-viewer] Listener por texto configurado');
+    console.log('[exercise-viewer] Listener por formato configurado');
 }
 
 // ==========================================================================
@@ -295,8 +288,8 @@ function configurarListenerGlobalEjercicios() {
     document.addEventListener('click', listener);
     console.log('[exercise-viewer] Listener global configurado correctamente');
     
-    // También configurar el listener por texto para ejercicios con formato nativo de Quill
-    configurarListenerPorTexto();
+    // También configurar el listener por formato para ejercicios con formato nativo de Quill
+    configurarListenerPorFormato();
 }
 
 // ==========================================================================
@@ -326,4 +319,4 @@ window.openExerciseLightbox = openExerciseLightbox;
 window.linkifyExerciseViewerHTML = linkifyExerciseViewerHTML;
 window.getExerciseViewerPlaceholder = getExerciseViewerPlaceholder;
 window.configurarListenerGlobalEjercicios = configurarListenerGlobalEjercicios;
-window.configurarListenerPorTexto = configurarListenerPorTexto;
+window.configurarListenerPorFormato = configurarListenerPorFormato;
