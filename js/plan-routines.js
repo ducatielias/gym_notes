@@ -1,6 +1,9 @@
 /**
  * MÓDULO: plan-routines.js
  * Controla el listado de rutinas y sus operaciones CRUD
+ * 
+ * MODIFICADO: Botón "+" reemplazado por menú de tres puntos con opciones:
+ * Añadir rutina, Importar rutina, Exportar rutina, Borrar todo
  */
 
 // ==========================================================================
@@ -19,9 +22,27 @@ function renderRoutineList() {
         <header class="screen-header">
             <div class="header-nav-row">
                 <h1>Mis Rutinas</h1>
-                <button class="btn-header-add" onclick="createNewRoutine()" title="Nueva Rutina">
-                    <i class="fa-solid fa-plus"></i>
-                </button>
+                <div style="position:relative;">
+                    <button class="btn-header-options" onclick="toggleRoutineListOptionsMenu(event)" title="Opciones">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <div class="routine-list-options-menu hidden" id="routineListOptionsMenu" onclick="event.stopPropagation()">
+                        <button class="menu-item" onclick="createNewRoutine(); closeRoutineListOptionsMenu();">
+                            <i class="fa-solid fa-plus"></i> Añadir rutina
+                        </button>
+                        <div class="menu-divider"></div>
+                        <button class="menu-item" onclick="document.getElementById('file-import-routine-list').click(); closeRoutineListOptionsMenu();">
+                            <i class="fa-solid fa-file-import"></i> Importar rutina
+                        </button>
+                        <button class="menu-item" onclick="exportAllRoutines(); closeRoutineListOptionsMenu();">
+                            <i class="fa-solid fa-file-export"></i> Exportar rutina
+                        </button>
+                        <div class="menu-divider"></div>
+                        <button class="menu-item menu-delete" onclick="borrarTodasRutinas(); closeRoutineListOptionsMenu();" style="color:#ef4444;">
+                            <i class="fa-solid fa-trash-can" style="color:#ef4444;"></i> Borrar todas
+                        </button>
+                    </div>
+                </div>
             </div>
         </header>
         
@@ -66,11 +87,173 @@ function renderRoutineList() {
                 <p>No tienes rutinas todavía.<br>Crea la primera para empezar.</p>
             </div>
         ` : ''}
+        
+        <!-- Input oculto para importar rutina desde el menú de opciones -->
+        <input type="file" id="file-import-routine-list" style="display:none" accept=".json,.txt" onchange="importRoutinesFromFile(event)">
     `;
 }
 
 // ==========================================================================
-// CRUD DE RUTINAS
+// MENÚ DE OPCIONES DE LA LISTA DE RUTINAS
+// ==========================================================================
+
+function toggleRoutineListOptionsMenu(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('routineListOptionsMenu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+}
+
+function closeRoutineListOptionsMenu() {
+    const menu = document.getElementById('routineListOptionsMenu');
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+}
+
+// Cerrar el menú al hacer clic fuera
+document.addEventListener('click', function() {
+    const menu = document.getElementById('routineListOptionsMenu');
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+});
+
+// ==========================================================================
+// EXPORTAR TODAS LAS RUTINAS
+// ==========================================================================
+
+function exportAllRoutines() {
+    if (appData.routines.length === 0) {
+        window.showAlert('No hay rutinas para exportar.', 'Exportar');
+        return;
+    }
+    
+    const clean = {
+        tipo: 'rutinas_export',
+        fecha: new Date().toISOString(),
+        rutinas: appData.routines.map(routine => ({
+            id: routine.id,
+            name: routine.name,
+            sessions: routine.sessions.map(session => ({
+                id: session.id,
+                title: session.title,
+                content: session.content,
+                lastModified: session.lastModified
+            }))
+        }))
+    };
+    
+    const dataStr = JSON.stringify(clean, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Rutinas_Export_${getRoutineTimestamp()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    window.showAlert('Rutinas exportadas correctamente.', 'Exportar');
+}
+
+// ==========================================================================
+// IMPORTAR RUTINAS DESDE ARCHIVO
+// ==========================================================================
+
+function importRoutinesFromFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            let routinesToImport = [];
+
+            if (data.tipo === 'rutinas_export' && Array.isArray(data.rutinas)) {
+                routinesToImport = data.rutinas;
+            } else if (Array.isArray(data) && data.length > 0 && data[0].name) {
+                routinesToImport = data;
+            } else if (data.rutinas && Array.isArray(data.rutinas)) {
+                routinesToImport = data.rutinas;
+            } else {
+                throw new Error('El archivo no tiene un formato de rutinas válido.');
+            }
+
+            // Mostrar confirmación
+            const confirmacion = await window.showConfirm(
+                `¿Estás seguro de que quieres importar ${routinesToImport.length} rutina(s)?\n\n⚠️ ATENCIÓN: Esto AÑADIRÁ las rutinas a tu lista actual.`,
+                'Importar rutinas'
+            );
+            
+            if (!confirmacion) {
+                event.target.value = '';
+                return;
+            }
+
+            // Añadir las rutinas con nuevos IDs
+            routinesToImport.forEach(imported => {
+                const newRoutine = {
+                    id: 'r-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+                    name: imported.name || 'Rutina importada',
+                    sessions: (imported.sessions || []).map(session => ({
+                        id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+                        title: session.title || 'Sesión sin título',
+                        content: session.content || '',
+                        lastModified: session.lastModified || Date.now()
+                    }))
+                };
+                appData.routines.push(newRoutine);
+            });
+
+            saveData();
+            renderRoutineList();
+            window.showAlert(`Se importaron ${routinesToImport.length} rutina(s) correctamente.`, 'Importación completada');
+
+        } catch (err) {
+            window.showAlert('Error al leer el archivo: ' + err.message, 'Error');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+// ==========================================================================
+// BORRAR TODAS LAS RUTINAS
+// ==========================================================================
+
+async function borrarTodasRutinas() {
+    if (appData.routines.length === 0) {
+        window.showAlert('No hay rutinas para borrar.', 'Aviso');
+        return;
+    }
+
+    const confirm = await window.showConfirm(
+        `¿Estás seguro de que quieres eliminar TODAS las ${appData.routines.length} rutinas?\n\n⚠️ Esta acción no se puede deshacer.`,
+        'Borrar todas las rutinas'
+    );
+    
+    if (!confirm) return;
+
+    appData.routines = [];
+    saveData();
+    renderRoutineList();
+    window.showAlert(`Se han eliminado todas las rutinas.`, 'Eliminado');
+}
+
+// ==========================================================================
+// UTILIDADES
+// ==========================================================================
+
+function getRoutineTimestamp() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}`;
+}
+
+// ==========================================================================
+// CRUD DE RUTINAS (EXISTENTES)
 // ==========================================================================
 
 async function createNewRoutine() {
@@ -190,6 +373,11 @@ async function deleteRoutine(routineId) {
 // ==========================================================================
 
 window.renderRoutineList = renderRoutineList;
+window.toggleRoutineListOptionsMenu = toggleRoutineListOptionsMenu;
+window.closeRoutineListOptionsMenu = closeRoutineListOptionsMenu;
+window.exportAllRoutines = exportAllRoutines;
+window.importRoutinesFromFile = importRoutinesFromFile;
+window.borrarTodasRutinas = borrarTodasRutinas;
 window.createNewRoutine = createNewRoutine;
 window.moveRoutineOrder = moveRoutineOrder;
 window.renameRoutine = renameRoutine;

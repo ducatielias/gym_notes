@@ -2,6 +2,8 @@
  * ESTILOS DE INTERFAZ: gym-plan.css
  * Controla el listado de rutinas, las tarjetas de sesiones y los menús flotantes
  * contextuales asegurando su total ocultación inicial mediante la clase .hidden.
+ * 
+ * MODIFICADO: Añadidos estilos para el menú de opciones de la lista de rutinas.
  */
 
 /* CLASE CRÍTICA DE OCULTACIÓN (Soluciona el despliegue automático al inicio) */
@@ -44,6 +46,26 @@
     padding-left: 2px;
 }
 
+/* Botón de opciones (tres puntos) en lugar del botón "+" */
+.btn-header-options {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 20px;
+    padding: 8px 10px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-header-options:active {
+    background-color: #f3f4f6;
+    color: var(--primary-color, #000000);
+}
+
 /* Botón inteligente compacto integrado en la esquina superior derecha */
 .btn-header-add {
     background-color: var(--accent-color, #ccff00);
@@ -64,6 +86,73 @@
 .btn-header-add:active {
     transform: scale(0.92);
     filter: brightness(0.9);
+}
+
+/* ==========================================================================
+   MENÚ DE OPCIONES DE LA LISTA DE RUTINAS (tres puntos)
+   ========================================================================== */
+
+.routine-list-options-menu {
+    position: absolute;
+    top: 45px;
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    width: 200px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    animation: fadeInMenu 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.routine-list-options-menu .menu-item {
+    background: none;
+    border: none;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.12s ease, color 0.12s ease;
+    width: 100%;
+}
+
+.routine-list-options-menu .menu-item i {
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.routine-list-options-menu .menu-item:active {
+    background-color: #f3f4f6;
+    color: #000000;
+}
+
+.routine-list-options-menu .menu-item.menu-delete {
+    color: #ef4444;
+}
+
+.routine-list-options-menu .menu-item.menu-delete i {
+    color: #ef4444;
+}
+
+.routine-list-options-menu .menu-item.menu-delete:active {
+    background-color: #fef2f2;
+}
+
+.routine-list-options-menu .menu-divider {
+    height: 1px;
+    background-color: #f3f4f6;
+    margin: 4px 6px;
 }
 
 /* ==========================================================================

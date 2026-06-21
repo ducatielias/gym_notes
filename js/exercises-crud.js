@@ -4,6 +4,9 @@
  * 
  * MODIFICADO: Al renombrar un ejercicio, se actualiza automáticamente
  * en todas las sesiones de rutinas y en el historial.
+ * 
+ * MODIFICADO: Al introducir una URL de YouTube en el campo de vídeo,
+ * se auto-completa la URL de la imagen con la miniatura del video.
  */
 
 // ==========================================================================
@@ -76,6 +79,11 @@ function openExerciseModal(id = null) {
     `;
 
     updateExerciseMusclesEditor(exercise ? exercise.notas || '' : '');
+    
+    // ============================================================
+    // CONFIGURAR EL AUTO-COMPLETADO DE IMAGEN DESDE URL DE VÍDEO
+    // ============================================================
+    configurarAutoCompletadoImagen();
 
     switchTab('exercise-editor');
     
@@ -88,6 +96,65 @@ function openExerciseModal(id = null) {
 function closeExerciseModal() {
     currentExerciseId = null;
     switchTab('exercises');
+}
+
+// ==========================================================================
+// EXTRAER ID DE YOUTUBE
+// ==========================================================================
+
+function extraerIdYouTube(url) {
+    if (!url || typeof url !== 'string') return null;
+    
+    // Patrones para diferentes formatos de YouTube
+    const patterns = [
+        // youtube.com/watch?v=ID
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/|youtube\.com\/v\/)([^#&?]*)/,
+        // youtube.com/watch?feature=...&v=ID
+        /[?&]v=([^#&?]*)/
+    ];
+    
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1] && match[1].length === 11) {
+            return match[1];
+        }
+    }
+    
+    return null;
+}
+
+// ==========================================================================
+// CONFIGURAR AUTO-COMPLETADO DE IMAGEN DESDE VÍDEO
+// ==========================================================================
+
+function configurarAutoCompletadoImagen() {
+    const videoInput = document.getElementById('ex-editor-video');
+    const imgInput = document.getElementById('ex-editor-img');
+    
+    if (!videoInput || !imgInput) return;
+    
+    // Eliminar listener anterior si existe
+    if (videoInput._imageAutoCompleteListener) {
+        videoInput.removeEventListener('input', videoInput._imageAutoCompleteListener);
+    }
+    
+    // Crear nuevo listener
+    const listener = function() {
+        const url = this.value.trim();
+        const youtubeId = extraerIdYouTube(url);
+        
+        // Si hay un ID de YouTube válido y el campo de imagen está vacío
+        if (youtubeId && !imgInput.value.trim()) {
+            const thumbnailUrl = `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`;
+            imgInput.value = thumbnailUrl;
+            // Disparar evento para actualizar la interfaz
+            imgInput.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('[exercises-crud] Imagen auto-completada desde YouTube:', thumbnailUrl);
+        }
+    };
+    
+    videoInput._imageAutoCompleteListener = listener;
+    videoInput.addEventListener('input', listener);
 }
 
 // ==========================================================================
@@ -381,3 +448,5 @@ window.toggleExerciseMuscles = toggleExerciseMuscles;
 window.updateExerciseMusclesEditor = updateExerciseMusclesEditor;
 window.openExerciseOptions = openExerciseOptions;
 window.actualizarNombreEnSesionesYHistorial = actualizarNombreEnSesionesYHistorial;
+window.extraerIdYouTube = extraerIdYouTube;
+window.configurarAutoCompletadoImagen = configurarAutoCompletadoImagen;

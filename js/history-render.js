@@ -1,6 +1,8 @@
 /**
  * MÓDULO: history-render.js
  * Renderizado de la página de historial: lista de entrenamientos, tarjetas, estadísticas
+ * 
+ * MODIFICADO: Menú de opciones simplificado: Exportar JSON, Importar Historial, Borrar todo
  */
 
 // ==========================================================================
@@ -97,11 +99,11 @@ function renderHistory() {
                         <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>
                     <div class="history-options-menu hidden" id="historyOptionsMenu" onclick="event.stopPropagation()">
-                        <button class="menu-item" onclick="exportHistoryJSON(); closeHistoryOptionsMenu();">
-                            <i class="fa-solid fa-file-export"></i> Exportar JSON
+                        <button class="menu-item" onclick="document.getElementById('file-import-history').click(); closeHistoryOptionsMenu();">
+                            <i class="fa-solid fa-file-import"></i> Importar Historial
                         </button>
-                        <button class="menu-item" onclick="exportHistoryCSV(); closeHistoryOptionsMenu();">
-                            <i class="fa-solid fa-table"></i> Exportar CSV
+                        <button class="menu-item" onclick="exportHistoryJSON(); closeHistoryOptionsMenu();">
+                            <i class="fa-solid fa-file-export"></i> Exportar Historial
                         </button>
                         <div class="menu-divider"></div>
                         <button class="menu-item menu-delete" onclick="clearAllHistoryConfirm(); closeHistoryOptionsMenu();" style="color:#ef4444;">
@@ -130,6 +132,9 @@ function renderHistory() {
                     ${buildRoutineFilterOptions(routineFilter)}
                 </select>
             </div>
+            
+            <!-- Input oculto para importar historial -->
+            <input type="file" id="file-import-history" style="display:none" accept=".json,.txt" onchange="importHistoryFromFile(event)">
         </header>
     `;
 

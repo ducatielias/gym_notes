@@ -1,10 +1,12 @@
 /**
  * MÓDULO: history-export.js
- * Exportación del historial
+ * Exportación e importación del historial
+ * 
+ * MODIFICADO: Eliminada exportación CSV, añadida importación de historial
  */
 
 // ==========================================================================
-// EXPORTAR HISTORIAL
+// EXPORTAR HISTORIAL (JSON)
 // ==========================================================================
 
 function exportHistoryJSON() {
@@ -26,38 +28,61 @@ function exportHistoryJSON() {
     window.showAlert('Historial exportado correctamente.', 'Exportar');
 }
 
-function exportHistoryCSV() {
-    const history = getHistory();
-    if (history.length === 0) {
-        window.showAlert('No hay historial para exportar.', 'Exportar');
-        return;
-    }
+// ==========================================================================
+// IMPORTAR HISTORIAL (JSON)
+// ==========================================================================
 
-    // Cabeceras CSV
-    let csv = 'Fecha,Rutina,Sesión,Duración (min),Anotaciones\n';
-    
-    history.forEach(item => {
-        const fecha = new Date(item.fecha).toLocaleString('es-ES');
-        const duracion = item.duracion_minutos || 0;
-        const contenido = (item.contenido_editado || '')
-            .replace(/<[^>]*>/g, ' ') // Quitar HTML
-            .replace(/"/g, '""') // Escapar comillas
-            .replace(/\n/g, ' ') // Quitar saltos de línea
-            .substring(0, 500); // Limitar longitud
-        
-        csv += `"${fecha}","${item.nombre_rutina || ''}","${item.nombre_sesion || ''}",${duracion},"${contenido}"\n`;
-    });
+function importHistoryFromFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // BOM para UTF-8
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Historial_${getHistoryTimestamp()}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    window.showAlert('Historial exportado correctamente.', 'Exportar');
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            
+            // Validar que el archivo contiene un array de registros de historial
+            if (!Array.isArray(data) || data.length === 0) {
+                throw new Error('El archivo no contiene un historial válido. Debe ser un array de registros.');
+            }
+            
+            // Validar que al menos el primer registro tiene la estructura correcta
+            const firstItem = data[0];
+            if (!firstItem.fecha || !firstItem.nombre_sesion || !firstItem.nombre_rutina) {
+                throw new Error('El archivo no tiene el formato de historial esperado. Faltan campos obligatorios (fecha, nombre_sesion, nombre_rutina).');
+            }
+            
+            // Mostrar confirmación antes de importar
+            const confirmacion = await window.showConfirm(
+                `¿Estás seguro de que quieres importar ${data.length} registro(s) de historial?\n\n⚠️ ATENCIÓN: Esto SOBRESCRIBIRÁ todo tu historial actual.`,
+                'Importar historial'
+            );
+            
+            if (!confirmacion) {
+                event.target.value = '';
+                return;
+            }
+            
+            // Reemplazar el historial actual con los datos importados
+            // Asegurar que cada registro tenga un ID único
+            const historyConIds = data.map(record => {
+                if (!record.id) {
+                    record.id = 'h-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6);
+                }
+                return record;
+            });
+            
+            setHistory(historyConIds);
+            renderHistory();
+            
+            window.showAlert(`Historial importado correctamente.\n${historyConIds.length} registro(s) importados.`, 'Importación completada');
+            
+        } catch (err) {
+            window.showAlert('Error al leer el archivo: ' + err.message, 'Error');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
 }
 
 // ==========================================================================
@@ -139,7 +164,7 @@ function getHistoryTimestamp() {
 // ==========================================================================
 
 window.exportHistoryJSON = exportHistoryJSON;
-window.exportHistoryCSV = exportHistoryCSV;
+window.importHistoryFromFile = importHistoryFromFile;
 window.clearAllHistoryConfirm = clearAllHistoryConfirm;
 window.deleteHistoryItem = deleteHistoryItem;
 window.shareHistoryItem = shareHistoryItem;

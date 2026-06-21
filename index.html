@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Shark: Gym & Fitness</title>
+    <title>Gym Notes</title>
     
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -24,7 +24,7 @@
         
         <section id="screen-today" class="screen">
             <header class="screen-header">
-                <h1>Shark: Gym & Fitness</h1>
+                <h1>Gym Notes</h1>
             </header>
             <div class="empty-state">
                 <p>📅 Tu actividad de hoy aparecerá aquí.</p>
@@ -33,6 +33,8 @@
 
         <section id="screen-plan" class="screen hidden">
             <div id="plan-container"></div>
+            <!-- Input oculto para importar rutinas desde el menú de opciones -->
+            <input type="file" id="file-import-routine-list" style="display:none" accept=".json,.txt" onchange="importRoutinesFromFile(event)">
         </section>
 
         <section id="screen-history" class="screen hidden">
@@ -56,8 +58,8 @@
         </section>
         
         <section id="screen-exercise-viewer" class="screen hidden">
-    <!-- El contenido se genera dinámicamente desde exercise-viewer.js -->
-</section>
+            <!-- El contenido se genera dinámicamente desde exercise-viewer.js -->
+        </section>
 
     </main>
 
@@ -249,8 +251,8 @@
     <script src="js/workout.js"></script>
     <script src="js/gym-session.js"></script>
     
-<!-- JS - EXERCISE VIEWER -->
-<script src="js/exercise-viewer.js"></script>
+    <!-- JS - EXERCISE VIEWER -->
+    <script src="js/exercise-viewer.js"></script>
     
 </body>
 </html>

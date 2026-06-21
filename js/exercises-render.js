@@ -1,6 +1,8 @@
 /**
  * MÓDULO: exercises-render.js
  * Renderizado de la página de ejercicios: lista, tarjetas, filtros y búsqueda
+ * 
+ * MODIFICADO: Añadida opción "Borrar todos los ejercicios" en el menú de opciones
  */
 
 // ==========================================================================
@@ -49,6 +51,10 @@ function renderExercises() {
                         </button>
                         <button class="menu-item" onclick="exportAllExercises(); closeExercisesOptionsMenu();">
                             <i class="fa-solid fa-file-export"></i> Exportar ejercicios
+                        </button>
+                        <div class="menu-divider"></div>
+                        <button class="menu-item menu-delete" onclick="borrarTodosEjercicios(); closeExercisesOptionsMenu();" style="color:#ef4444;">
+                            <i class="fa-solid fa-trash-can" style="color:#ef4444;"></i> Borrar todos
                         </button>
                     </div>
                 </div>
@@ -294,6 +300,29 @@ document.addEventListener('click', function() {
 });
 
 // ==========================================================================
+// BORRAR TODOS LOS EJERCICIOS
+// ==========================================================================
+
+async function borrarTodosEjercicios() {
+    const exercises = getExercises();
+    if (exercises.length === 0) {
+        window.showAlert('No hay ejercicios para borrar.', 'Aviso');
+        return;
+    }
+
+    const confirm = await window.showConfirm(
+        `¿Estás seguro de que quieres eliminar TODOS los ${exercises.length} ejercicios?\n\n⚠️ Esta acción no se puede deshacer.`,
+        'Borrar todos los ejercicios'
+    );
+    
+    if (!confirm) return;
+
+    setExercises([]);
+    renderExercises();
+    window.showAlert(`Se han eliminado todos los ejercicios.`, 'Eliminado');
+}
+
+// ==========================================================================
 // HISTORIAL DEL EJERCICIO
 // ==========================================================================
 
@@ -371,3 +400,4 @@ window.showExerciseHistory = showExerciseHistory;
 window.openExerciseLightbox = openExerciseLightbox;
 window.openExerciseVideo = openExerciseVideo;
 window.searchExerciseOnWeb = searchExerciseOnWeb;
+window.borrarTodosEjercicios = borrarTodosEjercicios;
