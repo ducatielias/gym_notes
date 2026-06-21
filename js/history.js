@@ -179,13 +179,30 @@ function goBackFromHistory() {
         // Limpiar los filtros
         resetHistoryFilters();
     } else if (historyReturnScreen === 'session') {
-        // Volver a la sesión (pantalla de edición)
+        // Volver a la sesión específica que se estaba viendo
+        const sessionId = window.historySessionId;
+        const routineId = window.historyRoutineId;
+        
+        console.log('[goBackFromHistory] Restaurando sesión - ID:', sessionId, 'Rutina ID:', routineId);
+        
         // Limpiar los filtros
         resetHistoryFilters();
-        // Volver a la pantalla de plan (donde estaba la sesión)
+        
+        // Volver a la pantalla de plan
         switchTab('plan');
-        // Reabrir la rutina actual para mostrar las sesiones
-        if (currentRoutineId) {
+        
+        // Restaurar la rutina y abrir la sesión específica
+        if (routineId && sessionId) {
+            // Establecer la rutina actual
+            currentRoutineId = routineId;
+            // Abrir la rutina para mostrar el contexto
+            openRoutine(routineId);
+            // Luego abrir el editor de la sesión específica
+            setTimeout(() => {
+                openSessionEditor(sessionId);
+            }, 150);
+        } else if (currentRoutineId) {
+            // Fallback: si no tenemos los IDs guardados, usar los que tenemos
             openRoutine(currentRoutineId);
         } else {
             renderRoutineList();

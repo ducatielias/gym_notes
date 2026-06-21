@@ -83,6 +83,11 @@ async function handleSessionHistory() {
         const routine = appData.routines.find(r => r.id === currentRoutineId);
         const routineName = routine ? routine.name : '';
         
+        // GUARDAR LOS IDs PARA VOLVER EXACTAMENTE A LA MISMA SESIÓN
+        window.historySessionId = session.id;
+        window.historyRoutineId = currentRoutineId;
+        
+        console.log('[handleSessionHistory] Guardando IDs - sesión:', session.id, 'rutina:', currentRoutineId);
         console.log('[handleSessionHistory] Buscando sesión:', sessionTitle, 'en rutina:', routineName);
         
         // Guardar origen para el botón de retroceso

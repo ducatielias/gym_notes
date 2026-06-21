@@ -8,6 +8,10 @@
 // ==========================================================================
 
 function renderRoutineList() {
+    // Limpiar los IDs guardados para el historial
+    window.historySessionId = null;
+    window.historyRoutineId = null;
+    
     const planUI = document.getElementById('plan-container');
     if (!planUI) return;
 

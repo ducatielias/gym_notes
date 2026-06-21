@@ -225,6 +225,8 @@
 
 .editor-options-wrapper {
     position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .btn-options-dots {

@@ -259,6 +259,9 @@ function saveCurrentSession() {
 }
 
 function closeEditorAndReturn() {
+    // Limpiar los IDs guardados para el historial
+    window.historySessionId = null;
+    window.historyRoutineId = null;
     switchTab('plan');
     openRoutine(currentRoutineId);
 }
