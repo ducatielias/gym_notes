@@ -1,6 +1,15 @@
 /**
  * MÓDULO: plan-sessions.js
  * Controla la visualización de sesiones dentro de una rutina y sus operaciones CRUD
+ * 
+ * MODIFICADO: Botón "+" reemplazado por menú de tres puntos con opciones:
+ * Añadir sesión, Importar sesión, Exportar sesión (con checklist), Borrar todas, Asistente IA
+ * 
+ * MODIFICADO: El texto "Modificado: fecha" se reemplaza por contador de días exactos
+ * (Hoy, Ayer, Hace X días, Sin realizar)
+ * 
+ * CORRECCIÓN: Una sesión se considera "realizada" si existe un registro en el historial
+ * con el mismo nombre de sesión y nombre de rutina.
  */
 
 // ==========================================================================
@@ -19,47 +28,72 @@ function openRoutine(id) {
                 <button class="btn-back" onclick="renderRoutineList()">
                     <i class="fa-solid fa-chevron-left"></i> Volver
                 </button>
-                <button class="btn-header-add" onclick="createNewSession()" title="Nueva Sesión">
-                    <i class="fa-solid fa-plus"></i>
-                </button>
+                <div style="position:relative;">
+                    <button class="btn-header-options" onclick="toggleSessionListOptionsMenu(event)" title="Opciones">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <div class="session-list-options-menu hidden" id="sessionListOptionsMenu" onclick="event.stopPropagation()">
+                        <button class="menu-item" onclick="createNewSession(); closeSessionListOptionsMenu();">
+                            <i class="fa-solid fa-plus"></i> Añadir sesión
+                        </button>
+                        <div class="menu-divider"></div>
+                        <button class="menu-item" onclick="document.getElementById('file-import-session-list').click(); closeSessionListOptionsMenu();">
+                            <i class="fa-solid fa-file-import"></i> Importar sesión
+                        </button>
+                        <button class="menu-item" onclick="abrirExportarSesiones(); closeSessionListOptionsMenu();">
+                            <i class="fa-solid fa-file-export"></i> Exportar sesión
+                        </button>
+                        <div class="menu-divider"></div>
+                        <button class="menu-item menu-delete" onclick="borrarTodasSesiones(); closeSessionListOptionsMenu();" style="color:#ef4444;">
+                            <i class="fa-solid fa-trash-can" style="color:#ef4444;"></i> Borrar todas
+                        </button>
+                        <div class="menu-divider"></div>
+                        <button class="menu-item" onclick="abrirAsistenteIA(); closeSessionListOptionsMenu();">
+                            <i class="fa-solid fa-robot"></i> Asistente IA
+                        </button>
+                    </div>
+                </div>
             </div>
             <h2 class="routine-detail-title">${routine.name}</h2>
         </header>
 
         <div id="sessions-list" class="cards-grid">
-            ${routine.sessions.map((session, index) => `
-                <div class="card card-session" onclick="openSessionEditor('${session.id}')">
-                    <div class="card-content">
-                        <h3>${session.title}</h3>
-                        <p>Modificado: ${new Date(session.lastModified).toLocaleDateString()}</p>
-                    </div>
-                    
-                    <button class="btn-session-options" onclick="toggleSessionMenu(event, '${session.id}')">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
+            ${routine.sessions.map((session, index) => {
+                const resultado = calcularEstadoSesion(session, routine.name);
+                return `
+                    <div class="card card-session" onclick="openSessionEditor('${session.id}')">
+                        <div class="card-content">
+                            <h3>${session.title}</h3>
+                            <p style="color: ${!resultado.realizada ? '#ef4444' : 'var(--text-muted)'};">${resultado.texto}</p>
+                        </div>
+                        
+                        <button class="btn-session-options" onclick="toggleSessionMenu(event, '${session.id}')">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
 
-                    <div class="session-menu-dropdown hidden" id="menu-${session.id}" onclick="event.stopPropagation()">
-                        <button class="session-menu-item" onclick="moveSessionOrder('${session.id}', -1)">
-                            <i class="fa-solid fa-arrow-up"></i> Mover arriba
-                        </button>
-                        <button class="session-menu-item" onclick="moveSessionOrder('${session.id}', 1)">
-                            <i class="fa-solid fa-arrow-down"></i> Mover abajo
-                        </button>
-                        
-                        <div class="routine-menu-divider"></div>
-                        
-                        <button class="session-menu-item" onclick="copySessionToRoutine('${session.id}')">
-                            <i class="fa-solid fa-clone"></i> Copiar sesión
-                        </button>
-                        <button class="session-menu-item" onclick="moveSessionToRoutine('${session.id}')">
-                            <i class="fa-solid fa-right-from-bracket"></i> Mover sesión
-                        </button>
-                        <button class="session-menu-item menu-delete" onclick="deleteSession('${session.id}')">
-                            <i class="fa-solid fa-trash-can"></i> Eliminar sesión
-                        </button>
+                        <div class="session-menu-dropdown hidden" id="menu-${session.id}" onclick="event.stopPropagation()">
+                            <button class="session-menu-item" onclick="moveSessionOrder('${session.id}', -1)">
+                                <i class="fa-solid fa-arrow-up"></i> Mover arriba
+                            </button>
+                            <button class="session-menu-item" onclick="moveSessionOrder('${session.id}', 1)">
+                                <i class="fa-solid fa-arrow-down"></i> Mover abajo
+                            </button>
+                            
+                            <div class="routine-menu-divider"></div>
+                            
+                            <button class="session-menu-item" onclick="copySessionToRoutine('${session.id}')">
+                                <i class="fa-solid fa-clone"></i> Copiar sesión
+                            </button>
+                            <button class="session-menu-item" onclick="moveSessionToRoutine('${session.id}')">
+                                <i class="fa-solid fa-right-from-bracket"></i> Mover sesión
+                            </button>
+                            <button class="session-menu-item menu-delete" onclick="deleteSession('${session.id}')">
+                                <i class="fa-solid fa-trash-can"></i> Eliminar sesión
+                            </button>
+                        </div>
                     </div>
-                </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
 
         ${routine.sessions.length === 0 ? `
@@ -67,22 +101,397 @@ function openRoutine(id) {
                 <p>Esta rutina no tiene sesiones.<br>¡Añade una ahora!</p>
             </div>
         ` : ''}
+        
+        <!-- Input oculto para importar sesión desde el menú de opciones -->
+        <input type="file" id="file-import-session-list" style="display:none" accept=".json,.txt" onchange="importSessionsFromFile(event)">
     `;
 }
 
 // ==========================================================================
-// CRUD DE SESIONES
+// CALCULAR ESTADO DE LA SESIÓN (basado en historial)
+// ==========================================================================
+
+function calcularEstadoSesion(session, routineName) {
+    // Obtener el historial desde localStorage
+    let historyDB = [];
+    try {
+        historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
+    } catch (e) {
+        console.warn('[calcularEstadoSesion] Error al leer historial:', e);
+        historyDB = [];
+    }
+    
+    // Buscar en el historial si existe un registro con este nombre de sesión y rutina
+    const registroHistorial = historyDB.find(h => 
+        h.nombre_sesion === session.title && 
+        h.nombre_rutina === routineName
+    );
+    
+    // Si no hay registro en el historial, la sesión no se ha realizado
+    if (!registroHistorial) {
+        return {
+            realizada: false,
+            texto: 'Sin realizar'
+        };
+    }
+    
+    // Si hay registro, calcular los días desde la fecha del historial
+    const fechaHistorial = registroHistorial.fecha;
+    if (!fechaHistorial) {
+        return {
+            realizada: true,
+            texto: 'Sin fecha'
+        };
+    }
+    
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    
+    const fecha = new Date(fechaHistorial);
+    fecha.setHours(0, 0, 0, 0);
+    
+    const diffTime = hoy.getTime() - fecha.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    let texto = '';
+    if (diffDays === 0) {
+        texto = 'Hoy';
+    } else if (diffDays === 1) {
+        texto = 'Ayer';
+    } else {
+        texto = `Hace ${diffDays} días`;
+    }
+    
+    return {
+        realizada: true,
+        texto: texto
+    };
+}
+
+// ==========================================================================
+// MENÚ DE OPCIONES DE LA LISTA DE SESIONES
+// ==========================================================================
+
+function toggleSessionListOptionsMenu(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('sessionListOptionsMenu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+}
+
+function closeSessionListOptionsMenu() {
+    const menu = document.getElementById('sessionListOptionsMenu');
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+}
+
+// Cerrar el menú al hacer clic fuera
+document.addEventListener('click', function() {
+    const menu = document.getElementById('sessionListOptionsMenu');
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+});
+
+// ==========================================================================
+// EXPORTAR SESIONES CON CHECKLIST
+// ==========================================================================
+
+function abrirExportarSesiones() {
+    const routine = appData.routines.find(r => r.id === currentRoutineId);
+    if (!routine) {
+        window.showAlert('No se encontró la rutina.', 'Error');
+        return;
+    }
+    
+    if (routine.sessions.length === 0) {
+        window.showAlert('No hay sesiones para exportar.', 'Exportar');
+        return;
+    }
+    
+    // Crear el modal de exportación
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'export-sessions-modal';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.zIndex = '3000';
+    overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+    overlay.style.backdropFilter = 'blur(4px)';
+    overlay.style.webkitBackdropFilter = 'blur(4px)';
+    
+    // Construir la lista de sesiones con checkboxes
+    let sesionesHtml = '';
+    routine.sessions.forEach((session, index) => {
+        const resultado = calcularEstadoSesion(session, routine.name);
+        const isSinRealizar = !resultado.realizada;
+        sesionesHtml += `
+            <div style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-bottom:1px solid #f3f4f6; cursor:pointer;" onclick="toggleSessionCheckbox('session-check-${index}')">
+                <input type="checkbox" id="session-check-${index}" checked style="width:18px; height:18px; accent-color: var(--accent-color, #ccff00); cursor:pointer;">
+                <label for="session-check-${index}" style="cursor:pointer; flex:1; font-size:14px; font-weight:500; color:#1f2937;">${session.title}</label>
+                <span style="font-size:11px; color: ${isSinRealizar ? '#ef4444' : '#9ca3af'};">${resultado.texto}</span>
+            </div>
+        `;
+    });
+    
+    overlay.innerHTML = `
+        <div class="modal-container" style="max-width: 400px; width: 90%; max-height: 80vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <span class="modal-icon"><i class="fa-solid fa-file-export"></i></span>
+                <h3 style="margin:0; font-size:18px; font-weight:700;">Exportar sesiones</h3>
+            </div>
+            <div class="modal-body" style="flex:1; overflow-y:auto; padding: 16px 20px;">
+                <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">Selecciona las sesiones que deseas exportar:</p>
+                <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+                    <button onclick="seleccionarTodasSesiones(true)" style="padding:6px 14px; border:1px solid #e5e7eb; border-radius:8px; background:white; font-size:12px; font-weight:600; cursor:pointer; color:#4b5563;">
+                        Seleccionar todas
+                    </button>
+                    <button onclick="seleccionarTodasSesiones(false)" style="padding:6px 14px; border:1px solid #e5e7eb; border-radius:8px; background:white; font-size:12px; font-weight:600; cursor:pointer; color:#4b5563;">
+                        Deseleccionar todas
+                    </button>
+                </div>
+                <div id="sesiones-checkbox-list">
+                    ${sesionesHtml}
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:16px 20px 20px; display:flex; gap:12px; border-top:1px solid #f3f4f6;">
+                <button onclick="cerrarExportarSesiones()" class="modal-btn modal-btn-secondary" style="flex:1; padding:12px; border:none; border-radius:12px; font-size:15px; font-weight:600; cursor:pointer; background:#f3f4f6; color:#4b5563;">
+                    Cancelar
+                </button>
+                <button onclick="exportarSesionesSeleccionadas()" class="modal-btn modal-btn-primary" style="flex:2; padding:12px; border:none; border-radius:12px; font-size:15px; font-weight:600; cursor:pointer; background:var(--accent-color, #ccff00); color:var(--primary-color, #000000);">
+                    <i class="fa-solid fa-file-export"></i> Exportar seleccionadas
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
+
+function cerrarExportarSesiones() {
+    const modal = document.getElementById('export-sessions-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function toggleSessionCheckbox(id) {
+    const checkbox = document.getElementById(id);
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+    }
+}
+
+function seleccionarTodasSesiones(seleccionar) {
+    const checkboxes = document.querySelectorAll('#sesiones-checkbox-list input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.checked = seleccionar;
+    });
+}
+
+function exportarSesionesSeleccionadas() {
+    const routine = appData.routines.find(r => r.id === currentRoutineId);
+    if (!routine) {
+        window.showAlert('No se encontró la rutina.', 'Error');
+        cerrarExportarSesiones();
+        return;
+    }
+    
+    const checkboxes = document.querySelectorAll('#sesiones-checkbox-list input[type="checkbox"]');
+    const indicesSeleccionados = [];
+    checkboxes.forEach((cb, index) => {
+        if (cb.checked) {
+            indicesSeleccionados.push(index);
+        }
+    });
+    
+    if (indicesSeleccionados.length === 0) {
+        window.showAlert('No has seleccionado ninguna sesión para exportar.', 'Aviso');
+        return;
+    }
+    
+    const sesionesSeleccionadas = indicesSeleccionados.map(idx => routine.sessions[idx]);
+    
+    const clean = {
+        tipo: 'sesiones_export',
+        fecha: new Date().toISOString(),
+        rutina: routine.name,
+        sesiones: sesionesSeleccionadas.map(session => ({
+            id: session.id,
+            title: session.title,
+            content: session.content,
+            lastModified: session.lastModified,
+            createdAt: session.createdAt
+        }))
+    };
+    
+    const dataStr = JSON.stringify(clean, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Sesiones_${routine.name.replace(/\s+/g, '_')}_${getSessionTimestamp()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    cerrarExportarSesiones();
+    window.showAlert(`${sesionesSeleccionadas.length} sesión(es) exportadas correctamente.`, 'Exportar');
+}
+
+// ==========================================================================
+// IMPORTAR SESIONES DESDE ARCHIVO
+// ==========================================================================
+
+function importSessionsFromFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            let sessionsToImport = [];
+            let nombreRutina = '';
+
+            if (data.tipo === 'sesiones_export' && Array.isArray(data.sesiones)) {
+                sessionsToImport = data.sesiones;
+                nombreRutina = data.rutina || 'Rutina';
+            } else if (Array.isArray(data) && data.length > 0 && data[0].title) {
+                sessionsToImport = data;
+            } else if (data.sesiones && Array.isArray(data.sesiones)) {
+                sessionsToImport = data.sesiones;
+            } else {
+                throw new Error('El archivo no tiene un formato de sesiones válido.');
+            }
+
+            // Mostrar confirmación
+            const confirmacion = await window.showConfirm(
+                `¿Estás seguro de que quieres importar ${sessionsToImport.length} sesión(es)?\n\n⚠️ ATENCIÓN: Esto AÑADIRÁ las sesiones a la rutina actual.`,
+                'Importar sesiones'
+            );
+            
+            if (!confirmacion) {
+                event.target.value = '';
+                return;
+            }
+
+            const routine = appData.routines.find(r => r.id === currentRoutineId);
+            if (!routine) {
+                throw new Error('No se encontró la rutina destino.');
+            }
+
+            // Añadir las sesiones con nuevos IDs
+            sessionsToImport.forEach(imported => {
+                const newSession = {
+                    id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+                    title: imported.title || 'Sesión importada',
+                    content: imported.content || '',
+                    lastModified: imported.lastModified || Date.now(),
+                    createdAt: imported.createdAt || Date.now()
+                };
+                routine.sessions.push(newSession);
+            });
+
+            saveData();
+            openRoutine(currentRoutineId);
+            window.showAlert(`Se importaron ${sessionsToImport.length} sesión(es) correctamente.`, 'Importación completada');
+
+        } catch (err) {
+            window.showAlert('Error al leer el archivo: ' + err.message, 'Error');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+// ==========================================================================
+// BORRAR TODAS LAS SESIONES
+// ==========================================================================
+
+async function borrarTodasSesiones() {
+    const routine = appData.routines.find(r => r.id === currentRoutineId);
+    if (!routine) {
+        window.showAlert('No se encontró la rutina.', 'Error');
+        return;
+    }
+    
+    if (routine.sessions.length === 0) {
+        window.showAlert('No hay sesiones para borrar.', 'Aviso');
+        return;
+    }
+
+    const confirm = await window.showConfirm(
+        `¿Estás seguro de que quieres eliminar TODAS las ${routine.sessions.length} sesiones de "${routine.name}"?\n\n⚠️ Esta acción no se puede deshacer.`,
+        'Borrar todas las sesiones'
+    );
+    
+    if (!confirm) return;
+
+    routine.sessions = [];
+    saveData();
+    openRoutine(currentRoutineId);
+    window.showAlert(`Se han eliminado todas las sesiones.`, 'Eliminado');
+}
+
+// ==========================================================================
+// ASISTENTE IA
+// ==========================================================================
+
+function abrirAsistenteIA() {
+    // Mostrar un modal con el prompt para el asistente IA
+    const mensaje = `🤖 ASISTENTE IA PARA SESIONES\n\n` +
+        `Copia el siguiente prompt y pégaselo a tu IA favorita:\n\n` +
+        `---\n` +
+        `Actúa como un entrenador personal experto. Créame una sesión de entrenamiento de gimnasio.\n\n` +
+        `Requisitos:\n` +
+        `- [AQUÍ TUS OBJETIVOS, EJ: día de empuje, enfoque en pectoral y tríceps]\n\n` +
+        `IMPORTANTE: Debes devolverme ÚNICAMENTE un objeto JSON válido.\n\n` +
+        `El formato exacto debe ser este:\n` +
+        `{\n` +
+        `  "nombre": "Nombre de la Sesión",\n` +
+        `  "bloques": [\n` +
+        `    {\n` +
+        `      "tipo": "rutina_enriquecida",\n` +
+        `      "nombre": "Sets",\n` +
+        `      "contenido": "<b>Press banca</b><br>(x4) 8-12r"\n` +
+        `    }\n` +
+        `  ]\n` +
+        `}\n` +
+        `---\n\n` +
+        `Cuando tengas el JSON, ve a "Importar sesión" y pégalo allí.`;
+    
+    window.showAlert(mensaje, 'Asistente IA');
+}
+
+// ==========================================================================
+// UTILIDADES
+// ==========================================================================
+
+function getSessionTimestamp() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}`;
+}
+
+// ==========================================================================
+// CRUD DE SESIONES (EXISTENTES)
 // ==========================================================================
 
 function createNewSession() {
     const routine = appData.routines.find(r => r.id === currentRoutineId);
     if (!routine) return;
 
+    const now = Date.now();
     const newSession = {
         id: 's-' + Date.now(),
         title: 'Nueva Sesión',
         content: '',
-        lastModified: Date.now()
+        lastModified: now,
+        createdAt: now
     };
 
     routine.sessions.push(newSession);
@@ -136,11 +545,13 @@ async function copySessionToRoutine(sessionId) {
 
     if (!selectedRoutine) return;
 
+    const now = Date.now();
     const clonedSession = {
         id: 's-' + Date.now(),
         title: `${sessionToCopy.title} (Copia)`,
         content: sessionToCopy.content,
-        lastModified: Date.now()
+        lastModified: now,
+        createdAt: now
     };
 
     selectedRoutine.sessions.push(clonedSession);
@@ -185,8 +596,19 @@ async function moveSessionToRoutine(sessionId) {
 // ==========================================================================
 
 window.openRoutine = openRoutine;
+window.toggleSessionListOptionsMenu = toggleSessionListOptionsMenu;
+window.closeSessionListOptionsMenu = closeSessionListOptionsMenu;
+window.abrirExportarSesiones = abrirExportarSesiones;
+window.cerrarExportarSesiones = cerrarExportarSesiones;
+window.toggleSessionCheckbox = toggleSessionCheckbox;
+window.seleccionarTodasSesiones = seleccionarTodasSesiones;
+window.exportarSesionesSeleccionadas = exportarSesionesSeleccionadas;
+window.importSessionsFromFile = importSessionsFromFile;
+window.borrarTodasSesiones = borrarTodasSesiones;
+window.abrirAsistenteIA = abrirAsistenteIA;
 window.createNewSession = createNewSession;
 window.moveSessionOrder = moveSessionOrder;
 window.deleteSession = deleteSession;
 window.copySessionToRoutine = copySessionToRoutine;
 window.moveSessionToRoutine = moveSessionToRoutine;
+window.calcularEstadoSesion = calcularEstadoSesion;
