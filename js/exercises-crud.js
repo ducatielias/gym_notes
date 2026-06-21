@@ -1,6 +1,9 @@
 /**
  * MÓDULO: exercises-crud.js
  * CRUD de ejercicios: crear, editar, eliminar (pantalla completa)
+ * 
+ * MODIFICADO: Al renombrar un ejercicio, se actualiza automáticamente
+ * en todas las sesiones de rutinas y en el historial.
  */
 
 // ==========================================================================
@@ -88,7 +91,7 @@ function closeExerciseModal() {
 }
 
 // ==========================================================================
-// GUARDAR EJERCICIO
+// GUARDAR EJERCICIO (CON ACTUALIZACIÓN EN SESIONES E HISTORIAL)
 // ==========================================================================
 
 function saveExerciseFromEditor() {
@@ -106,6 +109,11 @@ function saveExerciseFromEditor() {
     }
 
     const id = idInput.value || generateExerciseId();
+    
+    // Obtener el ejercicio antiguo (si existe)
+    const oldExercise = getExercises().find(ex => ex.id === id);
+    const oldNombre = oldExercise ? oldExercise.nombre : null;
+    
     const exercise = {
         id: id,
         nombre: nombre,
@@ -117,6 +125,10 @@ function saveExerciseFromEditor() {
 
     let exercises = getExercises();
     const existingIndex = exercises.findIndex(ex => ex.id === id);
+    
+    // DETECTAR SI EL NOMBRE CAMBIÓ
+    const nombreCambio = oldNombre !== null && oldNombre !== nombre && oldNombre !== '';
+    
     if (existingIndex >= 0) {
         exercises[existingIndex] = exercise;
     } else {
@@ -124,9 +136,128 @@ function saveExerciseFromEditor() {
     }
 
     setExercises(exercises);
+    
+    // ============================================================
+    // ACTUALIZAR EL NOMBRE EN SESIONES Y HISTORIAL SI CAMBIÓ
+    // ============================================================
+    if (nombreCambio) {
+        console.log(`[exercises-crud] Renombrando ejercicio de "${oldNombre}" a "${nombre}"`);
+        actualizarNombreEnSesionesYHistorial(oldNombre, nombre);
+    }
+    
     closeExerciseModal();
     renderExercises();
-    window.showAlert(`Ejercicio "${exercise.nombre}" guardado correctamente.`, 'Guardado');
+    window.showAlert(`Ejercicio "${exercise.nombre}" guardado correctamente.${nombreCambio ? ' (Renombrado en sesiones e historial)' : ''}`, 'Guardado');
+}
+
+// ==========================================================================
+// ACTUALIZAR NOMBRE DEL EJERCICIO EN SESIONES E HISTORIAL
+// ==========================================================================
+
+function actualizarNombreEnSesionesYHistorial(oldNombre, newNombre) {
+    let cambiosRealizados = 0;
+    let cambiosHistorial = 0;
+    
+    // ------------------------------------------------------------
+    // 1. ACTUALIZAR EN SESIONES DE RUTINAS
+    // ------------------------------------------------------------
+    if (typeof window.appData !== 'undefined' && window.appData.routines) {
+        const routines = window.appData.routines;
+        
+        routines.forEach(routine => {
+            routine.sessions.forEach(session => {
+                if (session.content && session.content.includes(oldNombre)) {
+                    // Reemplazar el nombre en el contenido HTML
+                    const oldContent = session.content;
+                    // Escapar caracteres especiales para regex
+                    const escapedOldNombre = oldNombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    // Reemplazar el nombre (preservando el formato HTML)
+                    const newContent = oldContent.replace(
+                        new RegExp(escapedOldNombre, 'g'), 
+                        newNombre
+                    );
+                    if (newContent !== oldContent) {
+                        session.content = newContent;
+                        session.lastModified = Date.now();
+                        cambiosRealizados++;
+                        console.log(`[exercises-crud] Actualizado en sesión: "${session.title}"`);
+                    }
+                }
+            });
+        });
+        
+        // Guardar los cambios en appData
+        if (cambiosRealizados > 0 && typeof window.saveData === 'function') {
+            window.saveData();
+            console.log(`[exercises-crud] ${cambiosRealizados} sesiones actualizadas`);
+        }
+    } else {
+        console.warn('[exercises-crud] window.appData no disponible para actualizar sesiones');
+    }
+    
+    // ------------------------------------------------------------
+    // 2. ACTUALIZAR EN HISTORIAL
+    // ------------------------------------------------------------
+    try {
+        let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
+        let historialActualizado = false;
+        
+        historyDB = historyDB.map(record => {
+            let modificado = false;
+            let newRecord = { ...record };
+            
+            // Actualizar en contenido_editado
+            if (record.contenido_editado && record.contenido_editado.includes(oldNombre)) {
+                const escapedOldNombre = oldNombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                newRecord.contenido_editado = record.contenido_editado.replace(
+                    new RegExp(escapedOldNombre, 'g'),
+                    newNombre
+                );
+                modificado = true;
+                cambiosHistorial++;
+            }
+            
+            // Actualizar en contenido_original
+            if (record.contenido_original && record.contenido_original.includes(oldNombre)) {
+                const escapedOldNombre = oldNombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                newRecord.contenido_original = record.contenido_original.replace(
+                    new RegExp(escapedOldNombre, 'g'),
+                    newNombre
+                );
+                modificado = true;
+                cambiosHistorial++;
+            }
+            
+            return modificado ? newRecord : record;
+        });
+        
+        if (cambiosHistorial > 0) {
+            localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
+            // Actualizar la variable global si existe
+            if (typeof window.historyDB !== 'undefined') {
+                window.historyDB = historyDB;
+            }
+            console.log(`[exercises-crud] ${cambiosHistorial} registros de historial actualizados`);
+        }
+    } catch (error) {
+        console.error('[exercises-crud] Error actualizando historial:', error);
+    }
+    
+    // ------------------------------------------------------------
+    // 3. NOTIFICAR AL USUARIO
+    // ------------------------------------------------------------
+    const totalCambios = cambiosRealizados + cambiosHistorial;
+    if (totalCambios > 0) {
+        console.log(`[exercises-crud] Total de cambios realizados: ${totalCambios}`);
+        // Mostrar notificación después del alert principal
+        setTimeout(() => {
+            let mensaje = `Nombre del ejercicio actualizado en:\n`;
+            if (cambiosRealizados > 0) mensaje += `• ${cambiosRealizados} sesión(es)\n`;
+            if (cambiosHistorial > 0) mensaje += `• ${cambiosHistorial} registro(s) del historial\n`;
+            if (totalCambios === 0) mensaje = 'No se encontraron referencias a este ejercicio en sesiones o historial.';
+            window.showAlert(mensaje, 'Actualización completada');
+        }, 300);
+    }
 }
 
 // ==========================================================================
@@ -249,3 +380,4 @@ window.deleteExercise = deleteExercise;
 window.toggleExerciseMuscles = toggleExerciseMuscles;
 window.updateExerciseMusclesEditor = updateExerciseMusclesEditor;
 window.openExerciseOptions = openExerciseOptions;
+window.actualizarNombreEnSesionesYHistorial = actualizarNombreEnSesionesYHistorial;

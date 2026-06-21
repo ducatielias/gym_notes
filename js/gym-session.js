@@ -192,10 +192,10 @@ function insertarEjercicioEnTexto(nombreEjercicio, ejercicioId) {
     console.log('[gym-session] Insertando ejercicio:', nombreEjercicio, 'ID:', id);
     
     // Insertar el texto con formato (negrita + subrayado + color)
-    window.quillInstance.insertText(range.index, `\n• ${nombreEjercicio}: `, {
+    window.quillInstance.insertText(range.index, `${nombreEjercicio}`, {
         'bold': true,
-        'underline': true,
-        'color': '#ccff00'
+        'underline': false,
+        'color': '#2563eb'
     });
     
     // Desplazar el cursor al final del bloque insertado

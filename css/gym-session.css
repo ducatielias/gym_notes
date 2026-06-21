@@ -6,6 +6,8 @@
  * 
  * CORRECCIÓN: Solucionado el problema del placeholder de Quill en móviles
  * que se solapaba con el texto ingresado.
+ * 
+ * CORRECCIÓN: Ajuste de sangría de listas para mejor legibilidad.
  */
 
 /* ==========================================================================
@@ -410,6 +412,46 @@
 }
 
 /* ==========================================================================
+   AJUSTE DE SANGRÍA DE LISTAS EN EL EDITOR
+   ========================================================================== */
+
+/* Sangría general para listas */
+.ql-editor ul,
+.ql-editor ol {
+    padding-left: 20px !important;
+}
+
+/* Sangría para sublistas (listas anidadas) */
+.ql-editor ul ul,
+.ql-editor ol ol,
+.ql-editor ul ol,
+.ql-editor ol ul {
+    padding-left: 24px !important;
+}
+
+/* Espacio entre la viñeta/número y el texto */
+.ql-editor li {
+    padding-left: 8px !important;
+}
+
+/* Para el editor de sesiones - más específico */
+#editor-instance .ql-editor ul,
+#editor-instance .ql-editor ol {
+    padding-left: 20px !important;
+}
+
+#editor-instance .ql-editor ul ul,
+#editor-instance .ql-editor ol ol,
+#editor-instance .ql-editor ul ol,
+#editor-instance .ql-editor ol ul {
+    padding-left: 24px !important;
+}
+
+#editor-instance .ql-editor li {
+    padding-left: 8px !important;
+}
+
+/* ==========================================================================
    BARRA DE HERRAMIENTAS DE QUILL
    ========================================================================== */
 
@@ -507,5 +549,38 @@
     .ql-toolbar.ql-snow .ql-picker-label {
         padding: 2px 8px !important;
         font-size: 12px !important;
+    }
+    
+    /* Ajuste de sangría en móviles */
+    .ql-editor ul,
+    .ql-editor ol {
+        padding-left: 16px !important;
+    }
+    
+    .ql-editor ul ul,
+    .ql-editor ol ol,
+    .ql-editor ul ol,
+    .ql-editor ol ul {
+        padding-left: 20px !important;
+    }
+    
+    .ql-editor li {
+        padding-left: 6px !important;
+    }
+    
+    #editor-instance .ql-editor ul,
+    #editor-instance .ql-editor ol {
+        padding-left: 16px !important;
+    }
+    
+    #editor-instance .ql-editor ul ul,
+    #editor-instance .ql-editor ol ol,
+    #editor-instance .ql-editor ul ol,
+    #editor-instance .ql-editor ol ul {
+        padding-left: 20px !important;
+    }
+    
+    #editor-instance .ql-editor li {
+        padding-left: 6px !important;
     }
 }
