@@ -7,6 +7,8 @@
  * MODIFICADO: Los ejercicios insertados usan formato nativo de Quill
  * y se detectan por texto para abrir el visor.
  * CORREGIDO: Inserción usando insertText para mantener compatibilidad con Quill.
+ * 
+ * MODIFICADO: Ahora muestra TODOS los ejercicios sin límite de 8.
  */
 
 // ==========================================================================
@@ -297,11 +299,11 @@ window.cerrarEntrenamiento = async function() {
 // FUNCIONES PARA BOTONES DE FORMATO Y EJERCICIOS (entrenamiento)
 // ==========================================================================
 
-// Obtener lista de ejercicios SOLO desde la base de datos (para entrenamiento)
+// Obtener lista de ejercicios SOLO desde la base de datos (SIN LÍMITE)
 function obtenerListaEjerciciosDesdeBD() {
     // Obtener ejercicios desde el sistema de ejercicios
-    if (typeof window.getExerciseAutocompleteList === 'function') {
-        const exercises = window.getExerciseAutocompleteList('');
+    if (typeof window.getExercises === 'function') {
+        const exercises = window.getExercises();
         if (exercises && exercises.length > 0) {
             return exercises;
         }
@@ -358,11 +360,20 @@ function filtrarEjerciciosEntrenamiento() {
 
     const query = searchInput.value.toLowerCase().trim();
     
-    // Usar el sistema de autocompletado de ejercicios SOLO de la base de datos
-    if (typeof window.getExerciseAutocompleteList === 'function') {
-        const exercises = window.getExerciseAutocompleteList(query);
-        if (exercises && exercises.length > 0) {
-            renderExercisesListEntrenamiento(exercises);
+    // Usar el sistema de ejercicios SOLO de la base de datos
+    if (typeof window.getExercises === 'function') {
+        const exercises = window.getExercises();
+        let filtered = exercises;
+        
+        if (query) {
+            filtered = exercises.filter(ex => 
+                ex.nombre.toLowerCase().includes(query) ||
+                (ex.grupo && ex.grupo.toLowerCase().includes(query))
+            );
+        }
+        
+        if (filtered && filtered.length > 0) {
+            renderExercisesListEntrenamiento(filtered);
             return;
         }
     }
@@ -464,3 +475,6 @@ window.toggleSectionEntrenamiento = function(type) {
 
 window.resetAllTimersAndState = resetAllTimersAndState;
 window.insertarEjercicioEnEntrenamiento = insertarEjercicioEnEntrenamiento;
+window.filtrarEjerciciosEntrenamiento = filtrarEjerciciosEntrenamiento;
+window.obtenerListaEjerciciosDesdeBD = obtenerListaEjerciciosDesdeBD;
+window.renderExercisesListEntrenamiento = renderExercisesListEntrenamiento;

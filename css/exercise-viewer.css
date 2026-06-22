@@ -4,6 +4,8 @@
  * que se abre desde enlaces en el editor de sesiones y entrenamiento activo.
  * 
  * MODIFICADO: Ahora usa pantalla completa con header fijo, footer fijo y scroll central.
+ * 
+ * MODIFICADO: Añadidos estilos para el lightbox interno de imágenes.
  */
 
 /* ==========================================================================
@@ -129,6 +131,33 @@
     justify-content: center;
     border: 1px solid #e5e7eb;
     cursor: pointer;
+    position: relative;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.exercise-viewer-full-image-container:active {
+    transform: scale(0.98);
+}
+
+.exercise-viewer-full-image-container::after {
+    content: '🔍';
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 16px;
+    padding: 6px 10px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+}
+
+.exercise-viewer-full-image-container:hover::after {
+    opacity: 1;
 }
 
 .exercise-viewer-full-image {
@@ -136,10 +165,6 @@
     height: 100%;
     object-fit: cover;
     transition: transform 0.2s ease;
-}
-
-.exercise-viewer-full-image:active {
-    transform: scale(1.02);
 }
 
 /* ==========================================================================
@@ -200,7 +225,7 @@
 }
 
 /* ==========================================================================
-   FOOTER FIJO CON 3 BOTONES
+   FOOTER FIJO CON 2 BOTONES
    ========================================================================== */
 
 .exercise-viewer-full-footer {
@@ -254,13 +279,106 @@
     color: #006064;
 }
 
-.exercise-viewer-full-btn-edit {
-    background: #f3f4f6;
-    color: #4b5563;
+/* ==========================================================================
+   LIGHTBOX INTERNO PARA IMÁGENES
+   ========================================================================== */
+
+.exercise-lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 20px;
+    box-sizing: border-box;
+    cursor: zoom-out;
 }
 
-.exercise-viewer-full-btn-edit:active {
-    background: #e5e7eb;
+.exercise-lightbox-overlay.visible {
+    display: flex;
+    opacity: 1;
+}
+
+.exercise-lightbox-overlay .lightbox-close-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    z-index: 10000;
+}
+
+.exercise-lightbox-overlay .lightbox-close-btn:active {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0.9);
+}
+
+.exercise-lightbox-overlay .lightbox-close-btn i {
+    pointer-events: none;
+}
+
+.exercise-lightbox-overlay .lightbox-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: lightboxZoomIn 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    cursor: zoom-out;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+@keyframes lightboxZoomIn {
+    from {
+        opacity: 0;
+        transform: scale(0.85);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.exercise-lightbox-overlay .lightbox-caption {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 8px 20px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    max-width: 80%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 10000;
+    pointer-events: none;
 }
 
 /* ==========================================================================
@@ -286,6 +404,13 @@
         margin-bottom: 12px;
     }
     
+    .exercise-viewer-full-image-container::after {
+        font-size: 14px;
+        padding: 4px 8px;
+        bottom: 8px;
+        right: 8px;
+    }
+    
     .exercise-viewer-full-notes-content {
         font-size: 13px;
         padding: 10px 12px;
@@ -303,6 +428,21 @@
     
     .exercise-viewer-full-btn i {
         font-size: 12px;
+    }
+    
+    .exercise-lightbox-overlay .lightbox-close-btn {
+        top: 12px;
+        right: 12px;
+        width: 38px;
+        height: 38px;
+        font-size: 16px;
+    }
+    
+    .exercise-lightbox-overlay .lightbox-caption {
+        font-size: 12px;
+        padding: 6px 16px;
+        bottom: 24px;
+        max-width: 90%;
     }
 }
 

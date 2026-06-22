@@ -7,6 +7,10 @@
  * Guarda la pantalla de origen para volver correctamente (sesión, entrenamiento, historial o ejercicios).
  * CORREGIDO: Al abrir desde entrenamiento, oculta el modal antes de mostrar el visor.
  * CORREGIDO: Al abrir desde historial (lista o detalle), vuelve al historial.
+ * 
+ * MODIFICADO: Eliminado el botón "Editar" del footer, solo quedan "Vídeo" y "Buscar en web".
+ * 
+ * MODIFICADO: Al hacer clic en la imagen, se abre un lightbox interno en lugar de una nueva pestaña.
  */
 
 // ==========================================================================
@@ -14,6 +18,7 @@
 // ==========================================================================
 
 let exerciseViewerOrigen = null; // 'session', 'workout', 'exercises', 'history', 'history-list'
+let lightboxActive = false;
 
 // ==========================================================================
 // ABRIR VISOR DE EJERCICIOS
@@ -117,12 +122,11 @@ function mostrarVisorEjercicioCompleto(exercise) {
             
             <!-- CONTENIDO SCROLLABLE -->
             <div class="exercise-viewer-full-body">
-                <div class="exercise-viewer-full-image-container">
+                <div class="exercise-viewer-full-image-container" onclick="openExerciseLightbox('${imgSrc}', '${exercise.nombre}')">
                     <img src="${imgSrc}" 
                          class="exercise-viewer-full-image" 
                          onerror="this.src='${getExerciseViewerPlaceholder(exercise.nombre)}'"
-                         alt="${exercise.nombre}"
-                         onclick="openExerciseLightbox('${imgSrc}')">
+                         alt="${exercise.nombre}">
                 </div>
                 
                 <div class="exercise-viewer-full-info">
@@ -138,16 +142,13 @@ function mostrarVisorEjercicioCompleto(exercise) {
                 </div>
             </div>
             
-            <!-- FOOTER FIJO CON 3 BOTONES -->
+            <!-- FOOTER FIJO CON 2 BOTONES -->
             <div class="exercise-viewer-full-footer">
                 <button class="exercise-viewer-full-btn exercise-viewer-full-btn-video" onclick="openExerciseViewerVideo('${exercise.video || ''}')" ${!hasVideo ? 'disabled' : ''}>
                     <i class="fa-solid fa-play"></i> Vídeo
                 </button>
                 <button class="exercise-viewer-full-btn exercise-viewer-full-btn-web" onclick="searchExerciseOnViewerWeb('${nombreEscapado}')">
                     <i class="fa-solid fa-globe"></i> Buscar en web
-                </button>
-                <button class="exercise-viewer-full-btn exercise-viewer-full-btn-edit" onclick="closeExerciseViewerFullAndEdit('${exercise.id}')">
-                    <i class="fa-solid fa-pen"></i> Editar
                 </button>
             </div>
         </div>
@@ -169,6 +170,11 @@ function mostrarVisorEjercicioCompleto(exercise) {
 
 function closeExerciseViewerFull() {
     console.log('[exercise-viewer] Cerrando visor, origen:', exerciseViewerOrigen);
+    
+    // Cerrar el lightbox si está abierto
+    if (lightboxActive) {
+        closeExerciseLightbox();
+    }
     
     // Limpiar el contenedor
     const container = document.getElementById('screen-exercise-viewer');
@@ -239,27 +245,9 @@ function closeExerciseViewerFull() {
     exerciseViewerOrigen = null;
 }
 
-function closeExerciseViewerFullAndEdit(exerciseId) {
-    // Cerrar el visor
-    closeExerciseViewerFull();
-    // Abrir el editor de ejercicios
-    if (typeof window.openExerciseModal === 'function') {
-        setTimeout(() => {
-            window.openExerciseModal(exerciseId);
-        }, 300);
-    } else {
-        window.showAlert('No se puede abrir el editor de ejercicios.', 'Error');
-    }
-}
-
 // Mantener la función original para compatibilidad
 function closeExerciseViewer() {
     closeExerciseViewerFull();
-}
-
-// Mantener la función original para compatibilidad
-function closeExerciseViewerAndEdit(exerciseId) {
-    closeExerciseViewerFullAndEdit(exerciseId);
 }
 
 // ==========================================================================
@@ -283,12 +271,82 @@ function searchExerciseOnViewerWeb(nombre) {
     window.open(`https://www.google.com/search?q=${query}`, '_blank');
 }
 
-function openExerciseLightbox(src) {
-    if (typeof window.openLightbox === 'function') {
-        window.openLightbox(src);
-    } else {
-        window.open(src, '_blank');
+// ==========================================================================
+// LIGHTBOX INTERNO PARA IMÁGENES
+// ==========================================================================
+
+function openExerciseLightbox(src, nombre) {
+    console.log('[exercise-viewer] Abriendo lightbox para:', src);
+    
+    // Si ya hay un lightbox activo, cerrarlo primero
+    if (lightboxActive) {
+        closeExerciseLightbox();
     }
+    
+    // Crear el overlay del lightbox
+    const overlay = document.createElement('div');
+    overlay.className = 'exercise-lightbox-overlay';
+    overlay.id = 'exerciseLightboxOverlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Visor de imagen');
+    
+    // Contenido del lightbox
+    overlay.innerHTML = `
+        <button class="lightbox-close-btn" onclick="closeExerciseLightbox()" aria-label="Cerrar imagen">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <img class="lightbox-image" src="${src}" alt="${nombre || 'Imagen del ejercicio'}" onerror="this.src='${getExerciseViewerPlaceholder('Imagen no disponible')}'">
+        <div class="lightbox-caption">${nombre || 'Ejercicio'}</div>
+    `;
+    
+    // Añadir al body
+    document.body.appendChild(overlay);
+    lightboxActive = true;
+    
+    // Activar la animación después de un pequeño delay
+    requestAnimationFrame(() => {
+        overlay.classList.add('visible');
+    });
+    
+    // Cerrar al hacer clic fuera de la imagen
+    overlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeExerciseLightbox();
+        }
+    });
+    
+    // Cerrar con la tecla Escape
+    const escapeHandler = function(e) {
+        if (e.key === 'Escape') {
+            closeExerciseLightbox();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+    
+    // Prevenir scroll del body
+    document.body.style.overflow = 'hidden';
+}
+
+function closeExerciseLightbox() {
+    console.log('[exercise-viewer] Cerrando lightbox');
+    
+    const overlay = document.getElementById('exerciseLightboxOverlay');
+    if (overlay) {
+        overlay.classList.remove('visible');
+        // Esperar a que termine la animación antes de eliminar
+        setTimeout(() => {
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
+            }
+        }, 350);
+    }
+    
+    lightboxActive = false;
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
 }
 
 function linkifyExerciseViewerHTML(html) {
@@ -429,11 +487,10 @@ setTimeout(configurarListenerGlobalEjercicios, 500);
 window.openExerciseViewer = openExerciseViewer;
 window.closeExerciseViewer = closeExerciseViewer;
 window.closeExerciseViewerFull = closeExerciseViewerFull;
-window.closeExerciseViewerAndEdit = closeExerciseViewerAndEdit;
-window.closeExerciseViewerFullAndEdit = closeExerciseViewerFullAndEdit;
 window.openExerciseViewerVideo = openExerciseViewerVideo;
 window.searchExerciseOnViewerWeb = searchExerciseOnViewerWeb;
 window.openExerciseLightbox = openExerciseLightbox;
+window.closeExerciseLightbox = closeExerciseLightbox;
 window.linkifyExerciseViewerHTML = linkifyExerciseViewerHTML;
 window.getExerciseViewerPlaceholder = getExerciseViewerPlaceholder;
 window.configurarListenerGlobalEjercicios = configurarListenerGlobalEjercicios;
