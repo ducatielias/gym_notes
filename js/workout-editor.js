@@ -2,9 +2,8 @@
  * MÓDULO: workout-editor.js
  * Controla el editor Quill y la gestión del botón de historial en el entrenamiento
  * 
- * MODIFICADO: Añadido listener para clics en ejercicios dentro del editor del entrenamiento
- * usando un listener a nivel de documento para mayor fiabilidad.
- * CORREGIDO: Detección mejorada para enlaces .exercise-link.
+ * MODIFICADO: Listener optimizado para detectar ejercicios por formato (negrita + color azul)
+ * sin necesidad de clase .exercise-link. Usa window.buscarEjercicioPorNombre().
  */
 
 // ==========================================================================
@@ -86,9 +85,9 @@ function inicializarEditorEntrenamiento() {
     }
     
     // ============================================================
-    // CONFIGURAR LISTENER GLOBAL PARA CLICS EN EJERCICIOS (HIPERENLACES)
+    // CONFIGURAR LISTENER PARA CLICS EN EJERCICIOS (DENTRO DEL EDITOR)
     // ============================================================
-    configurarListenerGlobalEjerciciosEnEntrenamiento();
+    configurarListenerEjerciciosEnEntrenamiento();
 }
 
 function obtenerContenidoEditado() {
@@ -105,17 +104,25 @@ function resetearEditorEntrenamiento() {
 }
 
 // ==========================================================================
-// CONFIGURAR LISTENER GLOBAL PARA CLICS EN EJERCICIOS EN ENTRENAMIENTO
+// CONFIGURAR LISTENER PARA CLICS EN EJERCICIOS EN ENTRENAMIENTO
 // ==========================================================================
 
-function configurarListenerGlobalEjerciciosEnEntrenamiento() {
-    // Eliminar listener anterior si existe
-    if (window._workoutExerciseListener) {
-        document.removeEventListener('click', window._workoutExerciseListener);
-        console.log('[workout] Listener global de ejercicios anterior eliminado');
+function configurarListenerEjerciciosEnEntrenamiento() {
+    // Obtener el contenedor del editor
+    const contenedorEditor = document.querySelector('#aw-editor-container .ql-editor');
+    if (!contenedorEditor) {
+        console.warn('[workout] Editor no encontrado, reintentando...');
+        setTimeout(configurarListenerEjerciciosEnEntrenamiento, 300);
+        return;
     }
     
-    // Crear nuevo listener a nivel de documento
+    // Eliminar listener anterior si existe
+    if (contenedorEditor._ejercicioListener) {
+        contenedorEditor.removeEventListener('click', contenedorEditor._ejercicioListener);
+        console.log('[workout] Listener de ejercicios anterior eliminado');
+    }
+    
+    // Crear nuevo listener específico para el editor
     const listener = function(e) {
         // Verificar que el entrenamiento activo esté visible
         const workoutModal = document.getElementById('active-workout');
@@ -123,93 +130,97 @@ function configurarListenerGlobalEjerciciosEnEntrenamiento() {
             return;
         }
         
-        // Verificar que el clic sea dentro del área del editor de Quill
-        const editorArea = document.querySelector('#aw-editor-container .ql-editor');
-        if (!editorArea || !editorArea.contains(e.target)) {
-            return;
-        }
+        // Obtener el elemento clickeado
+        let target = e.target;
         
-        // 1. BUSCAR POR CLASE .exercise-link (más fiable)
-        let target = e.target.closest('.exercise-link');
-        
-        if (target) {
-            const exerciseId = target.getAttribute('data-exercise-id');
-            if (exerciseId) {
-                console.log('[workout] Detectado clic en exercise-link (por clase):', exerciseId);
-                e.preventDefault();
-                e.stopPropagation();
-                if (typeof window.openExerciseViewer === 'function') {
-                    window.openExerciseViewer(exerciseId);
-                    return;
-                }
-            }
-        }
-        
-        // 2. FALLBACK: Buscar por elemento strong con color azul
-        let elemento = e.target;
-        if (elemento.tagName !== 'STRONG') {
-            elemento = e.target.closest('strong');
-        }
-        
-        if (elemento && elemento.tagName === 'STRONG') {
-            const textContent = elemento.textContent || '';
+        // Función para verificar si un elemento tiene formato de ejercicio (negrita + azul)
+        const esFormatoEjercicio = function(el) {
+            if (!el || el === contenedorEditor) return false;
             
-            if (textContent.length > 1) {
-                // Verificar si el strong tiene color azul
-                let isBlue = false;
+            // Si el elemento o su padre es un <strong>, es candidato
+            let elementoAChequear = el;
+            if (el.tagName !== 'STRONG' && el.tagName !== 'SPAN') {
+                elementoAChequear = el.closest('strong') || el.closest('span');
+            }
+            if (!elementoAChequear) return false;
+            
+            // Obtener el estilo computado
+            let estilo;
+            try {
+                estilo = window.getComputedStyle(elementoAChequear);
+            } catch (err) {
+                return false;
+            }
+            
+            // Verificar color azul (rgb(37, 99, 235) = #2563eb)
+            const esAzul = estilo.color === 'rgb(37, 99, 235)' || 
+                           estilo.color === '#2563eb' ||
+                           estilo.color === 'rgb(59, 130, 246)' ||
+                           estilo.color === '#3b82f6';
+            
+            // Verificar negrita
+            const esNegrita = estilo.fontWeight === '700' || 
+                              estilo.fontWeight === 'bold' || 
+                              estilo.fontWeight === 'bolder' ||
+                              elementoAChequear.tagName === 'STRONG';
+            
+            return esAzul && esNegrita;
+        };
+        
+        // Buscar el elemento con formato de ejercicio (subiendo en el DOM)
+        let elementoEjercicio = null;
+        let currentElement = target;
+        
+        while (currentElement && currentElement !== contenedorEditor) {
+            if (esFormatoEjercicio(currentElement)) {
+                elementoEjercicio = currentElement;
+                break;
+            }
+            currentElement = currentElement.parentElement;
+        }
+        
+        // Si encontramos un elemento con formato de ejercicio
+        if (elementoEjercicio) {
+            // Extraer el nombre del ejercicio (texto del elemento)
+            const nombreEjercicio = elementoEjercicio.textContent.trim();
+            
+            if (nombreEjercicio && nombreEjercicio.length > 1) {
+                console.log('[workout] Detectado clic en ejercicio por formato:', nombreEjercicio);
                 
-                // Verificar estilo inline
-                const style = elemento.getAttribute('style') || '';
-                isBlue = style.includes('color: #2563eb') || 
-                         style.includes('color:#2563eb') ||
-                         style.includes('color: rgb(37, 99, 235)') ||
-                         style.includes('color:rgb(37, 99, 235)') ||
-                         style.includes('color: #3b82f6') ||
-                         style.includes('color:#3b82f6');
-                
-                // Verificar estilo computado
-                try {
-                    const computedStyle = window.getComputedStyle(elemento);
-                    const color = computedStyle.color;
-                    isBlue = isBlue || 
-                             color === 'rgb(37, 99, 235)' || 
-                             color === '#2563eb' || 
-                             color === 'rgb(59, 130, 246)' ||
-                             color === '#3b82f6';
-                } catch(err) {}
-                
-                if (isBlue) {
-                    console.log('[workout] Detectado clic en ejercicio por formato (strong):', textContent);
-                    
-                    if (typeof window.getExercises === 'function') {
-                        const exercises = window.getExercises();
-                        let exercise = exercises.find(ex => ex.nombre === textContent);
-                        if (!exercise) {
-                            exercise = exercises.find(ex => ex.nombre.includes(textContent) || textContent.includes(ex.nombre));
+                // Buscar el ejercicio por nombre usando la función global
+                if (typeof window.buscarEjercicioPorNombre === 'function') {
+                    const ejercicio = window.buscarEjercicioPorNombre(nombreEjercicio);
+                    if (ejercicio && ejercicio.id) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('[workout] Abriendo visor para:', ejercicio.nombre, 'ID:', ejercicio.id);
+                        if (typeof window.openExerciseViewer === 'function') {
+                            window.openExerciseViewer(ejercicio.id);
+                        } else {
+                            console.warn('[workout] openExerciseViewer no está disponible');
                         }
-                        if (exercise && typeof window.openExerciseViewer === 'function') {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('[workout] Abriendo visor para:', exercise.nombre, 'ID:', exercise.id);
-                            window.openExerciseViewer(exercise.id);
-                            return;
-                        }
+                        return;
+                    } else {
+                        console.warn('[workout] No se encontró ejercicio con nombre:', nombreEjercicio);
                     }
+                } else {
+                    console.warn('[workout] window.buscarEjercicioPorNombre no está definida');
                 }
             }
         }
     };
     
-    window._workoutExerciseListener = listener;
-    document.addEventListener('click', listener);
-    console.log('[workout] Listener global de ejercicios configurado');
+    // Guardar referencia al listener y añadirlo
+    contenedorEditor._ejercicioListener = listener;
+    contenedorEditor.addEventListener('click', listener);
+    console.log('[workout] Listener de ejercicios configurado correctamente');
 }
 
 // ==========================================================================
-// FUNCIÓN PARA FORZAR LA RECONFIGURACIÓN DEL LISTENER (útil después de recargar)
+// FUNCIÓN PARA FORZAR LA RECONFIGURACIÓN DEL LISTENER
 // ==========================================================================
 
 function reconfigurarListenerEjerciciosEntrenamiento() {
-    configurarListenerGlobalEjerciciosEnEntrenamiento();
+    configurarListenerEjerciciosEnEntrenamiento();
     console.log('[workout] Listener de ejercicios reconfigurado');
 }

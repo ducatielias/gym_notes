@@ -1,6 +1,8 @@
 /**
  * MÓDULO: exercises-import-export.js
  * Importación y exportación de ejercicios
+ * 
+ * MODIFICADO: Nombres de archivo exportados: GN_Ejercicios_fecha_hora.json
  */
 
 // ==========================================================================
@@ -22,7 +24,7 @@ function exportAllExercises() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Ejercicios_Export_${getExerciseTimestamp()}.json`;
+    a.download = `GN_Ejercicios_${getExerciseTimestamp()}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -47,7 +49,7 @@ function exportSingleExercise(exercise) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Ejercicio_${exercise.nombre.replace(/\s+/g, '_')}_${getExerciseTimestamp()}.json`;
+    a.download = `GN_Ejercicios_${getExerciseTimestamp()}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

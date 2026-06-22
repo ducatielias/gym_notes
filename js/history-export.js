@@ -3,6 +3,7 @@
  * Exportación e importación del historial
  * 
  * MODIFICADO: Eliminada exportación CSV, añadida importación de historial
+ * MODIFICADO: Nombre de archivo exportado: GN_Historial_fecha_hora.json
  */
 
 // ==========================================================================
@@ -20,7 +21,7 @@ function exportHistoryJSON() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Historial_${getHistoryTimestamp()}.json`;
+    a.download = `GN_Historial_${getHistoryTimestamp()}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

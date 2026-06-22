@@ -57,6 +57,30 @@ function generateExerciseId() {
 }
 
 // ==========================================================================
+// FUNCIÓN PARA BUSCAR EJERCICIO POR NOMBRE
+// ==========================================================================
+
+function buscarEjercicioPorNombre(nombre) {
+    if (!nombre || typeof nombre !== 'string') return null;
+    const nombreLimpio = nombre.trim();
+    if (!nombreLimpio) return null;
+    
+    const exercises = getExercises();
+    // Buscar coincidencia exacta (insensible a mayúsculas)
+    let ejercicio = exercises.find(ex => ex.nombre.toLowerCase() === nombreLimpio.toLowerCase());
+    
+    if (!ejercicio) {
+        // Buscar coincidencia parcial (si el nombre contiene el texto o viceversa)
+        ejercicio = exercises.find(ex => 
+            ex.nombre.toLowerCase().includes(nombreLimpio.toLowerCase()) || 
+            nombreLimpio.toLowerCase().includes(ex.nombre.toLowerCase())
+        );
+    }
+    
+    return ejercicio || null;
+}
+
+// ==========================================================================
 // EXPOSICIÓN GLOBAL
 // ==========================================================================
 
@@ -71,3 +95,4 @@ window.getExerciseGroups = getExerciseGroups;
 window.getAllGroups = getAllGroups;
 window.generateExerciseId = generateExerciseId;
 window.DEFAULT_EXERCISE_GROUPS = DEFAULT_EXERCISE_GROUPS;
+window.buscarEjercicioPorNombre = buscarEjercicioPorNombre;

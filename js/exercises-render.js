@@ -3,11 +3,15 @@
  * Renderizado de la página de ejercicios: lista, tarjetas, filtros y búsqueda
  * 
  * MODIFICADO: Añadida opción "Borrar todos los ejercicios" en el menú de opciones
+ * CORREGIDO: El input de búsqueda ya no pierde el foco al escribir
  */
 
 // ==========================================================================
 // RENDERIZADO PRINCIPAL
 // ==========================================================================
+
+// Guardar referencia al input de búsqueda para no perder el foco
+let exercisesSearchInputRef = null;
 
 function renderExercises() {
     const container = document.getElementById('exercises-container');
@@ -31,52 +35,114 @@ function renderExercises() {
 
     filtered.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-    let html = '';
+    // ============================================================
+    // 1. VERIFICAR SI EL HEADER YA EXISTE
+    // ============================================================
+    let header = document.querySelector('.exercises-header');
+    let gridContainer = document.querySelector('.exercises-grid-container');
+    let input = document.getElementById('exercisesSearchInput');
 
-    html += `
-        <header class="exercises-header">
-            <div class="exercises-header-top">
-                <h1>Ejercicios</h1>
-                <div style="position:relative;">
-                    <button class="btn-exercises-options" onclick="toggleExercisesOptionsMenu(event)" title="Opciones">
-                        <i class="fa-solid fa-ellipsis-vertical"></i>
-                    </button>
-                    <div class="exercises-options-menu hidden" id="exercisesOptionsMenu" onclick="event.stopPropagation()">
-                        <button class="menu-item" onclick="openExerciseModal(); closeExercisesOptionsMenu();">
-                            <i class="fa-solid fa-plus"></i> Añadir ejercicio
+    if (!header) {
+        // Si no hay header, crear la estructura completa
+        container.innerHTML = `
+            <header class="exercises-header">
+                <div class="exercises-header-top">
+                    <h1>Ejercicios</h1>
+                    <div style="position:relative;">
+                        <button class="btn-exercises-options" onclick="toggleExercisesOptionsMenu(event)" title="Opciones">
+                            <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
-                        <div class="menu-divider"></div>
-                        <button class="menu-item" onclick="document.getElementById('file-import-exercises').click(); closeExercisesOptionsMenu();">
-                            <i class="fa-solid fa-file-import"></i> Importar ejercicios
-                        </button>
-                        <button class="menu-item" onclick="exportAllExercises(); closeExercisesOptionsMenu();">
-                            <i class="fa-solid fa-file-export"></i> Exportar ejercicios
-                        </button>
-                        <div class="menu-divider"></div>
-                        <button class="menu-item menu-delete" onclick="borrarTodosEjercicios(); closeExercisesOptionsMenu();" style="color:#ef4444;">
-                            <i class="fa-solid fa-trash-can" style="color:#ef4444;"></i> Borrar todos
-                        </button>
+                        <div class="exercises-options-menu hidden" id="exercisesOptionsMenu" onclick="event.stopPropagation()">
+                            <button class="menu-item" onclick="openExerciseModal(); closeExercisesOptionsMenu();">
+                                <i class="fa-solid fa-plus"></i> Añadir ejercicio
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button class="menu-item" onclick="document.getElementById('file-import-exercises').click(); closeExercisesOptionsMenu();">
+                                <i class="fa-solid fa-file-import"></i> Importar ejercicios
+                            </button>
+                            <button class="menu-item" onclick="exportAllExercises(); closeExercisesOptionsMenu();">
+                                <i class="fa-solid fa-file-export"></i> Exportar ejercicios
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button class="menu-item menu-delete" onclick="borrarTodosEjercicios(); closeExercisesOptionsMenu();" style="color:#ef4444;">
+                                <i class="fa-solid fa-trash-can" style="color:#ef4444;"></i> Borrar todos
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="exercises-search-wrapper" id="exercisesSearchWrapper">
-                <i class="fa-solid fa-search icon-search"></i>
-                <input type="text" id="exercisesSearchInput" placeholder="Buscar ejercicio..." autocomplete="off" oninput="onExercisesSearch()">
-                <button class="clear-input-btn" onclick="clearExercisesSearch()">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="exercises-filter-bar">
-                <select id="exercisesFilterSelect" onchange="onExercisesFilterChange()">
-                    ${buildFilterOptions(filter)}
-                </select>
-            </div>
-        </header>
-        <input type="file" id="file-import-exercises" style="display:none" accept=".json,.txt" onchange="importExercisesFromFile(event)">
-    `;
+                <div class="exercises-search-wrapper" id="exercisesSearchWrapper">
+                    <i class="fa-solid fa-search icon-search"></i>
+                    <input type="text" id="exercisesSearchInput" placeholder="Buscar ejercicio..." autocomplete="off" oninput="onExercisesSearch()" onfocus="onExercisesSearchFocus()">
+                    <button class="clear-input-btn" onclick="clearExercisesSearch()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="exercises-filter-bar">
+                    <select id="exercisesFilterSelect" onchange="onExercisesFilterChange()">
+                        ${buildFilterOptions(filter)}
+                    </select>
+                </div>
+            </header>
+            <div class="exercises-grid-container"></div>
+            <input type="file" id="file-import-exercises" style="display:none" accept=".json,.txt" onchange="importExercisesFromFile(event)">
+        `;
+        
+        // Guardar referencia al input
+        input = document.getElementById('exercisesSearchInput');
+        if (input) {
+            // Guardar el valor actual
+            input.value = exercisesSearchTerm;
+            exercisesSearchInputRef = input;
+        }
+        
+        // Actualizar el wrapper
+        updateClearButton();
+        
+        // Actualizar el grid container
+        gridContainer = document.querySelector('.exercises-grid-container');
+    } else {
+        // Si el header ya existe, solo actualizar el grid container
+        gridContainer = document.querySelector('.exercises-grid-container');
+        if (!gridContainer) {
+            // Si no hay grid container, crearlo
+            gridContainer = document.createElement('div');
+            gridContainer.className = 'exercises-grid-container';
+            header.insertAdjacentElement('afterend', gridContainer);
+        }
+        
+        // Actualizar el valor del input (sin perder el foco)
+        if (input) {
+            // Solo actualizar si el valor cambió (para no perder el cursor)
+            if (input.value !== exercisesSearchTerm) {
+                input.value = exercisesSearchTerm;
+            }
+            // Actualizar el wrapper
+            updateClearButton();
+        }
+        
+        // Actualizar el select de filtros
+        const filterSelect = document.getElementById('exercisesFilterSelect');
+        if (filterSelect && filterSelect.value !== filter) {
+            filterSelect.value = filter;
+        }
+    }
+
+    // ============================================================
+    // 2. RENDERIZAR LA LISTA DE EJERCICIOS
+    // ============================================================
+    if (!gridContainer) {
+        // Si por algún motivo no hay grid container, crearlo
+        gridContainer = document.createElement('div');
+        gridContainer.className = 'exercises-grid-container';
+        if (header) {
+            header.insertAdjacentElement('afterend', gridContainer);
+        } else {
+            container.appendChild(gridContainer);
+        }
+    }
 
     if (filtered.length === 0) {
-        html += `
+        gridContainer.innerHTML = `
             <div class="exercises-empty">
                 <i class="fa-solid fa-dumbbell"></i>
                 <p>${exercises.length === 0 ? 'No tienes ejercicios guardados.' : 'No se encontraron ejercicios.'}</p>
@@ -92,7 +158,7 @@ function renderExercises() {
             </div>
         `;
     } else {
-        html += `<div class="exercises-grid">`;
+        let html = `<div class="exercises-grid">`;
         filtered.forEach((ex, index) => {
             const imgSrc = ex.img || getExercisePlaceholder(ex.nombre);
             const nombreEscapado = ex.nombre.replace(/'/g, "\\'");
@@ -135,10 +201,8 @@ function renderExercises() {
             `;
         });
         html += `</div>`;
+        gridContainer.innerHTML = html;
     }
-
-    container.innerHTML = html;
-    updateClearButton();
 }
 
 function buildFilterOptions(selected) {
@@ -164,9 +228,20 @@ function buildFilterOptions(selected) {
 
 function onExercisesSearch() {
     const input = document.getElementById('exercisesSearchInput');
-    exercisesSearchTerm = input ? input.value : '';
+    if (input) {
+        exercisesSearchTerm = input.value;
+    }
     updateClearButton();
     renderExercises();
+}
+
+// Función para capturar el foco del input
+function onExercisesSearchFocus() {
+    // Guardar referencia al input
+    const input = document.getElementById('exercisesSearchInput');
+    if (input) {
+        exercisesSearchInputRef = input;
+    }
 }
 
 function clearExercisesSearch() {
@@ -391,6 +466,7 @@ function showExerciseHistory(nombreEjercicio) {
 
 window.renderExercises = renderExercises;
 window.onExercisesSearch = onExercisesSearch;
+window.onExercisesSearchFocus = onExercisesSearchFocus;
 window.clearExercisesSearch = clearExercisesSearch;
 window.onExercisesFilterChange = onExercisesFilterChange;
 window.toggleExerciseCard = toggleExerciseCard;

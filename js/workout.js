@@ -6,7 +6,7 @@
  * 
  * MODIFICADO: Los ejercicios insertados usan formato nativo de Quill
  * y se detectan por texto para abrir el visor.
- * CORREGIDO: Los ejercicios ahora se insertan con clase exercise-link y data-exercise-id.
+ * CORREGIDO: Inserción usando insertText para mantener compatibilidad con Quill.
  */
 
 // ==========================================================================
@@ -372,7 +372,7 @@ function filtrarEjerciciosEntrenamiento() {
 }
 
 // Insertar el ejercicio seleccionado en el editor del entrenamiento
-// MODIFICADO: Usa dangerouslyPasteHTML con clase exercise-link y data-exercise-id
+// MODIFICADO: Usa insertText en lugar de dangerouslyPasteHTML para mantener compatibilidad
 function insertarEjercicioEnEntrenamiento(nombreEjercicio, ejercicioId) {
     if (!aw_quillInstance) {
         console.warn('[workout] Quill no está inicializado');
@@ -386,35 +386,27 @@ function insertarEjercicioEnEntrenamiento(nombreEjercicio, ejercicioId) {
         return;
     }
     
-    // Asegurar que tenemos un ID válido
+    // Asegurar que tenemos un ID válido (guardamos el ID para futuras referencias)
     const id = ejercicioId || nombreEjercicio;
     console.log('[workout] Insertando ejercicio:', nombreEjercicio, 'ID:', id);
     
-    // Construir el HTML del enlace CON clase exercise-link y data-exercise-id
-    const linkHTML = `<span class="exercise-link" data-exercise-id="${id}" style="color: #2563eb; font-weight: 700; cursor: pointer; text-decoration: underline;">${nombreEjercicio}</span>`;
-    
-    // Insertar el HTML en el editor
-    aw_quillInstance.clipboard.dangerouslyPasteHTML(range.index, linkHTML);
+    // Insertar el texto con formato (negrita + color azul)
+    // NOTA: Para que sea detectable por el listener, debe ser negrita y color azul
+    aw_quillInstance.insertText(range.index, `${nombreEjercicio}`, {
+        'bold': true,
+        'color': '#2563eb'
+    });
     
     // Desplazar el cursor al final del bloque insertado
     const newRange = aw_quillInstance.getSelection();
     if (newRange) {
-        aw_quillInstance.setSelection(newRange.index + linkHTML.length, 0);
+        aw_quillInstance.setSelection(newRange.index, 0);
     }
     
     // Cerrar el panel de ejercicios automáticamente
     toggleSectionEntrenamiento('exercises');
     
     console.log('[workout] Ejercicio insertado correctamente');
-    
-    // Verificar que el enlace se haya insertado correctamente
-    setTimeout(() => {
-        const enlaces = document.querySelectorAll('#aw-editor-container .exercise-link');
-        console.log('[workout] Enlaces en el editor después de insertar:', enlaces.length);
-        enlaces.forEach(el => {
-            console.log('[workout] Enlace:', el.textContent, 'ID:', el.getAttribute('data-exercise-id'));
-        });
-    }, 100);
 }
 
 // Controlar la conmutación de los paneles de formato y ejercicios (entrenamiento)

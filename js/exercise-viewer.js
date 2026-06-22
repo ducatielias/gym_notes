@@ -4,14 +4,16 @@
  * desde enlaces dentro del editor de sesiones y entrenamiento activo.
  * 
  * MODIFICADO: Ahora usa pantalla completa con header fijo, footer fijo y scroll central.
- * Guarda la pantalla de origen para volver correctamente (sesión o entrenamiento).
+ * Guarda la pantalla de origen para volver correctamente (sesión, entrenamiento, historial o ejercicios).
+ * CORREGIDO: Al abrir desde entrenamiento, oculta el modal antes de mostrar el visor.
+ * CORREGIDO: Al abrir desde historial (lista o detalle), vuelve al historial.
  */
 
 // ==========================================================================
 // VARIABLES GLOBALES
 // ==========================================================================
 
-let exerciseViewerOrigen = null; // 'session', 'workout', 'exercises'
+let exerciseViewerOrigen = null; // 'session', 'workout', 'exercises', 'history', 'history-list'
 
 // ==========================================================================
 // ABRIR VISOR DE EJERCICIOS
@@ -52,9 +54,26 @@ function openExerciseViewer(exerciseId) {
     const editorScreen = document.getElementById('screen-editor');
     const isEditorVisible = editorScreen && !editorScreen.classList.contains('hidden');
     
+    // Verificar si estamos en el detalle del historial
+    const historyDetailScreen = document.getElementById('screen-history-detail');
+    const isHistoryDetailVisible = historyDetailScreen && !historyDetailScreen.classList.contains('hidden');
+    
+    // Verificar si estamos en la lista del historial
+    const historyScreen = document.getElementById('screen-history');
+    const isHistoryVisible = historyScreen && !historyScreen.classList.contains('hidden');
+    
     if (isWorkoutVisible) {
         exerciseViewerOrigen = 'workout';
         console.log('[exercise-viewer] Origen: entrenamiento activo');
+        // OCULTAR EL MODAL DE ENTRENAMIENTO ANTES DE ABRIR EL VISOR
+        workoutModal.style.display = 'none';
+        console.log('[exercise-viewer] Modal de entrenamiento ocultado');
+    } else if (isHistoryDetailVisible) {
+        exerciseViewerOrigen = 'history-detail';
+        console.log('[exercise-viewer] Origen: historial (detalle)');
+    } else if (isHistoryVisible) {
+        exerciseViewerOrigen = 'history-list';
+        console.log('[exercise-viewer] Origen: historial (lista)');
     } else if (isEditorVisible) {
         exerciseViewerOrigen = 'session';
         console.log('[exercise-viewer] Origen: editor de sesión');
@@ -174,11 +193,32 @@ function closeExerciseViewerFull() {
         if (bottomNav) bottomNav.classList.add('hidden-nav');
         
         // Navegar a la pantalla de hoy (donde está el entrenamiento)
-        // Pero el entrenamiento está en un modal overlay, no en una screen
-        // Así que simplemente mostramos el modal y aseguramos que la pantalla today esté visible
         switchTab('today');
         // Re-ocultar el menú inferior
         if (bottomNav) bottomNav.classList.add('hidden-nav');
+        
+    } else if (exerciseViewerOrigen === 'history-detail' || exerciseViewerOrigen === 'history-list') {
+        // Volver al historial (lista o detalle)
+        const bottomNav = document.querySelector('.bottom-nav');
+        if (bottomNav) bottomNav.classList.add('hidden-nav');
+        
+        // Si venía del detalle, restaurar la pantalla de detalle
+        if (exerciseViewerOrigen === 'history-detail') {
+            const historyDetailScreen = document.getElementById('screen-history-detail');
+            if (historyDetailScreen) {
+                historyDetailScreen.classList.remove('hidden');
+            }
+            switchTab('history-detail');
+        } else {
+            // Si venía de la lista, ir a la lista de historial
+            switchTab('history');
+            // Renderizar el historial para asegurar que los datos estén actualizados
+            setTimeout(() => {
+                if (typeof renderHistory === 'function') {
+                    renderHistory();
+                }
+            }, 50);
+        }
         
     } else if (exerciseViewerOrigen === 'session') {
         // Volver al editor de sesiones

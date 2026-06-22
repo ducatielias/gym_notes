@@ -10,6 +10,9 @@
  * 
  * CORRECCIÓN: Una sesión se considera "realizada" si existe un registro en el historial
  * con el mismo nombre de sesión y nombre de rutina.
+ * 
+ * MODIFICADO: Importación con selector de sesiones (checklist) igual que la exportación
+ * MODIFICADO: Nombre de archivo exportado: GN_Sesiones_fecha_hora.json
  */
 
 // ==========================================================================
@@ -37,7 +40,7 @@ function openRoutine(id) {
                             <i class="fa-solid fa-plus"></i> Añadir sesión
                         </button>
                         <div class="menu-divider"></div>
-                        <button class="menu-item" onclick="document.getElementById('file-import-session-list').click(); closeSessionListOptionsMenu();">
+                        <button class="menu-item" onclick="abrirImportarSesiones(); closeSessionListOptionsMenu();">
                             <i class="fa-solid fa-file-import"></i> Importar sesión
                         </button>
                         <button class="menu-item" onclick="abrirExportarSesiones(); closeSessionListOptionsMenu();">
@@ -103,7 +106,7 @@ function openRoutine(id) {
         ` : ''}
         
         <!-- Input oculto para importar sesión desde el menú de opciones -->
-        <input type="file" id="file-import-session-list" style="display:none" accept=".json,.txt" onchange="importSessionsFromFile(event)">
+        <input type="file" id="file-import-session-list" style="display:none" accept=".json,.txt" onchange="procesarArchivoImportacionSesiones(event)">
     `;
 }
 
@@ -333,7 +336,7 @@ function exportarSesionesSeleccionadas() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Sesiones_${routine.name.replace(/\s+/g, '_')}_${getSessionTimestamp()}.json`;
+    a.download = `GN_Sesiones_${getSessionTimestamp()}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -344,10 +347,19 @@ function exportarSesionesSeleccionadas() {
 }
 
 // ==========================================================================
-// IMPORTAR SESIONES DESDE ARCHIVO
+// IMPORTAR SESIONES CON SELECTOR (CHECKLIST)
 // ==========================================================================
 
-function importSessionsFromFile(event) {
+// Variable global para almacenar las sesiones del archivo importado
+let sesionesArchivoImportado = [];
+let nombreRutinaArchivoImportado = '';
+
+function abrirImportarSesiones() {
+    // Disparar el selector de archivos
+    document.getElementById('file-import-session-list').click();
+}
+
+function procesarArchivoImportacionSesiones(event) {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -369,37 +381,17 @@ function importSessionsFromFile(event) {
                 throw new Error('El archivo no tiene un formato de sesiones válido.');
             }
 
-            // Mostrar confirmación
-            const confirmacion = await window.showConfirm(
-                `¿Estás seguro de que quieres importar ${sessionsToImport.length} sesión(es)?\n\n⚠️ ATENCIÓN: Esto AÑADIRÁ las sesiones a la rutina actual.`,
-                'Importar sesiones'
-            );
-            
-            if (!confirmacion) {
-                event.target.value = '';
+            if (sessionsToImport.length === 0) {
+                window.showAlert('No se encontraron sesiones en el archivo.', 'Aviso');
                 return;
             }
 
-            const routine = appData.routines.find(r => r.id === currentRoutineId);
-            if (!routine) {
-                throw new Error('No se encontró la rutina destino.');
-            }
+            // Guardar las sesiones del archivo para usarlas en el modal
+            sesionesArchivoImportado = sessionsToImport;
+            nombreRutinaArchivoImportado = nombreRutina;
 
-            // Añadir las sesiones con nuevos IDs
-            sessionsToImport.forEach(imported => {
-                const newSession = {
-                    id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
-                    title: imported.title || 'Sesión importada',
-                    content: imported.content || '',
-                    lastModified: imported.lastModified || Date.now(),
-                    createdAt: imported.createdAt || Date.now()
-                };
-                routine.sessions.push(newSession);
-            });
-
-            saveData();
-            openRoutine(currentRoutineId);
-            window.showAlert(`Se importaron ${sessionsToImport.length} sesión(es) correctamente.`, 'Importación completada');
+            // Mostrar el modal con el checklist
+            mostrarModalImportacionSesiones(sessionsToImport, nombreRutina);
 
         } catch (err) {
             window.showAlert('Error al leer el archivo: ' + err.message, 'Error');
@@ -407,6 +399,134 @@ function importSessionsFromFile(event) {
     };
     reader.readAsText(file);
     event.target.value = '';
+}
+
+function mostrarModalImportacionSesiones(sessionsToImport, nombreRutina) {
+    // Crear el modal de importación
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'import-sessions-modal';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.zIndex = '3000';
+    overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+    overlay.style.backdropFilter = 'blur(4px)';
+    overlay.style.webkitBackdropFilter = 'blur(4px)';
+    
+    // Construir la lista de sesiones del archivo con checkboxes
+    let sesionesHtml = '';
+    sessionsToImport.forEach((session, index) => {
+        const titulo = session.title || 'Sesión sin título';
+        sesionesHtml += `
+            <div style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-bottom:1px solid #f3f4f6; cursor:pointer;" onclick="toggleSessionCheckboxImport('session-import-check-${index}')">
+                <input type="checkbox" id="session-import-check-${index}" checked style="width:18px; height:18px; accent-color: var(--accent-color, #ccff00); cursor:pointer;">
+                <label for="session-import-check-${index}" style="cursor:pointer; flex:1; font-size:14px; font-weight:500; color:#1f2937;">${titulo}</label>
+                ${session.lastModified ? `<span style="font-size:11px; color:#9ca3af;">${new Date(session.lastModified).toLocaleDateString('es-ES')}</span>` : ''}
+            </div>
+        `;
+    });
+    
+    overlay.innerHTML = `
+        <div class="modal-container" style="max-width: 400px; width: 90%; max-height: 80vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <span class="modal-icon"><i class="fa-solid fa-file-import"></i></span>
+                <h3 style="margin:0; font-size:18px; font-weight:700;">Importar sesiones</h3>
+            </div>
+            <div class="modal-body" style="flex:1; overflow-y:auto; padding: 16px 20px;">
+                <p style="font-size:14px; color:#6b7280; margin-bottom:4px;">Archivo: <strong>${nombreRutina || 'Sin nombre'}</strong></p>
+                <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">Selecciona las sesiones que deseas importar:</p>
+                <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+                    <button onclick="seleccionarTodasSesionesImport(true)" style="padding:6px 14px; border:1px solid #e5e7eb; border-radius:8px; background:white; font-size:12px; font-weight:600; cursor:pointer; color:#4b5563;">
+                        Seleccionar todas
+                    </button>
+                    <button onclick="seleccionarTodasSesionesImport(false)" style="padding:6px 14px; border:1px solid #e5e7eb; border-radius:8px; background:white; font-size:12px; font-weight:600; cursor:pointer; color:#4b5563;">
+                        Deseleccionar todas
+                    </button>
+                </div>
+                <div id="sesiones-import-checkbox-list">
+                    ${sesionesHtml}
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:16px 20px 20px; display:flex; gap:12px; border-top:1px solid #f3f4f6;">
+                <button onclick="cerrarImportarSesiones()" class="modal-btn modal-btn-secondary" style="flex:1; padding:12px; border:none; border-radius:12px; font-size:15px; font-weight:600; cursor:pointer; background:#f3f4f6; color:#4b5563;">
+                    Cancelar
+                </button>
+                <button onclick="importarSesionesSeleccionadas()" class="modal-btn modal-btn-primary" style="flex:2; padding:12px; border:none; border-radius:12px; font-size:15px; font-weight:600; cursor:pointer; background:var(--accent-color, #ccff00); color:var(--primary-color, #000000);">
+                    <i class="fa-solid fa-file-import"></i> Importar seleccionadas
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
+
+function cerrarImportarSesiones() {
+    const modal = document.getElementById('import-sessions-modal');
+    if (modal) {
+        modal.remove();
+    }
+    // Limpiar variables
+    sesionesArchivoImportado = [];
+    nombreRutinaArchivoImportado = '';
+}
+
+function toggleSessionCheckboxImport(id) {
+    const checkbox = document.getElementById(id);
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+    }
+}
+
+function seleccionarTodasSesionesImport(seleccionar) {
+    const checkboxes = document.querySelectorAll('#sesiones-import-checkbox-list input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.checked = seleccionar;
+    });
+}
+
+function importarSesionesSeleccionadas() {
+    const routine = appData.routines.find(r => r.id === currentRoutineId);
+    if (!routine) {
+        window.showAlert('No se encontró la rutina destino.', 'Error');
+        cerrarImportarSesiones();
+        return;
+    }
+    
+    const checkboxes = document.querySelectorAll('#sesiones-import-checkbox-list input[type="checkbox"]');
+    const indicesSeleccionados = [];
+    checkboxes.forEach((cb, index) => {
+        if (cb.checked) {
+            indicesSeleccionados.push(index);
+        }
+    });
+    
+    if (indicesSeleccionados.length === 0) {
+        window.showAlert('No has seleccionado ninguna sesión para importar.', 'Aviso');
+        return;
+    }
+    
+    const sesionesSeleccionadas = indicesSeleccionados.map(idx => sesionesArchivoImportado[idx]);
+    
+    // Añadir las sesiones seleccionadas a la rutina actual
+    const ahora = Date.now();
+    sesionesSeleccionadas.forEach(imported => {
+        const newSession = {
+            id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+            title: imported.title || 'Sesión importada',
+            content: imported.content || '',
+            lastModified: ahora,
+            createdAt: imported.createdAt || ahora
+        };
+        routine.sessions.push(newSession);
+    });
+
+    saveData();
+    openRoutine(currentRoutineId);
+    cerrarImportarSesiones();
+    
+    window.showAlert(`${sesionesSeleccionadas.length} sesión(es) importadas correctamente.`, 'Importación completada');
 }
 
 // ==========================================================================
@@ -603,7 +723,13 @@ window.cerrarExportarSesiones = cerrarExportarSesiones;
 window.toggleSessionCheckbox = toggleSessionCheckbox;
 window.seleccionarTodasSesiones = seleccionarTodasSesiones;
 window.exportarSesionesSeleccionadas = exportarSesionesSeleccionadas;
-window.importSessionsFromFile = importSessionsFromFile;
+window.abrirImportarSesiones = abrirImportarSesiones;
+window.procesarArchivoImportacionSesiones = procesarArchivoImportacionSesiones;
+window.mostrarModalImportacionSesiones = mostrarModalImportacionSesiones;
+window.cerrarImportarSesiones = cerrarImportarSesiones;
+window.toggleSessionCheckboxImport = toggleSessionCheckboxImport;
+window.seleccionarTodasSesionesImport = seleccionarTodasSesionesImport;
+window.importarSesionesSeleccionadas = importarSesionesSeleccionadas;
 window.borrarTodasSesiones = borrarTodasSesiones;
 window.abrirAsistenteIA = abrirAsistenteIA;
 window.createNewSession = createNewSession;
