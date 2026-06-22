@@ -8,7 +8,7 @@
  * MODIFICADO: Exportación e importación con selector de rutinas (checklist)
  * MODIFICADO: Nombre de archivo exportado: GN_Rutinas_fecha_hora.json
  * 
- * MODIFICADO: Añadido acceso al Asistente IA desde el menú de opciones
+ * MODIFICADO: Botón Asistente IA movido a la cabecera, junto al título
  */
 
 // ==========================================================================
@@ -27,29 +27,30 @@ function renderRoutineList() {
         <header class="screen-header">
             <div class="header-nav-row">
                 <h1>Mis Rutinas</h1>
-                <div style="position:relative;">
-                    <button class="btn-header-options" onclick="toggleRoutineListOptionsMenu(event)" title="Opciones">
-                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <button class="btn-header-ia" onclick="openIAAssistant()" title="Asistente IA">
+                        <i class="fa-solid fa-robot"></i>
                     </button>
-                    <div class="routine-list-options-menu hidden" id="routineListOptionsMenu" onclick="event.stopPropagation()">
-                        <button class="menu-item" onclick="createNewRoutine(); closeRoutineListOptionsMenu();">
-                            <i class="fa-solid fa-plus"></i> Añadir rutina
+                    <div style="position:relative;">
+                        <button class="btn-header-options" onclick="toggleRoutineListOptionsMenu(event)" title="Opciones">
+                            <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
-                        <div class="menu-divider"></div>
-                        <button class="menu-item" onclick="document.getElementById('file-import-routine-list').click(); closeRoutineListOptionsMenu();">
-                            <i class="fa-solid fa-file-import"></i> Importar rutinas
-                        </button>
-                        <button class="menu-item" onclick="abrirExportarRutinas(); closeRoutineListOptionsMenu();">
-                            <i class="fa-solid fa-file-export"></i> Exportar rutinas
-                        </button>
-                        <div class="menu-divider"></div>
-                        <button class="menu-item menu-delete" onclick="borrarTodasRutinas(); closeRoutineListOptionsMenu();" style="color:#ef4444;">
-                            <i class="fa-solid fa-trash-can" style="color:#ef4444;"></i> Borrar todas
-                        </button>
-                        <div class="menu-divider"></div>
-                        <button class="menu-item" onclick="openIAAssistant(); closeRoutineListOptionsMenu();">
-                            <i class="fa-solid fa-robot"></i> Asistente IA
-                        </button>
+                        <div class="routine-list-options-menu hidden" id="routineListOptionsMenu" onclick="event.stopPropagation()">
+                            <button class="menu-item" onclick="createNewRoutine(); closeRoutineListOptionsMenu();">
+                                <i class="fa-solid fa-plus"></i> Añadir rutina
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button class="menu-item" onclick="document.getElementById('file-import-routine-list').click(); closeRoutineListOptionsMenu();">
+                                <i class="fa-solid fa-file-import"></i> Importar rutinas
+                            </button>
+                            <button class="menu-item" onclick="abrirExportarRutinas(); closeRoutineListOptionsMenu();">
+                                <i class="fa-solid fa-file-export"></i> Exportar rutinas
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button class="menu-item menu-delete" onclick="borrarTodasRutinas(); closeRoutineListOptionsMenu();" style="color:#ef4444;">
+                                <i class="fa-solid fa-trash-can" style="color:#ef4444;"></i> Borrar todas
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

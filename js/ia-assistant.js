@@ -3,18 +3,24 @@
  * Controla la pantalla de Asistente IA para creación de rutinas y sesiones.
  * 
  * Funcionalidades:
- * - Crear rutina con IA
- * - Crear sesión con IA
- * - Importar desde IA (JSON)
+ * - Generar prompt personalizado con opciones seleccionadas
+ * - Copiar prompt para usar en IA externa
+ * - Pegar respuesta de IA y procesarla
+ * - Guardar como rutina o sesión
+ * 
+ * MODIFICADO: Sin modales - navegación entre pantallas (config → prompt → preview)
+ * MODIFICADO: Limpieza automática de JSON para tolerar errores de formato
  */
 
 // ==========================================================================
 // ESTADO GLOBAL
 // ==========================================================================
 
-let iaCurrentMode = 'routine'; // 'routine' | 'session' | 'import'
+let iaCurrentMode = 'routine';
 let iaSelectedExercises = [];
 let iaSelectedMaterials = [];
+let iaUltimaRespuesta = null;
+let iaStep = 'config'; // 'config' | 'prompt' | 'preview' | 'import'
 
 // ==========================================================================
 // CONSTANTES
@@ -37,12 +43,15 @@ const IA_GOALS = ['Fuerza', 'Hipertrofia', 'Resistencia', 'Definición', 'Rendim
 
 function openIAAssistant() {
     console.log('[ia-assistant] Abriendo asistente IA');
+    iaStep = 'config';
+    iaSelectedExercises = [];
+    iaSelectedMaterials = [];
     switchTab('ia-assistant');
     renderIAAssistant();
 }
 
 // ==========================================================================
-// RENDERIZAR LA PANTALLA PRINCIPAL
+// RENDERIZAR LA PANTALLA SEGÚN EL PASO
 // ==========================================================================
 
 function renderIAAssistant() {
@@ -51,6 +60,68 @@ function renderIAAssistant() {
         console.error('[ia-assistant] Contenedor ia-assistant-ui no encontrado');
         return;
     }
+
+    if (iaStep === 'config') {
+        renderConfigScreen(container);
+    } else if (iaStep === 'prompt') {
+        renderPromptScreen(container);
+    } else if (iaStep === 'preview') {
+        renderPreviewScreen(container);
+    } else if (iaStep === 'import') {
+        renderImportScreen(container);
+    }
+}
+
+// ==========================================================================
+// RENDERIZAR PANTALLA DE CONFIGURACIÓN
+// ==========================================================================
+
+function renderConfigScreen(container) {
+    let exercises = [];
+    if (typeof window.getExercises === 'function') {
+        exercises = window.getExercises();
+    }
+
+    let exercisesHtml = '';
+    if (exercises.length > 0) {
+        exercisesHtml = exercises.map(ex => `
+            <span class="ia-exercise-chip" data-id="${ex.id}">
+                ${ex.nombre}
+            </span>
+        `).join('');
+    } else {
+        exercisesHtml = '<p style="font-size:13px; color:#9ca3af;">No hay ejercicios guardados. Ve a "Ejercicios" para crear algunos.</p>';
+    }
+
+    const materialsHtml = IA_MATERIALS.map(m => `
+        <button class="ia-option-btn" data-value="${m}" data-group="materials">
+            ${m}
+        </button>
+    `).join('');
+
+    const levelsHtml = IA_LEVELS.map(l => `
+        <button class="ia-option-btn" data-value="${l}" data-group="level">
+            ${l}
+        </button>
+    `).join('');
+
+    const durationsHtml = IA_DURATIONS.map(d => `
+        <button class="ia-option-btn" data-value="${d}" data-group="duration">
+            ${d}
+        </button>
+    `).join('');
+
+    const frequenciesHtml = IA_FREQUENCIES.map(f => `
+        <button class="ia-option-btn" data-value="${f}" data-group="frequency">
+            ${f}
+        </button>
+    `).join('');
+
+    const goalsHtml = IA_GOALS.map(g => `
+        <button class="ia-option-btn" data-value="${g}" data-group="goal">
+            ${g}
+        </button>
+    `).join('');
 
     container.innerHTML = `
         <header class="ia-header">
@@ -64,741 +135,388 @@ function renderIAAssistant() {
                 </h1>
                 <div style="width:40px;"></div>
             </div>
-            <p>Genera rutinas y sesiones de entrenamiento con la ayuda de la inteligencia artificial.</p>
+            <p>Configura tus preferencias y genera un prompt para usar con tu IA favorita.</p>
         </header>
 
         <div class="ia-cards-grid">
-            <!-- Tarjeta: Crear rutina con IA -->
-            <div class="ia-card" onclick="openIAConfig('routine')">
-                <div class="ia-card-header">
-                    <div class="ia-card-icon ia-icon-routine">
-                        <i class="fa-solid fa-layer-group"></i>
-                    </div>
-                    <h3 class="ia-card-title">Crear rutina con IA</h3>
-                </div>
-                <p class="ia-card-desc">Genera una rutina completa con múltiples sesiones según tus objetivos.</p>
-                <span class="ia-card-badge ia-badge-new">Nuevo</span>
-            </div>
-
-            <!-- Tarjeta: Crear sesión con IA -->
-            <div class="ia-card" onclick="openIAConfig('session')">
-                <div class="ia-card-header">
-                    <div class="ia-card-icon ia-icon-session">
-                        <i class="fa-solid fa-dumbbell"></i>
-                    </div>
-                    <h3 class="ia-card-title">Crear sesión con IA</h3>
-                </div>
-                <p class="ia-card-desc">Genera una sesión individual de entrenamiento para un día específico.</p>
-                <span class="ia-card-badge ia-badge-new">Nuevo</span>
-            </div>
-
-            <!-- Tarjeta: Importar desde IA -->
-            <div class="ia-card" onclick="openIAImport()">
-                <div class="ia-card-header">
-                    <div class="ia-card-icon ia-icon-import">
-                        <i class="fa-solid fa-file-import"></i>
-                    </div>
-                    <h3 class="ia-card-title">Importar desde IA</h3>
-                </div>
-                <p class="ia-card-desc">Pega el JSON generado por tu IA favorita para importarlo directamente.</p>
-                <span class="ia-card-badge ia-badge-new">Nuevo</span>
-            </div>
-        </div>
-    `;
-}
-
-// ==========================================================================
-// FUNCIÓN PARA VOLVER A LA PANTALLA ANTERIOR
-// ==========================================================================
-
-function goBackFromIA() {
-    switchTab('plan');
-    renderRoutineList();
-}
-
-// ==========================================================================
-// ABRIR CONFIGURACIÓN DEL ASISTENTE IA
-// ==========================================================================
-
-function openIAConfig(mode) {
-    console.log('[ia-assistant] Abriendo configuración para modo:', mode);
-    iaCurrentMode = mode;
-
-    // Obtener ejercicios de la base de datos
-    let exercises = [];
-    if (typeof window.getExercises === 'function') {
-        exercises = window.getExercises();
-    }
-
-    const modal = document.getElementById('iaConfigModal');
-    if (!modal) {
-        console.error('[ia-assistant] Modal de configuración no encontrado');
-        return;
-    }
-
-    const title = mode === 'routine' ? 'Crear rutina con IA' : 'Crear sesión con IA';
-    const icon = mode === 'routine' ? 'fa-layer-group' : 'fa-dumbbell';
-
-    // Construir lista de ejercicios
-    let exercisesHtml = '';
-    if (exercises.length > 0) {
-        exercisesHtml = exercises.map(ex => `
-            <span class="ia-exercise-chip" data-id="${ex.id}" onclick="toggleIAExercise('${ex.id}')">
-                ${ex.nombre}
-            </span>
-        `).join('');
-    } else {
-        exercisesHtml = '<p style="font-size:13px; color:#9ca3af;">No hay ejercicios guardados. Ve a "Ejercicios" para crear algunos.</p>';
-    }
-
-    // Construir materiales
-    const materialsHtml = IA_MATERIALS.map(m => `
-        <button class="ia-option-btn" data-value="${m}" onclick="toggleIAMaterial('${m}')">
-            ${m}
-        </button>
-    `).join('');
-
-    // Construir niveles
-    const levelsHtml = IA_LEVELS.map(l => `
-        <button class="ia-option-btn" data-value="${l}" onclick="selectIAOption(this, 'ia-level')">
-            ${l}
-        </button>
-    `).join('');
-
-    // Construir duraciones
-    const durationsHtml = IA_DURATIONS.map(d => `
-        <button class="ia-option-btn" data-value="${d}" onclick="selectIAOption(this, 'ia-duration')">
-            ${d}
-        </button>
-    `).join('');
-
-    // Construir frecuencias
-    const frequenciesHtml = IA_FREQUENCIES.map(f => `
-        <button class="ia-option-btn" data-value="${f}" onclick="selectIAOption(this, 'ia-frequency')">
-            ${f}
-        </button>
-    `).join('');
-
-    // Construir objetivos
-    const goalsHtml = IA_GOALS.map(g => `
-        <button class="ia-option-btn" data-value="${g}" onclick="selectIAOption(this, 'ia-goal')">
-            ${g}
-        </button>
-    `).join('');
-
-    modal.innerHTML = `
-        <div class="ia-config-container">
-            <div class="ia-config-header">
-                <h2>
-                    <i class="fa-solid ${icon}" style="color:var(--accent-color);"></i>
-                    ${title}
-                </h2>
-                <button class="ia-config-close" onclick="closeIAConfig()">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div class="ia-config-body">
-                <!-- Modo de creación -->
-                <div class="ia-section-title">Modo de creación</div>
-                <div class="ia-option-group">
-                    <button class="ia-option-btn ia-mode-btn selected" data-mode="ia" onclick="selectIAMode(this)">
-                        <i class="fa-solid fa-brain"></i> IA
+            <div class="ia-card" style="cursor:default; padding: 20px 24px;">
+                <!-- Tipo de creación -->
+                <div class="ia-section-title" style="margin-top:0;">Tipo de creación</div>
+                <div class="ia-option-group" id="iaTypeGroup">
+                    <button class="ia-option-btn ia-type-btn selected" data-mode="routine" data-group="type">
+                        <i class="fa-solid fa-layer-group"></i> Rutina
                     </button>
-                    <button class="ia-option-btn ia-mode-btn" data-mode="image" onclick="selectIAMode(this)">
-                        <i class="fa-solid fa-image"></i> Imagen
-                    </button>
-                    <button class="ia-option-btn ia-mode-btn" data-mode="video" onclick="selectIAMode(this)">
-                        <i class="fa-solid fa-video"></i> Vídeo
+                    <button class="ia-option-btn ia-type-btn" data-mode="session" data-group="type">
+                        <i class="fa-solid fa-dumbbell"></i> Sesión
                     </button>
                 </div>
 
-                <!-- Modo IA: Ejercicios a incluir -->
-                <div class="ia-section-title">Ejercicios a incluir</div>
+                <!-- Ejercicios -->
+                <div class="ia-section-title">Ejercicios a incluir <span style="font-weight:400; color:#9ca3af; font-size:12px;">(opcional)</span></div>
                 <div class="ia-exercise-select" id="iaExerciseSelect">
                     ${exercisesHtml}
                 </div>
 
-                <!-- Modo IA: Material disponible -->
-                <div class="ia-section-title">Material disponible</div>
+                <!-- Material -->
+                <div class="ia-section-title">Material disponible <span style="font-weight:400; color:#9ca3af; font-size:12px;">(opcional)</span></div>
                 <div class="ia-option-group" id="iaMaterialsGroup">
                     ${materialsHtml}
                 </div>
 
-                <!-- Modo IA: Nivel -->
+                <!-- Nivel -->
                 <div class="ia-section-title">Nivel</div>
                 <div class="ia-option-group" id="iaLevelGroup">
                     ${levelsHtml}
                 </div>
 
-                <!-- Modo IA: Duración estimada -->
+                <!-- Duración -->
                 <div class="ia-section-title">Duración estimada</div>
                 <div class="ia-option-group" id="iaDurationGroup">
                     ${durationsHtml}
                 </div>
 
-                ${mode === 'routine' ? `
-                    <!-- Modo IA: Frecuencia semanal (solo para rutinas) -->
-                    <div class="ia-section-title">Frecuencia semanal</div>
-                    <div class="ia-option-group" id="iaFrequencyGroup">
-                        ${frequenciesHtml}
-                    </div>
-                ` : ''}
+                <!-- Frecuencia -->
+                <div class="ia-section-title" id="iaFrequencyTitle">Frecuencia semanal</div>
+                <div class="ia-option-group" id="iaFrequencyGroup">
+                    ${frequenciesHtml}
+                </div>
 
-                <!-- Modo IA: Objetivo -->
+                <!-- Objetivo -->
                 <div class="ia-section-title">Objetivo principal</div>
                 <div class="ia-option-group" id="iaGoalGroup">
                     ${goalsHtml}
                 </div>
 
-                <!-- Modo IA: Notas adicionales -->
+                <!-- Notas -->
                 <div class="ia-section-title">Notas adicionales</div>
                 <textarea id="iaNotesInput" placeholder="Ej: Quiero enfocarme en pectoral y tríceps, evitar ejercicios que carguen la espalda baja..."></textarea>
 
-                <!-- Modo Imagen/Vídeo: Input de archivo (oculto) -->
-                <input type="file" id="iaFileInput" style="display:none" accept="image/*,video/*">
-            </div>
+                <button class="ia-btn ia-btn-primary" id="iaGeneratePromptBtn" style="width:100%; margin-top:16px; padding:14px; border:none; border-radius:14px; font-size:15px; font-weight:700; cursor:pointer; background:var(--accent-color, #ccff00); color:var(--primary-color, #000000);">
+                    <i class="fa-solid fa-copy"></i> Generar prompt
+                </button>
 
-            <div class="ia-config-footer">
-                <button class="ia-btn ia-btn-secondary" onclick="closeIAConfig()">
-                    Cancelar
-                </button>
-                <button class="ia-btn ia-btn-primary" onclick="generateIA()">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Generar
-                </button>
+                <div style="margin-top:12px; text-align:center; border-top:1px solid #f3f4f6; padding-top:12px;">
+                    <span style="font-size:13px; color:#9ca3af;">O también</span>
+                    <button onclick="openIAImport()" style="display:block; width:100%; margin-top:8px; padding:12px; border:1.5px dashed #e5e7eb; border-radius:12px; background:transparent; font-size:14px; font-weight:600; color:#4b5563; cursor:pointer;">
+                        <i class="fa-solid fa-file-import"></i> Importar desde IA (JSON)
+                    </button>
+                </div>
             </div>
         </div>
     `;
 
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    // ============================================================
+    // CONFIGURAR EVENT LISTENERS
+    // ============================================================
 
-    // Seleccionar por defecto el nivel Intermedio
-    setTimeout(() => {
-        const defaultLevel = document.querySelector('#iaLevelGroup .ia-option-btn[data-value="Intermedio"]');
-        if (defaultLevel) defaultLevel.classList.add('selected');
+    document.getElementById('iaGeneratePromptBtn').addEventListener('click', function() {
+        generarPromptIA();
+    });
 
-        const defaultDuration = document.querySelector('#iaDurationGroup .ia-option-btn[data-value="60 min"]');
-        if (defaultDuration) defaultDuration.classList.add('selected');
-
-        if (mode === 'routine') {
-            const defaultFrequency = document.querySelector('#iaFrequencyGroup .ia-option-btn[data-value="3 días"]');
-            if (defaultFrequency) defaultFrequency.classList.add('selected');
-        }
-
-        const defaultGoal = document.querySelector('#iaGoalGroup .ia-option-btn[data-value="Hipertrofia"]');
-        if (defaultGoal) defaultGoal.classList.add('selected');
-    }, 50);
-
-    // Resetear selecciones
-    iaSelectedExercises = [];
-    iaSelectedMaterials = [];
-}
-
-// ==========================================================================
-// CERRAR CONFIGURACIÓN DEL ASISTENTE IA
-// ==========================================================================
-
-function closeIAConfig() {
-    const modal = document.getElementById('iaConfigModal');
-    if (modal) {
-        modal.classList.remove('active');
-        modal.innerHTML = '';
-    }
-    document.body.style.overflow = '';
-}
-
-// ==========================================================================
-// FUNCIONES DE SELECCIÓN
-// ==========================================================================
-
-function selectIAMode(element) {
-    document.querySelectorAll('.ia-mode-btn').forEach(btn => btn.classList.remove('selected'));
-    element.classList.add('selected');
-    
-    const mode = element.dataset.mode;
-    console.log('[ia-assistant] Modo seleccionado:', mode);
-    
-    // Mostrar/ocultar elementos según el modo
-    const iaSections = document.querySelectorAll('.ia-section-title');
-    const iaGroups = document.querySelectorAll('#iaExerciseSelect, #iaMaterialsGroup, #iaLevelGroup, #iaDurationGroup, #iaFrequencyGroup, #iaGoalGroup');
-    const notesInput = document.getElementById('iaNotesInput');
-    
-    if (mode === 'ia') {
-        iaSections.forEach(el => el.style.display = '');
-        iaGroups.forEach(el => el.style.display = '');
-        if (notesInput) notesInput.style.display = '';
-    } else {
-        // Modo imagen o vídeo - ocultar configuraciones de IA
-        iaSections.forEach(el => el.style.display = 'none');
-        iaGroups.forEach(el => el.style.display = 'none');
-        if (notesInput) notesInput.style.display = 'none';
-        
-        // Mostrar input de archivo
-        const fileInput = document.getElementById('iaFileInput');
-        if (fileInput) {
-            fileInput.style.display = 'block';
-            fileInput.click();
-        }
-    }
-}
-
-function toggleIAExercise(id) {
-    const chip = document.querySelector(`.ia-exercise-chip[data-id="${id}"]`);
-    if (!chip) return;
-
-    chip.classList.toggle('selected');
-    
-    if (chip.classList.contains('selected')) {
-        if (!iaSelectedExercises.includes(id)) {
-            iaSelectedExercises.push(id);
-        }
-    } else {
-        iaSelectedExercises = iaSelectedExercises.filter(exId => exId !== id);
-    }
-    
-    console.log('[ia-assistant] Ejercicios seleccionados:', iaSelectedExercises);
-}
-
-function toggleIAMaterial(material) {
-    const btn = document.querySelector(`#iaMaterialsGroup .ia-option-btn[data-value="${material}"]`);
-    if (!btn) return;
-
-    btn.classList.toggle('selected');
-    
-    if (btn.classList.contains('selected')) {
-        if (!iaSelectedMaterials.includes(material)) {
-            iaSelectedMaterials.push(material);
-        }
-    } else {
-        iaSelectedMaterials = iaSelectedMaterials.filter(m => m !== material);
-    }
-    
-    console.log('[ia-assistant] Materiales seleccionados:', iaSelectedMaterials);
-}
-
-function selectIAOption(element, groupId) {
-    const group = document.getElementById(groupId);
-    if (!group) return;
-
-    group.querySelectorAll('.ia-option-btn').forEach(btn => btn.classList.remove('selected'));
-    element.classList.add('selected');
-}
-
-function getIASelectedValue(groupId) {
-    const group = document.getElementById(groupId);
-    if (!group) return null;
-
-    const selected = group.querySelector('.ia-option-btn.selected');
-    return selected ? selected.dataset.value : null;
-}
-
-function getIASelectedValues(groupId) {
-    const group = document.getElementById(groupId);
-    if (!group) return [];
-
-    return Array.from(group.querySelectorAll('.ia-option-btn.selected')).map(btn => btn.dataset.value);
-}
-
-// ==========================================================================
-// GENERAR CON IA
-// ==========================================================================
-
-function generateIA() {
-    console.log('[ia-assistant] Generando contenido con IA...');
-    
-    const mode = document.querySelector('.ia-mode-btn.selected');
-    const modeType = mode ? mode.dataset.mode : 'ia';
-    
-    if (modeType !== 'ia') {
-        // Modo imagen/video - manejar archivo
-        const fileInput = document.getElementById('iaFileInput');
-        if (fileInput && fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            console.log('[ia-assistant] Archivo seleccionado:', file.name, file.type);
-            // Aquí se procesaría el archivo con la IA
-            window.showAlert(`📤 Procesando ${file.name}...\n\nLa funcionalidad de análisis de imagen/vídeo con IA estará disponible próximamente.`, 'Procesando');
-            closeIAConfig();
-            return;
-        } else {
-            window.showAlert('Por favor, selecciona una imagen o vídeo.', 'Aviso');
-            return;
-        }
-    }
-    
-    // Modo IA - recoger parámetros
-    const level = getIASelectedValue('iaLevelGroup') || 'Intermedio';
-    const duration = getIASelectedValue('iaDurationGroup') || '60 min';
-    const goal = getIASelectedValue('iaGoalGroup') || 'Hipertrofia';
-    const frequency = iaCurrentMode === 'routine' ? getIASelectedValue('iaFrequencyGroup') || '3 días' : null;
-    const notes = document.getElementById('iaNotesInput')?.value?.trim() || '';
-    
-    // Obtener nombres de ejercicios seleccionados
-    let exercisesNames = [];
-    if (typeof window.getExercises === 'function') {
-        const allExercises = window.getExercises();
-        exercisesNames = iaSelectedExercises
-            .map(id => allExercises.find(ex => ex.id === id))
-            .filter(ex => ex)
-            .map(ex => ex.nombre);
-    }
-    
-    const params = {
-        mode: iaCurrentMode,
-        level,
-        duration,
-        goal,
-        frequency,
-        notes,
-        exercises: exercisesNames,
-        materials: iaSelectedMaterials
-    };
-    
-    console.log('[ia-assistant] Parámetros de generación:', params);
-    
-    // Mostrar loading
-    const generateBtn = document.querySelector('.ia-btn-primary');
-    if (generateBtn) {
-        generateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando...';
-        generateBtn.disabled = true;
-    }
-    
-    // Simular generación (esto será reemplazado por la llamada real a la IA)
-    setTimeout(() => {
-        // Generar contenido simulado
-        const generatedContent = generateSimulatedContent(params);
-        
-        // Restaurar botón
-        if (generateBtn) {
-            generateBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generar';
-            generateBtn.disabled = false;
-        }
-        
-        // Mostrar resultado
-        showIAResult(generatedContent, params);
-        
-    }, 1500);
-}
-
-// ==========================================================================
-// GENERAR CONTENIDO SIMULADO (TEMPORAL)
-// ==========================================================================
-
-function generateSimulatedContent(params) {
-    const isRoutine = params.mode === 'routine';
-    const exercises = params.exercises.length > 0 ? params.exercises : ['Press banca', 'Dominadas', 'Sentadillas'];
-    const goal = params.goal || 'Hipertrofia';
-    const level = params.level || 'Intermedio';
-    
-    let sessions = [];
-    
-    if (isRoutine) {
-        const days = params.frequency ? parseInt(params.frequency) : 3;
-        const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        
-        for (let i = 0; i < days && i < dayNames.length; i++) {
-            const day = dayNames[i];
-            const exCount = Math.min(4 + Math.floor(Math.random() * 3), exercises.length);
-            const shuffled = [...exercises].sort(() => Math.random() - 0.5);
-            const selected = shuffled.slice(0, exCount);
-            
-            let content = `<b>📋 Entrenamiento de ${goal}</b><br><br>`;
-            content += `<b>Nivel:</b> ${level}<br>`;
-            content += `<b>Material:</b> ${params.materials.length > 0 ? params.materials.join(', ') : 'Básico'}<br>`;
-            content += `<b>Duración:</b> ${params.duration || '60 min'}<br><br>`;
-            content += `<b>Ejercicios:</b><br>`;
-            
-            selected.forEach((ex, idx) => {
-                const reps = Math.floor(Math.random() * 5) + 8;
-                const sets = Math.floor(Math.random() * 3) + 3;
-                content += `&nbsp;&nbsp;${idx + 1}. <strong style="color:#2563eb;">${ex}</strong> &nbsp; (${sets}x ${reps}-${reps+4} repeticiones)<br>`;
-            });
-            
-            if (params.notes) {
-                content += `<br><b>Notas:</b> ${params.notes}`;
-            }
-            
-            sessions.push({
-                title: `Sesión ${i + 1} - ${day}`,
-                content: content
-            });
-        }
-    } else {
-        // Sesión individual
-        const exCount = Math.min(5 + Math.floor(Math.random() * 3), exercises.length);
-        const shuffled = [...exercises].sort(() => Math.random() - 0.5);
-        const selected = shuffled.slice(0, exCount);
-        
-        let content = `<b>📋 Sesión de ${goal}</b><br><br>`;
-        content += `<b>Nivel:</b> ${level}<br>`;
-        content += `<b>Material:</b> ${params.materials.length > 0 ? params.materials.join(', ') : 'Básico'}<br>`;
-        content += `<b>Duración:</b> ${params.duration || '60 min'}<br><br>`;
-        content += `<b>Ejercicios:</b><br>`;
-        
-        selected.forEach((ex, idx) => {
-            const reps = Math.floor(Math.random() * 5) + 8;
-            const sets = Math.floor(Math.random() * 3) + 3;
-            content += `&nbsp;&nbsp;${idx + 1}. <strong style="color:#2563eb;">${ex}</strong> &nbsp; (${sets}x ${reps}-${reps+4} repeticiones)<br>`;
+    // Tipo
+    document.querySelectorAll('#iaTypeGroup .ia-type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            selectIAType(this);
         });
-        
-        if (params.notes) {
-            content += `<br><b>Notas:</b> ${params.notes}`;
-        }
-    }
-    
-    return {
-        nombre: isRoutine ? `Rutina de ${goal}` : `Sesión de ${goal}`,
-        sessions: isRoutine ? sessions : [{ title: `Sesión de ${goal}`, content: sessions.length > 0 ? sessions[0].content : '' }]
-    };
+    });
+
+    // Ejercicios
+    document.querySelectorAll('.ia-exercise-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            toggleIAExercise(this.dataset.id);
+        });
+    });
+
+    // Materiales
+    document.querySelectorAll('#iaMaterialsGroup .ia-option-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            toggleIAMaterial(this.dataset.value);
+        });
+    });
+
+    // Nivel, Duración, Frecuencia, Objetivo
+    document.querySelectorAll('#iaLevelGroup .ia-option-btn, #iaDurationGroup .ia-option-btn, #iaFrequencyGroup .ia-option-btn, #iaGoalGroup .ia-option-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const group = this.parentElement;
+            group.querySelectorAll('.ia-option-btn').forEach(b => {
+                b.classList.remove('selected');
+                b.removeAttribute('data-selected');
+            });
+            this.classList.add('selected');
+            this.setAttribute('data-selected', 'true');
+        });
+    });
+
+    // ============================================================
+    // ESTABLECER VALORES POR DEFECTO
+    // ============================================================
+
+    setTimeout(() => {
+        const defaults = [
+            { group: 'iaLevelGroup', value: 'Intermedio' },
+            { group: 'iaDurationGroup', value: '60 min' },
+            { group: 'iaFrequencyGroup', value: '3 días' },
+            { group: 'iaGoalGroup', value: 'Hipertrofia' }
+        ];
+
+        defaults.forEach(({ group, value }) => {
+            const containerEl = document.getElementById(group);
+            if (containerEl) {
+                const btns = containerEl.querySelectorAll('.ia-option-btn');
+                btns.forEach(b => {
+                    b.classList.remove('selected');
+                    b.removeAttribute('data-selected');
+                });
+                const target = containerEl.querySelector(`.ia-option-btn[data-value="${value}"]`);
+                if (target) {
+                    target.classList.add('selected');
+                    target.setAttribute('data-selected', 'true');
+                }
+            }
+        });
+    }, 100);
 }
 
 // ==========================================================================
-// MOSTRAR RESULTADO DE IA
+// RENDERIZAR PANTALLA DE PROMPT
 // ==========================================================================
 
-function showIAResult(result, params) {
-    closeIAConfig();
-    
+function renderPromptScreen(container) {
+    const params = window._iaPromptParams;
+    if (!params) {
+        iaStep = 'config';
+        renderIAAssistant();
+        return;
+    }
+
     const isRoutine = params.mode === 'routine';
     
-    // Construir mensaje con el resultado
-    let mensaje = `🤖 ${isRoutine ? 'Rutina' : 'Sesión'} generada por IA\n\n`;
-    mensaje += `📋 ${result.nombre}\n`;
-    mensaje += `📊 Nivel: ${params.level || 'Intermedio'}\n`;
-    mensaje += `⏱ Duración: ${params.duration || '60 min'}\n`;
+    let prompt = `Actúa como un entrenador personal experto. Créame ${isRoutine ? 'una rutina de entrenamiento' : 'una sesión de entrenamiento'} de gimnasio.\n\n`;
+    
+    prompt += `📋 REQUISITOS:\n`;
+    prompt += `- Tipo: ${isRoutine ? 'Rutina completa' : 'Sesión individual'}\n`;
+    prompt += `- Nivel: ${params.level || 'Intermedio'}\n`;
+    prompt += `- Duración: ${params.duration || '60 min'}\n`;
+    prompt += `- Objetivo: ${params.goal || 'Hipertrofia'}\n`;
     
     if (isRoutine && params.frequency) {
-        mensaje += `📅 Frecuencia: ${params.frequency}\n`;
+        prompt += `- Frecuencia semanal: ${params.frequency}\n`;
     }
     
     if (params.materials.length > 0) {
-        mensaje += `🏋️ Material: ${params.materials.join(', ')}\n`;
+        prompt += `- Material disponible: ${params.materials.join(', ')}\n`;
     }
     
-    mensaje += `\n---\n\n`;
+    if (params.exercises.length > 0) {
+        prompt += `- Ejercicios a incluir: ${params.exercises.join(', ')}\n`;
+    }
     
+    if (params.notes) {
+        prompt += `- Notas adicionales: ${params.notes}\n`;
+    }
+    
+    prompt += `\n📤 FORMATO DE RESPUESTA:\n`;
+    prompt += `Debes devolverme ÚNICAMENTE un objeto JSON válido con el siguiente formato:\n\n`;
+    prompt += `{\n`;
+    prompt += `  "nombre": "Nombre de la ${isRoutine ? 'Rutina' : 'Sesión'}",\n`;
+    prompt += `  "sessions": [\n`;
     if (isRoutine) {
-        result.sessions.forEach((session, idx) => {
-            mensaje += `📌 ${session.title}\n`;
-            // Extraer texto plano del HTML
-            const plainText = session.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-            mensaje += `${plainText}\n\n`;
-        });
+        prompt += `    {\n`;
+        prompt += `      "title": "Título de la sesión",\n`;
+        prompt += `      "content": "<b>Ejercicio</b><br>(x4) 8-12 repeticiones\\n\\n<b>Ejercicio 2</b><br>(x3) 10-12 repeticiones"\n`;
+        prompt += `    }\n`;
     } else {
-        const plainText = result.sessions[0]?.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() || '';
-        mensaje += `${plainText}`;
+        prompt += `    {\n`;
+        prompt += `      "title": "Sesión",\n`;
+        prompt += `      "content": "<b>Ejercicio</b><br>(x4) 8-12 repeticiones\\n\\n<b>Ejercicio 2</b><br>(x3) 10-12 repeticiones"\n`;
+        prompt += `    }\n`;
     }
+    prompt += `  ]\n`;
+    prompt += `}\n`;
     
-    // Mostrar resultado en un modal
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay';
-    overlay.id = 'ia-result-modal';
-    overlay.style.display = 'flex';
-    overlay.style.alignItems = 'center';
-    overlay.style.justifyContent = 'center';
-    overlay.style.zIndex = '4000';
-    overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
-    overlay.style.backdropFilter = 'blur(4px)';
-    overlay.style.webkitBackdropFilter = 'blur(4px)';
-    
-    overlay.innerHTML = `
-        <div class="modal-container" style="max-width: 420px; width: 90%; max-height: 80vh; display: flex; flex-direction: column;">
-            <div class="modal-header">
-                <span class="modal-icon"><i class="fa-solid fa-robot" style="color:var(--accent-color);"></i></span>
-                <h3 style="margin:0; font-size:18px; font-weight:700;">${isRoutine ? 'Rutina' : 'Sesión'} generada</h3>
+    prompt += `\n⚠️ IMPORTANTE:\n`;
+    prompt += `- No incluyas texto adicional, solo el JSON.\n`;
+    prompt += `- Escapa los saltos de línea como \\n dentro de las cadenas.\n`;
+    prompt += `- No uses caracteres especiales no escapados.\n`;
+    prompt += `- Asegúrate de que todas las comillas sean dobles (").`;
+
+    container.innerHTML = `
+        <header class="ia-header">
+            <div class="ia-header-top">
+                <button class="btn-ia-back" onclick="goBackToConfig()">
+                    <i class="fa-solid fa-chevron-left"></i> Volver
+                </button>
+                <h1>
+                    <i class="fa-solid fa-robot"></i>
+                    Asistente IA
+                </h1>
+                <div style="width:40px;"></div>
             </div>
-            <div class="modal-body" style="flex:1; overflow-y:auto; padding: 16px 20px;">
-                <p style="font-size:14px; color:#6b7280; margin-bottom:12px;">Revisa el contenido generado y decide qué hacer:</p>
-                <div style="background:#f9fafb; border-radius:12px; padding:14px; border:1px solid #e5e7eb; max-height:200px; overflow-y:auto; font-size:13px; line-height:1.6; white-space:pre-wrap; word-break:break-word; color:#374151;">
-                    ${mensaje}
+            <p>Copia el prompt, pégalo en tu IA favorita y pega la respuesta abajo.</p>
+        </header>
+
+        <div class="ia-cards-grid">
+            <div class="ia-card" style="cursor:default; padding: 20px 24px;">
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:600; color:#374151; display:block; margin-bottom:6px;">📋 Prompt generado:</label>
+                    <textarea id="iaPromptTextarea" style="width:100%; min-height:150px; padding:12px; border-radius:12px; border:1px solid #e5e7eb; font-size:13px; font-family:monospace; outline:none; background:#f9fafb; resize:vertical; box-sizing:border-box;" readonly>${prompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+                    <button id="copiarPromptBtn2" style="margin-top:8px; padding:8px 16px; background:var(--accent-color, #ccff00); color:var(--primary-color, #000000); border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px;">
+                        <i class="fa-solid fa-copy"></i> Copiar prompt
+                    </button>
                 </div>
-            </div>
-            <div class="modal-footer" style="padding:16px 20px 20px; display:flex; gap:12px; border-top:1px solid #f3f4f6; flex-wrap:wrap;">
-                <button onclick="cerrarResultadoIA()" class="modal-btn modal-btn-secondary" style="flex:1; padding:12px; border:none; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; background:#f3f4f6; color:#4b5563;">
-                    Cancelar
-                </button>
-                <button onclick="guardarResultadoIA()" class="modal-btn modal-btn-primary" style="flex:2; padding:12px; border:none; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; background:var(--accent-color, #ccff00); color:var(--primary-color, #000000);">
-                    <i class="fa-solid fa-floppy-disk"></i> Guardar
-                </button>
+
+                <div style="border-top:1px solid #f3f4f6; padding-top:16px; margin-top:8px;">
+                    <label style="font-size:13px; font-weight:600; color:#374151; display:block; margin-bottom:6px;">📥 Pega aquí la respuesta de tu IA (JSON):</label>
+                    <textarea id="iaRespuestaTextarea2" style="width:100%; min-height:120px; padding:12px; border-radius:12px; border:1px solid #e5e7eb; font-size:13px; font-family:monospace; outline:none; background:#fafafa; resize:vertical; box-sizing:border-box;" placeholder='Pega aquí el JSON que te devuelva la IA...'></textarea>
+                    <button id="procesarRespuestaBtn2" style="margin-top:8px; width:100%; padding:12px; background:var(--accent-color, #ccff00); color:var(--primary-color, #000000); border:none; border-radius:12px; font-weight:700; cursor:pointer; font-size:14px;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Procesar respuesta
+                    </button>
+                </div>
             </div>
         </div>
     `;
-    
-    document.body.appendChild(overlay);
-    
-    // Guardar resultado para usar después
-    window._iaLastResult = {
-        result: result,
-        params: params,
-        isRoutine: isRoutine
-    };
-}
 
-function cerrarResultadoIA() {
-    const modal = document.getElementById('ia-result-modal');
-    if (modal) {
-        modal.remove();
-    }
-    window._iaLastResult = null;
-}
-
-function guardarResultadoIA() {
-    const data = window._iaLastResult;
-    if (!data) {
-        window.showAlert('No hay datos para guardar.', 'Error');
-        return;
-    }
-    
-    cerrarResultadoIA();
-    
-    if (data.isRoutine) {
-        // Guardar como rutina
-        guardarRutinaIA(data.result, data.params);
-    } else {
-        // Guardar como sesión
-        guardarSesionIA(data.result, data.params);
-    }
-}
-
-function guardarRutinaIA(result, params) {
-    // Buscar una rutina existente o crear una nueva
-    const routineName = result.nombre || `Rutina de ${params.goal || 'IA'}`;
-    
-    // Verificar si ya existe una rutina con ese nombre
-    let existingRoutine = appData.routines.find(r => r.name === routineName);
-    
-    if (existingRoutine) {
-        // Preguntar si sobrescribir
-        window.showConfirm(
-            `Ya existe una rutina con el nombre "${routineName}". ¿Quieres sobrescribirla?`,
-            'Rutina existente'
-        ).then(confirm => {
-            if (confirm) {
-                // Sobrescribir
-                existingRoutine.sessions = result.sessions.map(session => ({
-                    id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
-                    title: session.title || 'Sesión sin título',
-                    content: session.content || '',
-                    lastModified: Date.now(),
-                    createdAt: Date.now()
-                }));
-                saveData();
-                window.showAlert(`Rutina "${routineName}" actualizada correctamente.`, 'Guardado');
-                renderRoutineList();
+    // Event listeners
+    document.getElementById('copiarPromptBtn2').addEventListener('click', function() {
+        const textarea = document.getElementById('iaPromptTextarea');
+        if (textarea) {
+            const text = textarea.value;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    window.showAlert('✅ Prompt copiado al portapapeles', 'Copiado');
+                }).catch(() => {
+                    textarea.select();
+                    document.execCommand('copy');
+                    window.showAlert('✅ Prompt copiado al portapapeles', 'Copiado');
+                });
+            } else {
+                textarea.select();
+                document.execCommand('copy');
+                window.showAlert('✅ Prompt copiado al portapapeles', 'Copiado');
             }
-        });
-        return;
-    }
-    
-    // Crear nueva rutina
-    const newRoutine = {
-        id: 'r-' + Date.now(),
-        name: routineName,
-        sessions: result.sessions.map(session => ({
-            id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
-            title: session.title || 'Sesión sin título',
-            content: session.content || '',
-            lastModified: Date.now(),
-            createdAt: Date.now()
-        }))
-    };
-    
-    appData.routines.push(newRoutine);
-    saveData();
-    renderRoutineList();
-    window.showAlert(`Rutina "${routineName}" creada con ${newRoutine.sessions.length} sesiones.`, 'Guardado');
-}
+        }
+    });
 
-function guardarSesionIA(result, params) {
-    // Preguntar en qué rutina guardar
-    const routines = appData.routines.map(r => ({ id: r.id, name: r.name }));
-    
-    if (routines.length === 0) {
-        // No hay rutinas, crear una
-        window.showPrompt('No hay rutinas disponibles. ¿En qué rutina quieres guardar la sesión? (Se creará una nueva)', '', 'Nueva rutina')
-            .then(routineName => {
-                if (!routineName) return;
-                
-                const newRoutine = {
-                    id: 'r-' + Date.now(),
-                    name: routineName,
-                    sessions: [{
-                        id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
-                        title: result.nombre || `Sesión de ${params.goal || 'IA'}`,
-                        content: result.sessions[0]?.content || '',
-                        lastModified: Date.now(),
-                        createdAt: Date.now()
-                    }]
-                };
-                
-                appData.routines.push(newRoutine);
-                saveData();
-                renderRoutineList();
-                window.showAlert(`Sesión guardada en la rutina "${routineName}".`, 'Guardado');
-            });
-        return;
-    }
-    
-    // Mostrar selector de rutinas
-    window.showRoutineSelector(
-        appData.routines,
-        null,
-        'copy'
-    ).then(selectedRoutine => {
-        if (!selectedRoutine) return;
-        
-        const newSession = {
-            id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
-            title: result.nombre || `Sesión de ${params.goal || 'IA'}`,
-            content: result.sessions[0]?.content || '',
-            lastModified: Date.now(),
-            createdAt: Date.now()
-        };
-        
-        selectedRoutine.sessions.push(newSession);
-        saveData();
-        renderRoutineList();
-        window.showAlert(`Sesión guardada en la rutina "${selectedRoutine.name}".`, 'Guardado');
+    document.getElementById('procesarRespuestaBtn2').addEventListener('click', function() {
+        procesarRespuestaDesdePantalla();
     });
 }
 
 // ==========================================================================
-// IMPORTAR DESDE IA (JSON)
+// RENDERIZAR PANTALLA DE VISTA PREVIA
 // ==========================================================================
 
-function openIAImport() {
-    console.log('[ia-assistant] Abriendo importación desde IA');
-    
-    const modal = document.getElementById('iaConfigModal');
-    if (!modal) {
-        console.error('[ia-assistant] Modal de configuración no encontrado');
+function renderPreviewScreen(container) {
+    const data = window._iaPreviewData;
+    if (!data) {
+        iaStep = 'config';
+        renderIAAssistant();
         return;
     }
 
-    modal.innerHTML = `
-        <div class="ia-config-container">
-            <div class="ia-config-header">
-                <h2>
-                    <i class="fa-solid fa-file-import" style="color:var(--accent-color);"></i>
-                    Importar desde IA
-                </h2>
-                <button class="ia-config-close" onclick="closeIAConfig()">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+    const { data: result, params } = data;
+    const isRoutine = params.mode === 'routine';
+    const nombre = result.nombre || (isRoutine ? 'Rutina generada' : 'Sesión generada');
+    const sesionesCount = result.sessions.length;
+    
+    let previewText = `📋 ${nombre}\n`;
+    previewText += `📊 ${sesionesCount} sesión(es)\n\n`;
+    
+    result.sessions.forEach((session, idx) => {
+        previewText += `📌 ${session.title}\n`;
+        const plainText = session.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        previewText += `${plainText.substring(0, 200)}${plainText.length > 200 ? '...' : ''}\n\n`;
+    });
 
-            <div class="ia-config-body">
+    container.innerHTML = `
+        <header class="ia-header">
+            <div class="ia-header-top">
+                <button class="btn-ia-back" onclick="goBackToPrompt()">
+                    <i class="fa-solid fa-chevron-left"></i> Volver
+                </button>
+                <h1>
+                    <i class="fa-solid fa-robot"></i>
+                    Asistente IA
+                </h1>
+                <div style="width:40px;"></div>
+            </div>
+            <p>Revisa el contenido generado y decide qué hacer.</p>
+        </header>
+
+        <div class="ia-cards-grid">
+            <div class="ia-card" style="cursor:default; padding: 20px 24px;">
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:13px; font-weight:600; color:#374151; display:block; margin-bottom:6px;">📄 Vista previa:</label>
+                    <div style="background:#f9fafb; border-radius:12px; padding:14px; border:1px solid #e5e7eb; max-height:300px; overflow-y:auto; font-size:13px; line-height:1.6; white-space:pre-wrap; word-break:break-word; color:#374151;">
+                        ${previewText}
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+                    <span style="font-size:12px; color:#9ca3af; background:#f3f4f6; padding:4px 12px; border-radius:12px;">
+                        ${isRoutine ? '📋 Rutina' : '📝 Sesión'}
+                    </span>
+                    <span style="font-size:12px; color:#9ca3af; background:#f3f4f6; padding:4px 12px; border-radius:12px;">
+                        📄 ${sesionesCount} sesión(es)
+                    </span>
+                </div>
+
+                <div style="display:flex; gap:12px; margin-top:16px; border-top:1px solid #f3f4f6; padding-top:16px;">
+                    <button id="cancelarPreviewBtn2" style="flex:1; padding:12px; border:none; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; background:#f3f4f6; color:#4b5563;">
+                        Cancelar
+                    </button>
+                    <button id="guardarPreviewBtn2" style="flex:2; padding:12px; border:none; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; background:var(--accent-color, #ccff00); color:var(--primary-color, #000000);">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('cancelarPreviewBtn2').addEventListener('click', function() {
+        iaStep = 'prompt';
+        window._iaPreviewData = null;
+        renderIAAssistant();
+    });
+
+    document.getElementById('guardarPreviewBtn2').addEventListener('click', function() {
+        guardarDesdePreview();
+    });
+}
+
+// ==========================================================================
+// RENDERIZAR PANTALLA DE IMPORTACIÓN
+// ==========================================================================
+
+function renderImportScreen(container) {
+    container.innerHTML = `
+        <header class="ia-header">
+            <div class="ia-header-top">
+                <button class="btn-ia-back" onclick="goBackToConfig()">
+                    <i class="fa-solid fa-chevron-left"></i> Volver
+                </button>
+                <h1>
+                    <i class="fa-solid fa-file-import"></i>
+                    Importar desde IA
+                </h1>
+                <div style="width:40px;"></div>
+            </div>
+            <p>Pega directamente el JSON generado por tu IA favorita.</p>
+        </header>
+
+        <div class="ia-cards-grid">
+            <div class="ia-card" style="cursor:default; padding: 20px 24px;">
                 <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">
                     Pega el JSON generado por tu IA favorita (ChatGPT, Claude, etc.) siguiendo el formato de sesiones.
                 </p>
                 
-                <label for="iaImportTextarea">JSON de la sesión/rutina</label>
-                <textarea id="iaImportTextarea" class="ia-import-textarea" placeholder='{
+                <label style="font-size:13px; font-weight:600; color:#374151; display:block; margin-bottom:6px;">JSON de la sesión/rutina</label>
+                <textarea id="iaImportTextarea2" style="width:100%; min-height:150px; padding:12px; border-radius:12px; border:1px solid #e5e7eb; font-size:13px; font-family:monospace; outline:none; background:#fafafa; resize:vertical; box-sizing:border-box;" placeholder='{
   "nombre": "Sesión de Pecho y Tríceps",
   "sessions": [
     {
       "title": "Día 1 - Empuje",
-      "content": "<b>Press banca</b><br>(x4) 8-12r\\n\\n<b>Press inclinado</b><br>(x3) 10-12r"
+      "content": "<b>Press banca</b><br>(x4) 8-12r"
     }
   ]
 }'></textarea>
@@ -817,35 +535,218 @@ function openIAImport() {
 }
                     </code>
                 </div>
-            </div>
 
-            <div class="ia-config-footer">
-                <button class="ia-btn ia-btn-secondary" onclick="closeIAConfig()">
-                    Cancelar
-                </button>
-                <button class="ia-btn ia-btn-primary" onclick="processIAImport()">
+                <button id="iaImportProcessBtn2" style="margin-top:16px; width:100%; padding:14px; background:var(--accent-color, #ccff00); color:var(--primary-color, #000000); border:none; border-radius:12px; font-weight:700; cursor:pointer; font-size:15px;">
                     <i class="fa-solid fa-file-import"></i> Importar
                 </button>
             </div>
         </div>
     `;
 
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    document.getElementById('iaImportProcessBtn2').addEventListener('click', function() {
+        processIAImportDesdePantalla();
+    });
 }
 
-function processIAImport() {
-    const textarea = document.getElementById('iaImportTextarea');
+// ==========================================================================
+// FUNCIONES DE NAVEGACIÓN
+// ==========================================================================
+
+function goBackFromIA() {
+    iaStep = 'config';
+    window._iaPromptParams = null;
+    window._iaPreviewData = null;
+    switchTab('plan');
+    renderRoutineList();
+}
+
+function goBackToConfig() {
+    iaStep = 'config';
+    window._iaPromptParams = null;
+    window._iaPreviewData = null;
+    renderIAAssistant();
+}
+
+function goBackToPrompt() {
+    iaStep = 'prompt';
+    window._iaPreviewData = null;
+    renderIAAssistant();
+}
+
+// ==========================================================================
+// FUNCIONES DE SELECCIÓN
+// ==========================================================================
+
+function selectIAType(element) {
+    document.querySelectorAll('#iaTypeGroup .ia-type-btn').forEach(btn => {
+        btn.classList.remove('selected');
+        btn.removeAttribute('data-selected');
+    });
+    element.classList.add('selected');
+    element.setAttribute('data-selected', 'true');
+    
+    const mode = element.dataset.mode;
+    iaCurrentMode = mode;
+    
+    const frequencyTitle = document.getElementById('iaFrequencyTitle');
+    const frequencyGroup = document.getElementById('iaFrequencyGroup');
+    
+    if (mode === 'routine') {
+        if (frequencyTitle) frequencyTitle.style.display = '';
+        if (frequencyGroup) frequencyGroup.style.display = '';
+    } else {
+        if (frequencyTitle) frequencyTitle.style.display = 'none';
+        if (frequencyGroup) frequencyGroup.style.display = 'none';
+    }
+}
+
+function toggleIAExercise(id) {
+    const chip = document.querySelector(`.ia-exercise-chip[data-id="${id}"]`);
+    if (!chip) return;
+
+    chip.classList.toggle('selected');
+    
+    if (chip.classList.contains('selected')) {
+        if (!iaSelectedExercises.includes(id)) {
+            iaSelectedExercises.push(id);
+        }
+    } else {
+        iaSelectedExercises = iaSelectedExercises.filter(exId => exId !== id);
+    }
+}
+
+function toggleIAMaterial(material) {
+    const btn = document.querySelector(`#iaMaterialsGroup .ia-option-btn[data-value="${material}"]`);
+    if (!btn) return;
+
+    btn.classList.toggle('selected');
+    
+    if (btn.classList.contains('selected')) {
+        if (!iaSelectedMaterials.includes(material)) {
+            iaSelectedMaterials.push(material);
+        }
+    } else {
+        iaSelectedMaterials = iaSelectedMaterials.filter(m => m !== material);
+    }
+}
+
+function getIASelectedValue(groupId) {
+    const group = document.getElementById(groupId);
+    if (!group) return null;
+
+    const selected = group.querySelector('.ia-option-btn.selected, .ia-option-btn[data-selected="true"]');
+    if (selected) {
+        return selected.dataset.value;
+    }
+    
+    const firstBtn = group.querySelector('.ia-option-btn');
+    return firstBtn ? firstBtn.dataset.value : null;
+}
+
+// ==========================================================================
+// GENERAR PROMPT
+// ==========================================================================
+
+function generarPromptIA() {
+    console.log('[ia-assistant] Generando prompt...');
+    
+    const type = iaCurrentMode || 'routine';
+    const level = getIASelectedValue('iaLevelGroup') || 'Intermedio';
+    const duration = getIASelectedValue('iaDurationGroup') || '60 min';
+    const goal = getIASelectedValue('iaGoalGroup') || 'Hipertrofia';
+    const frequency = type === 'routine' ? (getIASelectedValue('iaFrequencyGroup') || '3 días') : null;
+    const notes = document.getElementById('iaNotesInput')?.value?.trim() || '';
+    
+    let exercisesNames = [];
+    if (typeof window.getExercises === 'function') {
+        const allExercises = window.getExercises();
+        exercisesNames = iaSelectedExercises
+            .map(id => allExercises.find(ex => ex.id === id))
+            .filter(ex => ex)
+            .map(ex => ex.nombre);
+    }
+    
+    const params = {
+        mode: type,
+        level,
+        duration,
+        goal,
+        frequency,
+        notes,
+        exercises: exercisesNames,
+        materials: iaSelectedMaterials
+    };
+    
+    console.log('[ia-assistant] Parámetros:', params);
+    
+    iaStep = 'prompt';
+    window._iaPromptParams = params;
+    renderIAAssistant();
+}
+
+// ==========================================================================
+// PROCESAR RESPUESTA DESDE LA PANTALLA (CON LIMPIEZA DE JSON)
+// ==========================================================================
+
+function procesarRespuestaDesdePantalla() {
+    const textarea = document.getElementById('iaRespuestaTextarea2');
     if (!textarea) return;
     
-    const jsonText = textarea.value.trim();
+    let jsonText = textarea.value.trim();
     if (!jsonText) {
-        window.showAlert('Por favor, pega el JSON generado por la IA.', 'Aviso');
+        window.showAlert('Por favor, pega la respuesta JSON de tu IA.', 'Aviso');
         return;
     }
     
     try {
-        const data = JSON.parse(jsonText);
+        // ============================================================
+        // 1. INTENTAR EXTRAER SOLO EL JSON
+        // ============================================================
+        
+        // Buscar un bloque JSON (entre llaves)
+        const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            jsonText = jsonMatch[0];
+        }
+        
+        // Si no tiene llaves al inicio, intentar buscar después del primer {
+        if (!jsonText.startsWith('{')) {
+            const startIndex = jsonText.indexOf('{');
+            if (startIndex !== -1) {
+                const endIndex = jsonText.lastIndexOf('}');
+                if (endIndex !== -1 && endIndex > startIndex) {
+                    jsonText = jsonText.substring(startIndex, endIndex + 1);
+                }
+            }
+        }
+        
+        // ============================================================
+        // 2. LIMPIAR CARACTERES DE CONTROL
+        // ============================================================
+        
+        // Eliminar caracteres de control no permitidos en JSON
+        // Pero mantener los saltos de línea dentro de las cadenas
+        jsonText = jsonText.replace(/[\x00-\x1f\x7f-\x9f]/g, function(match) {
+            // Si es un salto de línea, mantenerlo como \n
+            if (match === '\n') return '\\n';
+            if (match === '\r') return '\\r';
+            if (match === '\t') return '\\t';
+            // Para otros caracteres de control, reemplazar con espacio
+            return ' ';
+        });
+        
+        // ============================================================
+        // 3. PARSEAR EL JSON
+        // ============================================================
+        
+        let data = JSON.parse(jsonText);
+        
+        // Si el JSON tiene una propiedad "respuesta" anidada
+        if (data.respuesta && typeof data.respuesta === 'string') {
+            try {
+                data = JSON.parse(data.respuesta);
+            } catch (e) {}
+        }
         
         // Validar estructura
         if (!data.sessions || !Array.isArray(data.sessions) || data.sessions.length === 0) {
@@ -853,7 +754,6 @@ function processIAImport() {
             return;
         }
         
-        // Validar cada sesión
         let hasErrors = false;
         data.sessions.forEach((session, index) => {
             if (!session.title || !session.content) {
@@ -864,7 +764,231 @@ function processIAImport() {
         
         if (hasErrors) return;
         
-        // Confirmar importación
+        const params = window._iaPromptParams || { mode: 'routine' };
+        
+        iaStep = 'preview';
+        window._iaPreviewData = { data, params };
+        renderIAAssistant();
+        
+    } catch (error) {
+        console.error('[ia-assistant] Error parsing JSON:', error);
+        console.log('[ia-assistant] Texto recibido:', jsonText.substring(0, 500) + '...');
+        
+        window.showAlert(
+            'Error al parsear el JSON: ' + error.message + 
+            '\n\nAsegúrate de que la respuesta sea un JSON válido.' +
+            '\n\n💡 Tips:' +
+            '\n- La IA solo debe devolver el JSON, sin texto adicional' +
+            '\n- Los saltos de línea deben ser \\n dentro de las cadenas' +
+            '\n- Revisa que no haya comas extrañas al final',
+            'Error'
+        );
+    }
+}
+
+// ==========================================================================
+// GUARDAR DESDE VISTA PREVIA
+// ==========================================================================
+
+function guardarDesdePreview() {
+    const data = window._iaPreviewData;
+    if (!data) {
+        window.showAlert('No hay datos para guardar.', 'Error');
+        return;
+    }
+
+    const { data: result, params } = data;
+    const isRoutine = params.mode === 'routine';
+    
+    if (isRoutine) {
+        guardarRutinaIA(result, params);
+    } else {
+        guardarSesionIA(result, params);
+    }
+}
+
+// ==========================================================================
+// GUARDAR RUTINA O SESIÓN
+// ==========================================================================
+
+function guardarRutinaIA(result, params) {
+    const routineName = result.nombre || `Rutina de ${params.goal || 'IA'}`;
+    
+    let existingRoutine = appData.routines.find(r => r.name === routineName);
+    
+    if (existingRoutine) {
+        window.showConfirm(
+            `Ya existe una rutina con el nombre "${routineName}". ¿Quieres sobrescribirla?`,
+            'Rutina existente'
+        ).then(confirm => {
+            if (confirm) {
+                existingRoutine.sessions = result.sessions.map(session => ({
+                    id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+                    title: session.title || 'Sesión sin título',
+                    content: session.content || '',
+                    lastModified: Date.now(),
+                    createdAt: Date.now()
+                }));
+                saveData();
+                window.showAlert(`Rutina "${routineName}" actualizada correctamente.`, 'Guardado');
+                iaStep = 'config';
+                window._iaPromptParams = null;
+                window._iaPreviewData = null;
+                renderIAAssistant();
+                renderRoutineList();
+            }
+        });
+        return;
+    }
+    
+    const newRoutine = {
+        id: 'r-' + Date.now(),
+        name: routineName,
+        sessions: result.sessions.map(session => ({
+            id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+            title: session.title || 'Sesión sin título',
+            content: session.content || '',
+            lastModified: Date.now(),
+            createdAt: Date.now()
+        }))
+    };
+    
+    appData.routines.push(newRoutine);
+    saveData();
+    window.showAlert(`Rutina "${routineName}" creada con ${newRoutine.sessions.length} sesiones.`, 'Guardado');
+    iaStep = 'config';
+    window._iaPromptParams = null;
+    window._iaPreviewData = null;
+    renderIAAssistant();
+    renderRoutineList();
+}
+
+function guardarSesionIA(result, params) {
+    const routines = appData.routines.map(r => ({ id: r.id, name: r.name }));
+    
+    if (routines.length === 0) {
+        window.showPrompt('No hay rutinas disponibles. ¿En qué rutina quieres guardar la sesión? (Se creará una nueva)', '', 'Nueva rutina')
+            .then(routineName => {
+                if (!routineName) return;
+                
+                const newRoutine = {
+                    id: 'r-' + Date.now(),
+                    name: routineName,
+                    sessions: [{
+                        id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+                        title: result.nombre || `Sesión de ${params.goal || 'IA'}`,
+                        content: result.sessions[0]?.content || '',
+                        lastModified: Date.now(),
+                        createdAt: Date.now()
+                    }]
+                };
+                
+                appData.routines.push(newRoutine);
+                saveData();
+                window.showAlert(`Sesión guardada en la rutina "${routineName}".`, 'Guardado');
+                iaStep = 'config';
+                window._iaPromptParams = null;
+                window._iaPreviewData = null;
+                renderIAAssistant();
+                renderRoutineList();
+            });
+        return;
+    }
+    
+    window.showRoutineSelector(
+        appData.routines,
+        null,
+        'copy'
+    ).then(selectedRoutine => {
+        if (!selectedRoutine) return;
+        
+        const newSession = {
+            id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+            title: result.nombre || `Sesión de ${params.goal || 'IA'}`,
+            content: result.sessions[0]?.content || '',
+            lastModified: Date.now(),
+            createdAt: Date.now()
+        };
+        
+        selectedRoutine.sessions.push(newSession);
+        saveData();
+        window.showAlert(`Sesión guardada en la rutina "${selectedRoutine.name}".`, 'Guardado');
+        iaStep = 'config';
+        window._iaPromptParams = null;
+        window._iaPreviewData = null;
+        renderIAAssistant();
+        renderRoutineList();
+    });
+}
+
+// ==========================================================================
+// IMPORTAR DESDE IA (JSON Directo)
+// ==========================================================================
+
+function openIAImport() {
+    console.log('[ia-assistant] Abriendo importación desde IA');
+    iaStep = 'import';
+    renderIAAssistant();
+}
+
+function processIAImportDesdePantalla() {
+    const textarea = document.getElementById('iaImportTextarea2');
+    if (!textarea) return;
+    
+    const jsonText = textarea.value.trim();
+    if (!jsonText) {
+        window.showAlert('Por favor, pega el JSON generado por la IA.', 'Aviso');
+        return;
+    }
+    
+    try {
+        // ============================================================
+        // LIMPIEZA DE JSON TAMBIÉN PARA IMPORTACIÓN
+        // ============================================================
+        
+        let cleanJsonText = jsonText;
+        
+        // Buscar un bloque JSON (entre llaves)
+        const jsonMatch = cleanJsonText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            cleanJsonText = jsonMatch[0];
+        }
+        
+        if (!cleanJsonText.startsWith('{')) {
+            const startIndex = cleanJsonText.indexOf('{');
+            if (startIndex !== -1) {
+                const endIndex = cleanJsonText.lastIndexOf('}');
+                if (endIndex !== -1 && endIndex > startIndex) {
+                    cleanJsonText = cleanJsonText.substring(startIndex, endIndex + 1);
+                }
+            }
+        }
+        
+        // Limpiar caracteres de control
+        cleanJsonText = cleanJsonText.replace(/[\x00-\x1f\x7f-\x9f]/g, function(match) {
+            if (match === '\n') return '\\n';
+            if (match === '\r') return '\\r';
+            if (match === '\t') return '\\t';
+            return ' ';
+        });
+        
+        const data = JSON.parse(cleanJsonText);
+        
+        if (!data.sessions || !Array.isArray(data.sessions) || data.sessions.length === 0) {
+            window.showAlert('El JSON debe contener un array "sessions" con al menos una sesión.', 'Error de formato');
+            return;
+        }
+        
+        let hasErrors = false;
+        data.sessions.forEach((session, index) => {
+            if (!session.title || !session.content) {
+                window.showAlert(`La sesión ${index + 1} no tiene "title" o "content".`, 'Error de formato');
+                hasErrors = true;
+            }
+        });
+        
+        if (hasErrors) return;
+        
         const nombre = data.nombre || 'Importación desde IA';
         const sesionesCount = data.sessions.length;
         
@@ -874,12 +998,7 @@ function processIAImport() {
         ).then(confirm => {
             if (!confirm) return;
             
-            // Cerrar modal
-            closeIAConfig();
-            
-            // Determinar si es rutina o sesión
             if (sesionesCount > 1) {
-                // Es una rutina
                 const newRoutine = {
                     id: 'r-' + Date.now(),
                     name: nombre,
@@ -894,13 +1013,12 @@ function processIAImport() {
                 
                 appData.routines.push(newRoutine);
                 saveData();
-                renderRoutineList();
                 window.showAlert(`Rutina "${nombre}" importada con ${sesionesCount} sesiones.`, 'Importación completada');
+                iaStep = 'config';
+                renderIAAssistant();
+                renderRoutineList();
             } else {
-                // Es una sesión individual
                 const session = data.sessions[0];
-                
-                // Preguntar en qué rutina guardar
                 const routines = appData.routines.map(r => ({ id: r.id, name: r.name }));
                 
                 if (routines.length === 0) {
@@ -922,8 +1040,10 @@ function processIAImport() {
                             
                             appData.routines.push(newRoutine);
                             saveData();
-                            renderRoutineList();
                             window.showAlert(`Sesión importada en la rutina "${routineName}".`, 'Importación completada');
+                            iaStep = 'config';
+                            renderIAAssistant();
+                            renderRoutineList();
                         });
                     return;
                 }
@@ -945,8 +1065,10 @@ function processIAImport() {
                     
                     selectedRoutine.sessions.push(newSession);
                     saveData();
-                    renderRoutineList();
                     window.showAlert(`Sesión importada en la rutina "${selectedRoutine.name}".`, 'Importación completada');
+                    iaStep = 'config';
+                    renderIAAssistant();
+                    renderRoutineList();
                 });
             }
         });
@@ -963,19 +1085,16 @@ function processIAImport() {
 window.openIAAssistant = openIAAssistant;
 window.renderIAAssistant = renderIAAssistant;
 window.goBackFromIA = goBackFromIA;
-window.openIAConfig = openIAConfig;
-window.closeIAConfig = closeIAConfig;
-window.selectIAMode = selectIAMode;
+window.goBackToConfig = goBackToConfig;
+window.goBackToPrompt = goBackToPrompt;
+window.openIAImport = openIAImport;
+window.selectIAType = selectIAType;
 window.toggleIAExercise = toggleIAExercise;
 window.toggleIAMaterial = toggleIAMaterial;
-window.selectIAOption = selectIAOption;
 window.getIASelectedValue = getIASelectedValue;
-window.getIASelectedValues = getIASelectedValues;
-window.generateIA = generateIA;
-window.showIAResult = showIAResult;
-window.cerrarResultadoIA = cerrarResultadoIA;
-window.guardarResultadoIA = guardarResultadoIA;
+window.generarPromptIA = generarPromptIA;
+window.procesarRespuestaDesdePantalla = procesarRespuestaDesdePantalla;
+window.guardarDesdePreview = guardarDesdePreview;
 window.guardarRutinaIA = guardarRutinaIA;
 window.guardarSesionIA = guardarSesionIA;
-window.openIAImport = openIAImport;
-window.processIAImport = processIAImport;
+window.processIAImportDesdePantalla = processIAImportDesdePantalla;

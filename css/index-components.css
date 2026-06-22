@@ -128,6 +128,30 @@
 }
 
 /* ==========================================================================
+   BOTÓN ASISTENTE IA (CABECERA)
+   ========================================================================== */
+
+.btn-header-ia {
+    background: rgba(204, 255, 0, 0);
+    color: var(--primary-color, #000000);
+    border: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.1s ease, background-color 0.1s ease;
+}
+
+.btn-header-ia:active {
+    transform: scale(0.92);
+    filter: brightness(0.9);
+}
+
+/* ==========================================================================
    BOTÓN FLOTANTE DE ACCIÓN (FAB)
    ========================================================================== */
 

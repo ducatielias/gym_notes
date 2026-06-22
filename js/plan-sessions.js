@@ -3,7 +3,7 @@
  * Controla la visualización de sesiones dentro de una rutina y sus operaciones CRUD
  * 
  * MODIFICADO: Botón "+" reemplazado por menú de tres puntos con opciones:
- * Añadir sesión, Importar sesión, Exportar sesión (con checklist), Borrar todas, Asistente IA
+ * Añadir sesión, Importar sesión, Exportar sesión (con checklist), Borrar todas
  * 
  * MODIFICADO: El texto "Modificado: fecha" se reemplaza por contador de días exactos
  * (Hoy, Ayer, Hace X días, Sin realizar)
@@ -13,6 +13,8 @@
  * 
  * MODIFICADO: Importación con selector de sesiones (checklist) igual que la exportación
  * MODIFICADO: Nombre de archivo exportado: GN_Sesiones_fecha_hora.json
+ * 
+ * MODIFICADO: Eliminado botón Asistente IA del menú de sesiones
  */
 
 // ==========================================================================
@@ -49,10 +51,6 @@ function openRoutine(id) {
                         <div class="menu-divider"></div>
                         <button class="menu-item menu-delete" onclick="borrarTodasSesiones(); closeSessionListOptionsMenu();" style="color:#ef4444;">
                             <i class="fa-solid fa-trash-can" style="color:#ef4444;"></i> Borrar todas
-                        </button>
-                        <div class="menu-divider"></div>
-                        <button class="menu-item" onclick="abrirAsistenteIA(); closeSessionListOptionsMenu();">
-                            <i class="fa-solid fa-robot"></i> Asistente IA
                         </button>
                     </div>
                 </div>
@@ -559,36 +557,6 @@ async function borrarTodasSesiones() {
 }
 
 // ==========================================================================
-// ASISTENTE IA
-// ==========================================================================
-
-function abrirAsistenteIA() {
-    // Mostrar un modal con el prompt para el asistente IA
-    const mensaje = `🤖 ASISTENTE IA PARA SESIONES\n\n` +
-        `Copia el siguiente prompt y pégaselo a tu IA favorita:\n\n` +
-        `---\n` +
-        `Actúa como un entrenador personal experto. Créame una sesión de entrenamiento de gimnasio.\n\n` +
-        `Requisitos:\n` +
-        `- [AQUÍ TUS OBJETIVOS, EJ: día de empuje, enfoque en pectoral y tríceps]\n\n` +
-        `IMPORTANTE: Debes devolverme ÚNICAMENTE un objeto JSON válido.\n\n` +
-        `El formato exacto debe ser este:\n` +
-        `{\n` +
-        `  "nombre": "Nombre de la Sesión",\n` +
-        `  "bloques": [\n` +
-        `    {\n` +
-        `      "tipo": "rutina_enriquecida",\n` +
-        `      "nombre": "Sets",\n` +
-        `      "contenido": "<b>Press banca</b><br>(x4) 8-12r"\n` +
-        `    }\n` +
-        `  ]\n` +
-        `}\n` +
-        `---\n\n` +
-        `Cuando tengas el JSON, ve a "Importar sesión" y pégalo allí.`;
-    
-    window.showAlert(mensaje, 'Asistente IA');
-}
-
-// ==========================================================================
 // UTILIDADES
 // ==========================================================================
 
@@ -731,7 +699,6 @@ window.toggleSessionCheckboxImport = toggleSessionCheckboxImport;
 window.seleccionarTodasSesionesImport = seleccionarTodasSesionesImport;
 window.importarSesionesSeleccionadas = importarSesionesSeleccionadas;
 window.borrarTodasSesiones = borrarTodasSesiones;
-window.abrirAsistenteIA = abrirAsistenteIA;
 window.createNewSession = createNewSession;
 window.moveSessionOrder = moveSessionOrder;
 window.deleteSession = deleteSession;
