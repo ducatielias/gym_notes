@@ -7,6 +7,8 @@
  * 
  * MODIFICADO: Exportación e importación con selector de rutinas (checklist)
  * MODIFICADO: Nombre de archivo exportado: GN_Rutinas_fecha_hora.json
+ * 
+ * MODIFICADO: Añadido acceso al Asistente IA desde el menú de opciones
  */
 
 // ==========================================================================
@@ -43,6 +45,10 @@ function renderRoutineList() {
                         <div class="menu-divider"></div>
                         <button class="menu-item menu-delete" onclick="borrarTodasRutinas(); closeRoutineListOptionsMenu();" style="color:#ef4444;">
                             <i class="fa-solid fa-trash-can" style="color:#ef4444;"></i> Borrar todas
+                        </button>
+                        <div class="menu-divider"></div>
+                        <button class="menu-item" onclick="openIAAssistant(); closeRoutineListOptionsMenu();">
+                            <i class="fa-solid fa-robot"></i> Asistente IA
                         </button>
                     </div>
                 </div>

@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="css/gym-plan.css">
     <link rel="stylesheet" href="css/history.css">
     <link rel="stylesheet" href="css/exercise-viewer.css">
+    <link rel="stylesheet" href="css/ia-assistant.css">
 </head>
 <body>
 
@@ -61,6 +62,11 @@
         
         <section id="screen-exercise-viewer" class="screen hidden">
             <!-- El contenido se genera dinámicamente desde exercise-viewer.js -->
+        </section>
+
+        <!-- PANTALLA ASISTENTE IA -->
+        <section id="screen-ia-assistant" class="screen hidden">
+            <div id="ia-assistant-ui"></div>
         </section>
 
     </main>
@@ -216,12 +222,16 @@
         </div>
     </div>
 
+    <!-- MODAL DE CONFIGURACIÓN DEL ASISTENTE IA -->
+    <div id="iaConfigModal" class="ia-config-modal"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     
     <!-- JS - CORE -->
     <script src="js/index.js"></script>
     <script src="js/modal.js"></script>
     <script src="js/ui-helpers.js"></script>
+    <script src="js/back-handler.js"></script>
     
     <!-- JS - PLAN -->
     <script src="js/plan-state.js"></script>
@@ -256,8 +266,8 @@
     <!-- JS - EXERCISE VIEWER -->
     <script src="js/exercise-viewer.js"></script>
     
-    <!-- Control de retroceso para móviles -->
-    <script src="js/back-handler.js"></script>
+    <!-- JS - ASISTENTE IA -->
+    <script src="js/ia-assistant.js"></script>
     
 </body>
 </html>
