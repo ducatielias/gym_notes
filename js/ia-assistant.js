@@ -4,9 +4,9 @@
  * 
  * FUNCIONALIDADES:
  * - 3 modos: Rutina, Sesión, Media (analizar imagen/video/texto para extraer sesión)
- * - Expandibles con checklist para Ejercicios y Material (ocultos en modo Media)
+ * - Expandibles con checklist para Ejercicios, Material y Tipo de entrenamiento
  * - Textarea normal para notas adicionales
- * - Al seleccionar Media, se ocultan: Ejercicios, Material, Nivel, Duración, Objetivo
+ * - Al seleccionar Media, se ocultan: Ejercicios, Material, Nivel, Duración, Objetivo y Tipo
  * - Generar prompt personalizado según el modo seleccionado
  * - Copiar prompt para usar en IA externa
  * - Pegar respuesta de IA y procesarla (para rutinas/sesiones)
@@ -23,6 +23,7 @@
 let iaCurrentMode = 'routine'; // 'routine' | 'session' | 'media'
 let iaSelectedExercises = [];
 let iaSelectedMaterials = [];
+let iaSelectedTipos = [];
 let iaUltimaRespuesta = null;
 let iaStep = 'config'; // 'config' | 'prompt' | 'preview' | 'import'
 
@@ -34,6 +35,11 @@ const IA_MATERIALS = [
     'Barra', 'Mancuernas', 'Kettlebell', 'Bandas elásticas',
     'Máquinas', 'Peso corporal', 'Cable', 'Polea',
     'Disco', 'Fitball', 'TRX'
+];
+
+const IA_TIPOS_ENTRENAMIENTO = [
+    'Superseries', 'Series', 'For time', 'EMOM', 
+    'AMRAP', 'Tabata', 'Cardio', 'Calentamiento', 'Comentarios'
 ];
 
 const IA_LEVELS = ['Principiante', 'Intermedio', 'Avanzado'];
@@ -50,6 +56,7 @@ function openIAAssistant() {
     iaStep = 'config';
     iaSelectedExercises = [];
     iaSelectedMaterials = [];
+    iaSelectedTipos = [];
     switchTab('ia-assistant');
     renderIAAssistant();
 }
@@ -128,6 +135,7 @@ function renderConfigScreen(container) {
             <div id="iaOpcionesConfigurables">
                 ${renderConfigEjercicios(exercises)}
                 ${renderConfigMaterial()}
+                ${renderConfigTiposEntrenamiento()}
                 ${renderConfigNivel()}
                 ${renderConfigDuracion()}
                 ${renderConfigFrecuencia()}
@@ -170,6 +178,11 @@ function renderConfigScreen(container) {
         // Configurar listeners de materiales (checkboxes)
         document.querySelectorAll('.ia-material-check').forEach(cb => {
             cb.addEventListener('change', function() { toggleIAMaterialCheck(this); });
+        });
+
+        // Configurar listeners de tipos de entrenamiento (checkboxes)
+        document.querySelectorAll('.ia-tipo-check').forEach(cb => {
+            cb.addEventListener('change', function() { toggleIATipoCheck(this); });
         });
 
         // Configurar listeners de selección única
@@ -255,6 +268,27 @@ function renderConfigMaterial() {
     `;
 }
 
+function renderConfigTiposEntrenamiento() {
+    return `
+        <div id="iaTiposWrapper" class="ia-section">
+            <button type="button" class="ia-expand-toggle" onclick="toggleIAExpand('iaTiposContainer', 'iaTiposIcon')">
+                <i class="fa-solid fa-chevron-right" id="iaTiposIcon"></i>
+                Tipo de entrenamiento <span style="font-weight:400; color:#9ca3af; font-size:12px;">(opcional)</span>
+            </button>
+            <div id="iaTiposContainer" class="ia-expand-container">
+                <div class="ia-expand-content ia-tipos-grid">
+                    ${IA_TIPOS_ENTRENAMIENTO.map(t => `
+                        <label class="muscle-check">
+                            <input type="checkbox" class="ia-tipo-check" data-value="${t}">
+                            <span class="muscle-label">${t}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 function renderConfigNivel() {
     return `
         <div id="iaNivelWrapper" class="ia-section">
@@ -331,6 +365,7 @@ function actualizarOpcionesSegunModo(mode) {
     const elementos = [
         { id: 'iaEjerciciosWrapper', display: isMedia ? 'none' : '' },
         { id: 'iaMaterialWrapper', display: isMedia ? 'none' : '' },
+        { id: 'iaTiposWrapper', display: isMedia ? 'none' : '' },
         { id: 'iaNivelWrapper', display: isMedia ? 'none' : '' },
         { id: 'iaDuracionWrapper', display: isMedia ? 'none' : '' },
         { id: 'iaFrecuenciaWrapper', display: isMedia ? 'none' : '' },
@@ -415,6 +450,15 @@ function toggleIAMaterialCheck(checkbox) {
     }
 }
 
+function toggleIATipoCheck(checkbox) {
+    const tipo = checkbox.dataset.value;
+    if (checkbox.checked) {
+        if (!iaSelectedTipos.includes(tipo)) iaSelectedTipos.push(tipo);
+    } else {
+        iaSelectedTipos = iaSelectedTipos.filter(t => t !== tipo);
+    }
+}
+
 function getIASelectedValue(groupId) {
     const group = document.getElementById(groupId);
     if (!group) return null;
@@ -457,7 +501,8 @@ function generarPromptIA() {
         frequency,
         notes,
         exercises: exercisesNames,
-        materials: iaSelectedMaterials
+        materials: iaSelectedMaterials,
+        tipos: iaSelectedTipos
     };
     
     console.log('[ia-assistant] Parámetros:', params);
@@ -476,7 +521,7 @@ function generarPromptTexto(params) {
     let prompt = '';
     
     // ============================================================
-    // MODO RUTINA / SESIÓN
+    // MODO RUTINA / SESIÓN (CON ESTRUCTURA DE ARRAY DE EJERCICIOS)
     // ============================================================
     if (isRoutine || isSession) {
         prompt = `Actúa como un entrenador personal experto. Créame ${isRoutine ? 'una rutina de entrenamiento' : 'una sesión de entrenamiento'} de gimnasio.\n\n`;
@@ -495,6 +540,10 @@ function generarPromptTexto(params) {
             prompt += `- Material disponible: ${params.materials.join(', ')}\n`;
         }
         
+        if (params.tipos.length > 0) {
+            prompt += `- Tipo de entrenamiento: ${params.tipos.join(', ')}\n`;
+        }
+        
         if (params.exercises.length > 0) {
             prompt += `- Ejercicios a incluir: ${params.exercises.join(', ')}\n`;
         }
@@ -503,30 +552,49 @@ function generarPromptTexto(params) {
             prompt += `- Notas adicionales: ${params.notes}\n`;
         }
         
-        prompt += `\n📤 FORMATO DE RESPUESTA:\n`;
-        prompt += `Debes devolverme ÚNICAMENTE un objeto JSON válido con el siguiente formato:\n\n`;
+        prompt += `\n📤 FORMATO DE RESPUESTA (ESTRUCTURADO):\n`;
+        prompt += `Debes devolverme ÚNICAMENTE un objeto JSON válido con la siguiente estructura:\n\n`;
         prompt += `{\n`;
         prompt += `  "nombre": "Nombre de la ${isRoutine ? 'Rutina' : 'Sesión'}",\n`;
         prompt += `  "sessions": [\n`;
-        if (isRoutine) {
-            prompt += `    {\n`;
-            prompt += `      "title": "Título de la sesión",\n`;
-            prompt += `      "content": "<b>Ejercicio</b><br>(x4) 8-12 repeticiones\\n\\n<b>Ejercicio 2</b><br>(x3) 10-12 repeticiones"\n`;
-            prompt += `    }\n`;
-        } else {
-            prompt += `    {\n`;
-            prompt += `      "title": "Sesión",\n`;
-            prompt += `      "content": "<b>Ejercicio</b><br>(x4) 8-12 repeticiones\\n\\n<b>Ejercicio 2</b><br>(x3) 10-12 repeticiones"\n`;
-            prompt += `    }\n`;
-        }
+        prompt += `    {\n`;
+        prompt += `      "title": "Título de la sesión",\n`;
+        prompt += `      "ejercicios": [\n`;
+        prompt += `        {\n`;
+        prompt += `          "nombre": "Nombre del ejercicio",\n`;
+        prompt += `          "series": 4,\n`;
+        prompt += `          "repeticiones": "8-12",\n`;
+        prompt += `          "notas": "Notas adicionales (opcional)"\n`;
+        prompt += `        },\n`;
+        prompt += `        {\n`;
+        prompt += `          "nombre": "Otro ejercicio",\n`;
+        prompt += `          "series": 3,\n`;
+        prompt += `          "repeticiones": "10-15",\n`;
+        prompt += `          "notas": "Mantener técnica"`;
+        prompt += `\n        }\n`;
+        prompt += `      ]\n`;
+        prompt += `    }\n`;
         prompt += `  ]\n`;
-        prompt += `}\n`;
-        
-        prompt += `\n⚠️ IMPORTANTE:\n`;
-        prompt += `- No incluyas texto adicional, solo el JSON.\n`;
-        prompt += `- Escapa los saltos de línea como \\n dentro de las cadenas.\n`;
-        prompt += `- No uses caracteres especiales no escapados.\n`;
-        prompt += `- Asegúrate de que todas las comillas sean dobles (").`;
+        prompt += `}\n\n`;
+        prompt += `⚠️ REGLAS ESTRICTAS DE FORMATO TÉCNICO:\n`;
+        prompt += `1. NO incluyas texto adicional, SOLO el JSON.\n`;
+        prompt += `2. PROHIBIDO usar saltos de línea reales (tecla Enter) dentro de los valores de texto.\n`;
+        prompt += `3. Si necesitas separar texto, usa \\n (barra invertida y n minúscula) en una sola línea.\n`;
+        prompt += `4. Asegúrate de que todas las comillas sean dobles (").\n`;
+        prompt += `5. Revisa que NO haya comas extrañas al final de objetos o arrays.\n\n`;
+        prompt += `✅ EJEMPLO CORRECTO DE "ejercicios":\n`;
+        prompt += `"ejercicios": [\n`;
+        prompt += `  {"nombre":"Press banca","series":4,"repeticiones":"8-10","notas":"RIR 1"},\n`;
+        prompt += `  {"nombre":"Remo con barra","series":4,"repeticiones":"8-10","notas":"Enfocado en espalda"}\n`;
+        prompt += `]\n\n`;
+        prompt += `❌ EJEMPLO INCORRECTO (NO HAGAS ESTO):\n`;
+        prompt += `"ejercicios": [\n`;
+        prompt += `  {\n`;
+        prompt += `    "nombre": "Press banca",\n`;
+        prompt += `    "series": 4\n`;
+        prompt += `  }\n`;
+        prompt += `]\n`;
+        prompt += `(Los saltos de línea dentro de los valores NO están permitidos)`;
     }
     
     // ============================================================
@@ -557,7 +625,14 @@ function generarPromptTexto(params) {
         prompt += `  "sessions": [\n`;
         prompt += `    {\n`;
         prompt += `      "title": "Título de la sesión",\n`;
-        prompt += `      "content": "<b>Ejercicio</b><br>(x4) 8-12 repeticiones\\n\\n<b>Ejercicio 2</b><br>(x3) 10-12 repeticiones"\n`;
+        prompt += `      "ejercicios": [\n`;
+        prompt += `        {\n`;
+        prompt += `          "nombre": "Nombre del ejercicio",\n`;
+        prompt += `          "series": 4,\n`;
+        prompt += `          "repeticiones": "8-12",\n`;
+        prompt += `          "notas": "Notas adicionales (opcional)"\n`;
+        prompt += `        }\n`;
+        prompt += `      ]\n`;
         prompt += `    }\n`;
         prompt += `  ]\n`;
         prompt += `}\n\n`;
@@ -565,7 +640,8 @@ function generarPromptTexto(params) {
         prompt += `- Si el contenido es una imagen o video, describe lo que ves y extrae la información.\n`;
         prompt += `- Si el contenido es texto, analiza el formato y conviértelo al formato JSON.\n`;
         prompt += `- No incluyas texto adicional, solo el JSON.\n`;
-        prompt += `- Escapa los saltos de línea como \\n dentro de las cadenas.\n`;
+        prompt += `- PROHIBIDO usar saltos de línea reales dentro de valores de texto.\n`;
+        prompt += `- Usa \\n dentro de strings si necesitas saltos de línea.\n`;
         prompt += `- Asegúrate de que todas las comillas sean dobles (").`;
     }
     
@@ -641,37 +717,92 @@ function copiarPrompt() {
 }
 
 // ==========================================================================
-// PROCESAMIENTO DE RESPUESTA (CON LIMPIEZA DE JSON)
+// PROCESAMIENTO DE RESPUESTA - FUNCIÓN ROBUSTA Y DEFINITIVA
 // ==========================================================================
 
 function limpiarYParsearJSON(texto) {
+    if (!texto || typeof texto !== 'string') {
+        throw new Error("El texto de entrada no es válido.");
+    }
+
     let jsonText = texto.trim();
+
+    // 1. Limpiar bloques de código Markdown si existen (```json ... ```)
+    jsonText = jsonText.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
+
+    // 2. Extraer el objeto JSON principal (desde el primer '{' hasta el último '}')
+    const startIndex = jsonText.indexOf('{');
+    const endIndex = jsonText.lastIndexOf('}');
     
-    // Buscar un bloque JSON (entre llaves)
-    const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) jsonText = jsonMatch[0];
-    
-    // Si no tiene llaves al inicio, intentar buscar después del primer {
-    if (!jsonText.startsWith('{')) {
-        const startIndex = jsonText.indexOf('{');
-        if (startIndex !== -1) {
-            const endIndex = jsonText.lastIndexOf('}');
-            if (endIndex !== -1 && endIndex > startIndex) {
-                jsonText = jsonText.substring(startIndex, endIndex + 1);
-            }
-        }
+    if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
+        throw new Error("No se encontró un bloque JSON válido en el texto.");
     }
     
-    // Limpiar caracteres de control (manteniendo saltos de línea)
-    jsonText = jsonText.replace(/[\x00-\x1f\x7f-\x9f]/g, function(match) {
-        if (match === '\n') return '\\n';
-        if (match === '\r') return '\\r';
-        if (match === '\t') return '\\t';
-        return ' ';
+    jsonText = jsonText.substring(startIndex, endIndex + 1);
+
+    // 3. REGLA CLAVE: Escapar saltos de línea reales SOLO dentro de las cadenas de texto.
+    // Este regex busca contenido entre comillas dobles y reemplaza los saltos de línea literales.
+    jsonText = jsonText.replace(/"([^"\\]|\\.)*"/g, (match) => {
+        return match
+            .replace(/\r/g, '\\r')
+            .replace(/\n/g, '\\n')
+            .replace(/\t/g, '\\t');
+    });
+
+    // 4. Intentar el parseo final
+    try {
+        return JSON.parse(jsonText);
+    } catch (error) {
+        console.error("Error original de JSON.parse:", error.message);
+        // Backup por si la IA dejó una coma suelta al final de un array/objeto (muy común)
+        try {
+            // Remueve comas finales antes de un cierre de llave o corchete
+            let jsonLimpioComas = jsonText.replace(/,(\s*[\]}])/g, '$1');
+            return JSON.parse(jsonLimpioComas);
+        } catch (e) {
+            throw new Error(`Error crítico al parsear JSON: ${error.message}`);
+        }
+    }
+}
+
+// ==========================================================================
+// CONVERTIR EJERCICIOS DE ARRAY A HTML
+// ==========================================================================
+
+function convertirEjerciciosAHTML(ejercicios) {
+    if (!ejercicios || !Array.isArray(ejercicios) || ejercicios.length === 0) {
+        return '';
+    }
+    
+    let html = '';
+    ejercicios.forEach(ej => {
+        let nombre = ej.nombre || 'Ejercicio';
+        let series = ej.series || '';
+        let repeticiones = ej.repeticiones || '';
+        let notas = ej.notas || '';
+        
+        // Construir línea de series/repeticiones
+        let info = '';
+        if (series && repeticiones) {
+            info = `(x${series}) ${repeticiones} repeticiones`;
+        } else if (series) {
+            info = `(x${series}) series`;
+        } else if (repeticiones) {
+            info = `${repeticiones} repeticiones`;
+        }
+        
+        html += `<b>${nombre}</b>`;
+        if (info) html += `<br>${info}`;
+        if (notas) html += `<br><i>${notas}</i>`;
+        html += `<br><br>`;
     });
     
-    return JSON.parse(jsonText);
+    return html;
 }
+
+// ==========================================================================
+// PROCESAR RESPUESTA DESDE PANTALLA
+// ==========================================================================
 
 function procesarRespuestaDesdePantalla() {
     const textarea = document.getElementById('iaRespuestaTextarea');
@@ -699,15 +830,22 @@ function procesarRespuestaDesdePantalla() {
             return;
         }
         
-        let hasErrors = false;
+        // Procesar cada sesión: convertir ejercicios array a HTML si es necesario
         data.sessions.forEach((session, index) => {
-            if (!session.title || !session.content) {
-                window.showAlert(`La sesión ${index + 1} no tiene "title" o "content".`, 'Error de formato');
-                hasErrors = true;
+            // Si tiene "ejercicios" (array), convertirlo a HTML en "content"
+            if (session.ejercicios && Array.isArray(session.ejercicios) && session.ejercicios.length > 0) {
+                // Guardar los ejercicios estructurados para futuros usos
+                session._ejercicios_raw = session.ejercicios;
+                // Convertir a HTML
+                session.content = convertirEjerciciosAHTML(session.ejercicios);
+                // Eliminar el array original para no duplicar
+                // delete session.ejercicios;
+            } else if (!session.content || session.content.trim() === '') {
+                // Si no tiene content ni ejercicios, es un error
+                window.showAlert(`La sesión ${index + 1} no tiene "content" ni "ejercicios".`, 'Error de formato');
+                return;
             }
         });
-        
-        if (hasErrors) return;
         
         const params = window._iaPromptParams || { mode: 'routine' };
         
@@ -721,8 +859,9 @@ function procesarRespuestaDesdePantalla() {
         
         window.showAlert(
             'Error al parsear el JSON: ' + error.message + 
-            '\n\nAsegúrate de que la respuesta sea un JSON válido.' +
-            '\n\n💡 Tips:' +
+            '\n\n💡 Asegúrate de que la respuesta sea un JSON válido.' +
+            '\n\n📝 Revisa la consola del navegador (F12) para ver el texto completo.' +
+            '\n\n✅ Tips:' +
             '\n- La IA solo debe devolver el JSON, sin texto adicional' +
             '\n- Los saltos de línea deben ser \\n dentro de las cadenas' +
             '\n- Revisa que no haya comas extrañas al final',
@@ -730,6 +869,10 @@ function procesarRespuestaDesdePantalla() {
         );
     }
 }
+
+// ==========================================================================
+// PROCESAR RESPUESTA MEDIA
+// ==========================================================================
 
 function procesarRespuestaMedia() {
     const textarea = document.getElementById('iaRespuestaTextarea');
@@ -757,15 +900,16 @@ function procesarRespuestaMedia() {
             return;
         }
         
-        let hasErrors = false;
+        // Procesar cada sesión: convertir ejercicios array a HTML si es necesario
         data.sessions.forEach((session, index) => {
-            if (!session.title || !session.content) {
-                window.showAlert(`La sesión ${index + 1} no tiene "title" o "content".`, 'Error de formato');
-                hasErrors = true;
+            if (session.ejercicios && Array.isArray(session.ejercicios) && session.ejercicios.length > 0) {
+                session._ejercicios_raw = session.ejercicios;
+                session.content = convertirEjerciciosAHTML(session.ejercicios);
+            } else if (!session.content || session.content.trim() === '') {
+                window.showAlert(`La sesión ${index + 1} no tiene "content" ni "ejercicios".`, 'Error de formato');
+                return;
             }
         });
-        
-        if (hasErrors) return;
         
         // Mostrar resultado en un alert
         const nombre = data.nombre || 'Sesión extraída';
@@ -784,7 +928,6 @@ function procesarRespuestaMedia() {
             'Guardar sesión'
         ).then(confirm => {
             if (confirm) {
-                // Guardar como sesión
                 const params = window._iaPromptParams || { mode: 'media' };
                 guardarSesionIA(data, params);
             }
@@ -796,8 +939,9 @@ function procesarRespuestaMedia() {
         
         window.showAlert(
             'Error al parsear el JSON: ' + error.message + 
-            '\n\nAsegúrate de que la respuesta sea un JSON válido.' +
-            '\n\n💡 Tips:' +
+            '\n\n💡 Asegúrate de que la respuesta sea un JSON válido.' +
+            '\n\n📝 Revisa la consola del navegador (F12) para ver el texto completo.' +
+            '\n\n✅ Tips:' +
             '\n- La IA solo debe devolver el JSON, sin texto adicional' +
             '\n- Los saltos de línea deben ser \\n dentro de las cadenas' +
             '\n- Revisa que no haya comas extrañas al final',
@@ -896,7 +1040,14 @@ function renderImportScreen(container) {
   "sessions": [
     {
       "title": "Día 1 - Empuje",
-      "content": "<b>Press banca</b><br>(x4) 8-12r"
+      "ejercicios": [
+        {
+          "nombre": "Press banca",
+          "series": 4,
+          "repeticiones": "8-12",
+          "notas": "RIR 1"
+        }
+      ]
     }
   ]
 }'></textarea>
@@ -908,7 +1059,14 @@ function renderImportScreen(container) {
   "sessions": [
     {
       "title": "Título de la sesión",
-      "content": "&lt;b&gt;Ejercicio&lt;/b&gt;&lt;br&gt;Detalles..."
+      "ejercicios": [
+        {
+          "nombre": "Press banca",
+          "series": 4,
+          "repeticiones": "8-12",
+          "notas": "RIR 1"
+        }
+      ]
     }
   ]
 }
@@ -950,15 +1108,16 @@ function processIAImportDesdePantalla() {
             return;
         }
         
-        let hasErrors = false;
+        // Procesar cada sesión: convertir ejercicios array a HTML si es necesario
         data.sessions.forEach((session, index) => {
-            if (!session.title || !session.content) {
-                window.showAlert(`La sesión ${index + 1} no tiene "title" o "content".`, 'Error de formato');
-                hasErrors = true;
+            if (session.ejercicios && Array.isArray(session.ejercicios) && session.ejercicios.length > 0) {
+                session._ejercicios_raw = session.ejercicios;
+                session.content = convertirEjerciciosAHTML(session.ejercicios);
+            } else if (!session.content || session.content.trim() === '') {
+                window.showAlert(`La sesión ${index + 1} no tiene "content" ni "ejercicios".`, 'Error de formato');
+                return;
             }
         });
-        
-        if (hasErrors) return;
         
         const nombre = data.nombre || 'Importación desde IA';
         const sesionesCount = data.sessions.length;
@@ -1204,6 +1363,7 @@ window.openIAImport = openIAImport;
 window.selectIAType = selectIAType;
 window.toggleIAExerciseCheck = toggleIAExerciseCheck;
 window.toggleIAMaterialCheck = toggleIAMaterialCheck;
+window.toggleIATipoCheck = toggleIATipoCheck;
 window.getIASelectedValue = getIASelectedValue;
 window.generarPromptIA = generarPromptIA;
 window.generarPromptTexto = generarPromptTexto;
@@ -1211,6 +1371,7 @@ window.copiarPrompt = copiarPrompt;
 window.procesarRespuestaDesdePantalla = procesarRespuestaDesdePantalla;
 window.procesarRespuestaMedia = procesarRespuestaMedia;
 window.limpiarYParsearJSON = limpiarYParsearJSON;
+window.convertirEjerciciosAHTML = convertirEjerciciosAHTML;
 window.guardarDesdePreview = guardarDesdePreview;
 window.cancelarPreview = cancelarPreview;
 window.guardarRutinaIA = guardarRutinaIA;

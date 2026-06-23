@@ -2,6 +2,9 @@
  * MÓDULO: plan.js
  * PUNTO DE ENTRADA del módulo de Plan
  * Coordina el editor de sesiones (modos Lectura / Edición)
+ * 
+ * MODIFICADO: El título de la sesión ahora usa textarea para mostrar
+ * títulos largos completos con ajuste automático de altura.
  */
 
 // ==========================================================================
@@ -9,6 +12,20 @@
 // ==========================================================================
 
 window.editingSession = null;
+
+// ==========================================================================
+// FUNCIÓN PARA AJUSTAR LA ALTURA DEL TEXTAREA DEL TÍTULO
+// ==========================================================================
+
+function ajustarAlturaTitulo() {
+    const textarea = document.getElementById('sessionTitleInput');
+    if (!textarea) return;
+    
+    // Resetear la altura para obtener el scrollHeight correcto
+    textarea.style.height = 'auto';
+    // Establecer la altura al scrollHeight (con un pequeño padding extra)
+    textarea.style.height = (textarea.scrollHeight + 2) + 'px';
+}
 
 // ==========================================================================
 // FLUJO DE TRABAJO DEL EDITOR INTEGRAL (MODOS LECTURA / EDICIÓN)
@@ -38,7 +55,7 @@ function openSessionEditor(sessionId, forceEditMode = false) {
 
                 <div class="editor-title-row">
                     <span class="session-label-prefix">Sesión:</span>
-                    <input type="text" id="sessionTitleInput" class="session-input-field" value="${session.title.replace(/"/g, '&quot;')}" placeholder="Nombre de la sesión (ej: Pecho y Tríceps)" autocomplete="off" disabled>
+                    <textarea id="sessionTitleInput" class="session-input-field" placeholder="Nombre de la sesión (ej: Pecho y Tríceps)" autocomplete="off" readonly>${session.title}</textarea>
                 </div>
 
                 ${forceEditMode ? `
@@ -111,6 +128,17 @@ function openSessionEditor(sessionId, forceEditMode = false) {
         }
         actionBtn.onclick = enableSessionEditing;
     }
+    
+    // ============================================================
+    // AJUSTAR ALTURA DEL TEXTAREA DEL TÍTULO AUTOMÁTICAMENTE
+    // ============================================================
+    setTimeout(function() {
+        ajustarAlturaTitulo();
+        const titleInput = document.getElementById('sessionTitleInput');
+        if (titleInput) {
+            titleInput.addEventListener('input', ajustarAlturaTitulo);
+        }
+    }, 50);
 }
 
 function enableSessionEditing() {
@@ -124,7 +152,14 @@ function enableSessionEditing() {
     actionBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Guardar`;
     actionBtn.onclick = saveCurrentSession;
 
-    if (titleInput) titleInput.removeAttribute('disabled');
+    if (titleInput) {
+        titleInput.removeAttribute('readonly');
+        titleInput.focus();
+        // Seleccionar todo el texto para facilitar la edición
+        titleInput.select();
+        // Ajustar altura después de quitar readonly
+        setTimeout(ajustarAlturaTitulo, 10);
+    }
     
     if (toolsContainer && editorStickyHeader) {
         const newToolsHtml = `
@@ -218,7 +253,11 @@ function saveCurrentSession() {
         actionBtn.onclick = enableSessionEditing;
     }
 
-    if (titleInput) titleInput.setAttribute('disabled', 'true');
+    if (titleInput) {
+        titleInput.setAttribute('readonly', 'true');
+        // Ajustar altura después de poner readonly
+        setTimeout(ajustarAlturaTitulo, 10);
+    }
     
     // Restaurar la estructura del modo lectura con el botón de tres puntos (sin bloqueo)
     if (editorStickyHeader) {
@@ -281,3 +320,4 @@ window.openSessionEditor = openSessionEditor;
 window.enableSessionEditing = enableSessionEditing;
 window.saveCurrentSession = saveCurrentSession;
 window.closeEditorAndReturn = closeEditorAndReturn;
+window.ajustarAlturaTitulo = ajustarAlturaTitulo;
