@@ -217,7 +217,7 @@
 .card-exercise-group {
     font-size: 11px;
     font-weight: 700;
-    color: var(--accent-color, #ccff00);
+    color: #a9a9a9;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 2px;
@@ -271,7 +271,7 @@
 }
 
 .card-exercise-notes a {
-    color: var(--accent-color, #ccff00);
+    color: #5070ff;
     text-decoration: underline;
     word-break: break-word;
 }
@@ -507,8 +507,8 @@
 
 .exercise-editor-body label {
     display: block;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
     color: #4b5563;
     margin-bottom: 2px;
     margin-top: 12px;
@@ -561,7 +561,7 @@
     padding: 12px 0 4px 0;
     font-size: 14px;
     font-weight: 700;
-    color: var(--accent-color, #ccff00);
+    color: #4b5563;
     cursor: pointer;
     user-select: none;
     border: none;

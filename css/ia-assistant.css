@@ -1,6 +1,12 @@
 /**
  * ESTILOS DE INTERFAZ: ia-assistant.css
  * Controla la pantalla de Asistente IA para creación de rutinas y sesiones.
+ * 
+ * DISEÑO: Estilo app nativa (iOS/Android)
+ * - Fondo gris claro
+ * - Secciones con fondo blanco y bordes sutiles
+ * - Sin sombras ni efectos de elevación
+ * - Sin efectos de click en contenedores
  */
 
 /* ==========================================================================
@@ -8,19 +14,23 @@
    ========================================================================== */
 
 #screen-ia-assistant {
-    background-color: var(--background-color, #fafafa);
+    background-color: var(--background-color, #f5f5f5);
 }
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
 
 .ia-header {
     position: sticky;
     top: 0;
     z-index: 100;
-    background-color: var(--background-color, #fafafa);
+    background-color: var(--background-color, #f5f5f5);
     padding: 16px 20px 14px 20px !important;
     border-bottom: 1px solid #e5e7eb;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
 }
 
@@ -32,7 +42,7 @@
 }
 
 .ia-header-top h1 {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 800;
     letter-spacing: -0.5px;
     margin: 0;
@@ -43,7 +53,13 @@
 
 .ia-header-top h1 i {
     color: var(--accent-color, #ccff00);
-    font-size: 24px;
+    font-size: 22px;
+}
+
+.ia-header p {
+    font-size: 14px;
+    color: var(--text-muted, #666666);
+    margin: 0;
 }
 
 .btn-ia-back {
@@ -59,220 +75,54 @@
     padding: 4px 0;
 }
 
-.ia-header p {
-    font-size: 14px;
-    color: var(--text-muted, #666666);
-    margin: 0;
+.btn-ia-back:active {
+    opacity: 0.6;
 }
 
 /* ==========================================================================
-   TARJETAS DE OPCIONES DEL ASISTENTE IA
+   CONTENEDOR PRINCIPAL - ESTILO APP NATIVA
    ========================================================================== */
 
-.ia-cards-grid {
-    padding: 16px 20px calc(100px + env(safe-area-inset-bottom, 20px)) 20px;
+.ia-container {
+    padding: 12px 16px calc(80px + env(safe-area-inset-bottom, 20px)) 16px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-}
-
-.ia-card {
-    background: var(--card-background, #ffffff);
-    border-radius: 20px;
-    border: 1px solid #e5e7eb;
-    padding: 20px 24px;
-    cursor: pointer;
-    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.ia-card:active {
-    transform: scale(0.97);
-    border-color: var(--accent-color, #ccff00);
-    box-shadow: 0 4px 16px rgba(204, 255, 0, 0.15);
-}
-
-.ia-card-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 8px;
-}
-
-.ia-card-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: #f3f4f6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    flex-shrink: 0;
-}
-
-.ia-card-icon.ia-icon-routine {
-    background: #e8f5e9;
-    color: #2e7d32;
-}
-
-.ia-card-icon.ia-icon-session {
-    background: #e3f2fd;
-    color: #0d47a1;
-}
-
-.ia-card-icon.ia-icon-import {
-    background: #fff3e0;
-    color: #e65100;
-}
-
-.ia-card-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--primary-color, #000000);
-    margin: 0;
-}
-
-.ia-card-desc {
-    font-size: 14px;
-    color: var(--text-muted, #666666);
-    margin: 0 0 0 64px;
-    line-height: 1.5;
-}
-
-.ia-card-badge {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 2px 10px;
-    border-radius: 20px;
-    margin-top: 6px;
-    margin-left: 64px;
-}
-
-.ia-card-badge.ia-badge-new {
-    background: var(--accent-color, #ccff00);
-    color: var(--primary-color, #000000);
+    gap: 12px;
 }
 
 /* ==========================================================================
-   MODAL DE CONFIGURACIÓN DEL ASISTENTE IA
+   SECCIONES - BLOQUES CON FONDO BLANCO
    ========================================================================== */
 
-.ia-config-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 3000;
-    padding: 20px;
-}
-
-.ia-config-modal.active {
-    display: flex;
-}
-
-.ia-config-container {
+.ia-section {
     background: #ffffff;
-    border-radius: 28px;
-    width: 100%;
-    max-width: 500px;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    animation: modalFadeIn 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    padding: 16px 18px;
+    /* Sin sombras, sin efectos de elevación */
 }
 
-@keyframes modalFadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95) translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
-.ia-config-header {
-    padding: 18px 20px 14px 20px;
-    border-bottom: 1px solid #f3f4f6;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-.ia-config-header h2 {
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.ia-config-header h2 i {
-    font-size: 20px;
-}
-
-.ia-config-close {
-    background: #f3f4f6;
-    border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 16px;
-    cursor: pointer;
-    color: var(--primary-color, #000000);
-    transition: transform 0.1s ease;
-}
-
-.ia-config-close:active {
-    transform: scale(0.9);
-}
-
-.ia-config-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px 20px 16px 20px;
-}
-
-.ia-config-body .ia-section-title {
+.ia-section-title {
     font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #9ca3af;
-    margin: 16px 0 8px 0;
+    margin: 0 0 10px 0;
 }
 
-.ia-config-body .ia-section-title:first-of-type {
+.ia-section-title:not(:first-child) {
     margin-top: 0;
 }
 
 /* ==========================================================================
-   ELEMENTOS DE CONFIGURACIÓN DEL IA
+   GRUPO DE OPCIONES (botones tipo chip)
    ========================================================================== */
 
 .ia-option-group {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 4px;
 }
 
 .ia-option-btn {
@@ -299,192 +149,331 @@
     color: var(--primary-color, #000000);
 }
 
-.ia-option-btn.ia-mode-btn {
+.ia-option-btn.ia-type-btn {
     flex: 1;
     min-width: 60px;
     text-align: center;
     padding: 10px 12px;
-    font-size: 14px;
+    font-size: 13px;
 }
 
-.ia-option-btn.ia-mode-btn i {
+.ia-option-btn.ia-type-btn i {
     margin-right: 6px;
 }
 
-.ia-option-btn.ia-mode-btn.selected {
+.ia-option-btn.ia-type-btn.selected {
     background: var(--primary-color, #000000);
     border-color: var(--primary-color, #000000);
     color: #ffffff;
 }
 
-/* Multiselect de ejercicios */
-.ia-exercise-select {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 8px 0;
-    max-height: 120px;
-    overflow-y: auto;
-}
+/* ==========================================================================
+   EXPANDIBLES (Ejercicios y Material)
+   ========================================================================== */
 
-.ia-exercise-select .ia-exercise-chip {
-    padding: 6px 14px;
-    border-radius: 16px;
-    border: 1.5px solid #e5e7eb;
-    background: #ffffff;
-    font-size: 12px;
-    font-weight: 600;
-    color: #4b5563;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    user-select: none;
-    -webkit-user-select: none;
-}
-
-.ia-exercise-select .ia-exercise-chip:active {
-    transform: scale(0.95);
-}
-
-.ia-exercise-select .ia-exercise-chip.selected {
-    background: var(--accent-color, #ccff00);
-    border-color: var(--accent-color, #ccff00);
-    color: var(--primary-color, #000000);
-}
-
-/* Inputs y selects */
-.ia-config-body label {
-    display: block;
+.ia-expand-toggle {
+    background: none;
+    border: none;
     font-size: 14px;
     font-weight: 600;
     color: #374151;
-    margin-bottom: 4px;
-    margin-top: 12px;
+    cursor: pointer;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
 }
 
-.ia-config-body label:first-of-type {
+.ia-expand-toggle:active {
+    opacity: 0.6;
+}
+
+.ia-expand-toggle i {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.ia-expand-toggle .ia-expand-icon {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ia-expand-toggle .ia-expand-icon.open {
+    transform: rotate(90deg);
+}
+
+.ia-expand-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #f9fafb;
+    border-radius: 10px;
     margin-top: 0;
 }
 
-.ia-config-body input,
-.ia-config-body select,
-.ia-config-body textarea {
-    width: 100%;
-    padding: 12px 14px;
-    border-radius: 14px;
-    border: 1px solid #e5e7eb;
-    font-size: 15px;
-    outline: none;
-    background-color: #ffffff;
-    transition: border-color 0.15s ease;
-    font-family: inherit;
-    color: var(--primary-color, #000000);
-    box-sizing: border-box;
+.ia-expand-container.open {
+    max-height: 300px;
+    padding: 4px 0;
+    margin-top: 8px;
 }
 
-.ia-config-body input:focus,
-.ia-config-body select:focus,
-.ia-config-body textarea:focus {
-    border-color: var(--primary-color, #000000);
-}
-
-.ia-config-body textarea {
-    min-height: 80px;
-    resize: vertical;
-    line-height: 1.5;
-}
-
-.ia-config-body select {
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 16px;
-}
-
-/* ==========================================================================
-   FOOTER DEL MODAL DE CONFIGURACIÓN
-   ========================================================================== */
-
-.ia-config-footer {
-    padding: 14px 20px 20px 20px;
-    border-top: 1px solid #f3f4f6;
+.ia-expand-container .ia-expand-content {
+    padding: 10px 14px;
     display: flex;
-    gap: 12px;
-    flex-shrink: 0;
+    flex-direction: column;
+    gap: 2px;
 }
 
-.ia-config-footer .ia-btn {
-    flex: 1;
-    padding: 14px 0;
-    border: none;
-    border-radius: 14px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.1s ease, background-color 0.1s ease;
+/* Checkboxes dentro de expandibles */
+.ia-expand-container .muscle-check {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
+    gap: 10px;
+    padding: 6px 0;
+    cursor: pointer;
+    font-size: 14px;
+    color: #374151;
 }
 
-.ia-config-footer .ia-btn:active {
-    transform: scale(0.96);
+.ia-expand-container .muscle-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    accent-color: var(--accent-color, #ccff00);
+    cursor: pointer;
 }
 
-.ia-config-footer .ia-btn-secondary {
-    background: #f3f4f6;
-    color: #4b5563;
+.ia-expand-container .muscle-check .muscle-label {
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.3;
 }
 
-.ia-config-footer .ia-btn-secondary:active {
-    background: #e5e7eb;
-}
-
-.ia-config-footer .ia-btn-primary {
-    background: var(--accent-color, #ccff00);
-    color: var(--primary-color, #000000);
-}
-
-.ia-config-footer .ia-btn-primary:active {
-    filter: brightness(0.9);
-}
-
-.ia-config-footer .ia-btn-primary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
+/* Grid para materiales (2 columnas) */
+.ia-material-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 16px;
 }
 
 /* ==========================================================================
-   MODAL DE IMPORTACIÓN DESDE IA
+   TEXTAREA DE NOTAS
    ========================================================================== */
 
-.ia-import-textarea {
+.ia-textarea {
     width: 100%;
-    min-height: 200px;
-    padding: 14px;
-    border-radius: 14px;
+    min-height: 100px;
+    padding: 12px 14px;
+    border-radius: 12px;
     border: 1px solid #e5e7eb;
-    font-size: 14px;
-    font-family: 'Courier New', monospace;
+    font-size: 15px;
     outline: none;
-    background-color: #f9fafb;
+    background: #ffffff;
     transition: border-color 0.15s ease;
+    font-family: inherit;
     color: var(--primary-color, #000000);
     box-sizing: border-box;
     resize: vertical;
     line-height: 1.6;
 }
 
-.ia-import-textarea:focus {
+.ia-textarea:focus {
     border-color: var(--primary-color, #000000);
 }
 
-.ia-import-textarea::placeholder {
+.ia-textarea::placeholder {
+    color: #9ca3af;
+}
+
+/* ==========================================================================
+   BOTONES PRINCIPALES
+   ========================================================================== */
+
+.ia-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.ia-btn:active {
+    transform: scale(0.97);
+}
+
+.ia-btn-primary {
+    background: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+}
+
+.ia-btn-primary:active {
+    filter: brightness(0.9);
+}
+
+.ia-btn-secondary {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.ia-btn-secondary:active {
+    background: #e5e7eb;
+}
+
+.ia-btn-import {
+    background: transparent;
+    color: #4b5563;
+    border: 1.5px dashed #d1d5db;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.ia-btn-import:active {
+    background: #f3f4f6;
+}
+
+/* ==========================================================================
+   SEPARADOR
+   ========================================================================== */
+
+.ia-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.ia-divider::before,
+.ia-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+}
+
+/* ==========================================================================
+   PANTALLA DE PROMPT / RESPUESTA
+   ========================================================================== */
+
+.ia-prompt-textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    outline: none;
+    background: #f9fafb;
+    resize: vertical;
+    box-sizing: border-box;
+    line-height: 1.6;
+    color: #1f2937;
+}
+
+.ia-prompt-textarea:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+.ia-prompt-textarea::placeholder {
     color: #9ca3af;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ==========================================================================
+   VISTA PREVIA
+   ========================================================================== */
+
+.ia-preview-content {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid #e5e7eb;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #374151;
+}
+
+.ia-preview-badge {
+    display: inline-block;
+    font-size: 12px;
+    color: #9ca3af;
+    background: #f3f4f6;
+    padding: 4px 12px;
+    border-radius: 12px;
+}
+
+.ia-preview-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.ia-preview-actions .ia-btn {
+    flex: 1;
+}
+
+/* ==========================================================================
+   MODAL DE IMPORTACIÓN
+   ========================================================================== */
+
+.ia-import-json {
+    width: 100%;
+    min-height: 150px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    outline: none;
+    background: #fafafa;
+    resize: vertical;
+    box-sizing: border-box;
+    line-height: 1.6;
+    color: #1f2937;
+}
+
+.ia-import-json:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+.ia-import-json::placeholder {
+    color: #9ca3af;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ==========================================================================
+   FORMATO DE EJEMPLO (código)
+   ========================================================================== */
+
+.ia-code-block {
+    background: #f3f4f6;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #6b7280;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: 'Courier New', monospace;
+    line-height: 1.5;
 }
 
 /* ==========================================================================
@@ -493,35 +482,21 @@
 
 @media (max-width: 480px) {
     .ia-header-top h1 {
-        font-size: 24px;
-    }
-    
-    .ia-header-top h1 i {
         font-size: 20px;
     }
     
-    .ia-card {
-        padding: 16px 18px;
-    }
-    
-    .ia-card-icon {
-        width: 40px;
-        height: 40px;
+    .ia-header-top h1 i {
         font-size: 18px;
     }
     
-    .ia-card-title {
-        font-size: 16px;
+    .ia-section {
+        padding: 14px 14px;
+        border-radius: 10px;
     }
     
-    .ia-card-desc {
-        font-size: 13px;
-        margin-left: 56px;
-    }
-    
-    .ia-card-badge {
-        margin-left: 56px;
-        font-size: 9px;
+    .ia-container {
+        padding: 10px 12px calc(80px + env(safe-area-inset-bottom, 20px)) 12px;
+        gap: 10px;
     }
     
     .ia-option-btn {
@@ -529,91 +504,43 @@
         padding: 6px 12px;
     }
     
-    .ia-option-btn.ia-mode-btn {
+    .ia-option-btn.ia-type-btn {
         font-size: 12px;
         padding: 8px 10px;
+        min-width: 50px;
     }
     
-    .ia-config-container {
-        border-radius: 20px;
-        max-width: 100%;
-        margin: 10px;
+    .ia-material-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 2px 12px;
     }
     
-    .ia-config-body {
-        padding: 16px 16px 12px 16px;
-    }
-    
-    .ia-config-footer {
-        padding: 12px 16px 16px 16px;
+    .ia-preview-actions {
         flex-direction: column;
         gap: 8px;
     }
     
-    .ia-config-footer .ia-btn {
-        padding: 12px 0;
+    .ia-preview-actions .ia-btn {
+        padding: 12px;
         font-size: 14px;
     }
     
-    .ia-cards-grid {
-        padding: 12px 16px calc(80px + env(safe-area-inset-bottom, 20px)) 16px;
-    }
-    
-    .ia-exercise-select .ia-exercise-chip {
-        font-size: 11px;
-        padding: 4px 10px;
+    .ia-textarea {
+        min-height: 80px;
+        font-size: 14px;
+        padding: 10px 12px;
     }
 }
 
 @media (max-width: 360px) {
-    .ia-card {
-        padding: 14px 14px;
+    .ia-option-btn.ia-type-btn {
+        font-size: 11px;
+        padding: 6px 8px;
+        min-width: 44px;
     }
     
-    .ia-card-icon {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
+    .ia-material-grid {
+        grid-template-columns: 1fr;
+        gap: 0px;
     }
-    
-    .ia-card-title {
-        font-size: 15px;
-    }
-    
-    .ia-card-desc {
-        font-size: 12px;
-        margin-left: 52px;
-    }
-    
-    .ia-card-badge {
-        margin-left: 52px;
-    }
-}
-
-/* ==========================================================================
-   MODALES DEL ASISTENTE IA - Z-INDEX FORZADO
-   ========================================================================== */
-
-#ia-prompt-modal,
-#ia-preview-modal,
-#ia-result-modal {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    z-index: 99999 !important;
-    background-color: rgba(0, 0, 0, 0.5) !important;
-    backdrop-filter: blur(4px) !important;
-    -webkit-backdrop-filter: blur(4px) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-#ia-prompt-modal .modal-container,
-#ia-preview-modal .modal-container,
-#ia-result-modal .modal-container {
-    position: relative !important;
-    z-index: 100000 !important;
 }
