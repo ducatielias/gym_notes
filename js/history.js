@@ -295,6 +295,21 @@ function closeHistoryDetail() {
 }
 
 // ==========================================================================
+// FUNCIONES DE EDICIÓN DEL HISTORIAL (INTEGRACIÓN)
+// ==========================================================================
+
+function openHistoryEditFromCard(id) {
+    // Llamar a la función del módulo history-edit.js
+    if (typeof window.openHistoryEdit === 'function') {
+        window.openHistoryEdit(id);
+    } else {
+        console.error('[history.js] openHistoryEdit no está disponible');
+        window.showAlert('Error: El módulo de edición no está disponible.', 'Error');
+    }
+}
+
+
+// ==========================================================================
 // EXPOSICIÓN GLOBAL
 // ==========================================================================
 
@@ -304,3 +319,4 @@ window.cerrarModalHistorialEntrenoActual = cerrarModalHistorialEntrenoActual;
 window.goBackFromHistory = goBackFromHistory;
 window.viewHistoryDetail = viewHistoryDetail;
 window.closeHistoryDetail = closeHistoryDetail;
+window.openHistoryEditFromCard = openHistoryEditFromCard;

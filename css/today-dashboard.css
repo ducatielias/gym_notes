@@ -112,7 +112,7 @@
    ============================================================ */
 .today-calendar-day.today {
     outline: 3px solid #fbbf24;
-    outline-offset: 2px;
+    outline-offset: -3px;
     position: relative;
 }
 
@@ -121,7 +121,7 @@
     color: var(--primary-color, #000000);
     font-weight: 700;
     outline: 3px solid #fbbf24;
-    outline-offset: 2px;
+    outline-offset: -3px;
 }
 
 /* ==========================================================================
@@ -214,7 +214,7 @@
     
     .today-calendar-day.today {
         outline: 2px solid #fbbf24;
-        outline-offset: 1px;
+        outline-offset: -3px;
     }
     
     .today-calendar-month-year {
@@ -234,7 +234,7 @@
     
     .today-calendar-day.today {
         outline: 2px solid #fbbf24;
-        outline-offset: 1px;
+        outline-offset: -3px;
     }
     
     .today-calendar-container {
