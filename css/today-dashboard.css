@@ -251,3 +251,89 @@
         padding: 12px;
     }
 }
+
+/* ==========================================================================
+   BOTONES DE IMPORTAR/EXPORTAR DATOS
+   ========================================================================== */
+
+.today-data-buttons-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.btn-today-data {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.btn-today-data:active {
+    transform: scale(0.96);
+}
+
+.btn-today-data-import {
+    background: #f3f4f6;
+    color: #4b5563;
+    border: 1.5px solid #e5e7eb;
+}
+
+.btn-today-data-import:active {
+    background: #e5e7eb;
+}
+
+.btn-today-data-export {
+    background: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+    border: 1.5px solid var(--accent-color, #ccff00);
+}
+
+.btn-today-data-export:active {
+    filter: brightness(0.9);
+}
+
+.btn-today-data i {
+    font-size: 16px;
+}
+
+/* ==========================================================================
+   RESPONSIVE PARA BOTONES DE DATOS
+   ========================================================================== */
+
+@media (max-width: 480px) {
+    .today-data-buttons-row {
+        flex-direction: row;
+        gap: 8px;
+    }
+    
+    .btn-today-data {
+        font-size: 13px;
+        padding: 10px 12px;
+        border-radius: 12px;
+    }
+    
+    .btn-today-data i {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 360px) {
+    .today-data-buttons-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .btn-today-data {
+        font-size: 13px;
+        padding: 10px 12px;
+    }
+}

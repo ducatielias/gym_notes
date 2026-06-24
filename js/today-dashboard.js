@@ -284,7 +284,7 @@ function renderTodayDashboard() {
     // Obtener historial para ver si hay datos
     const historyDB = getHistoryDB();
 
-    // Renderizar el contenido - PRIMERO EL BOTÓN, LUEGO EL CALENDARIO
+    // Renderizar el contenido - PRIMERO EL BOTÓN, LUEGO EL CALENDARIO, LUEGO BOTONES DE IMPORTAR/EXPORTAR
     dashboardContent.innerHTML = `
         <!-- Botón Entrenamiento Libre -->
         <button class="btn-today-entrenamiento-libre" onclick="iniciarEntrenamientoLibreToday()">
@@ -293,6 +293,16 @@ function renderTodayDashboard() {
         
         <!-- Calendario -->
         <div class="today-calendar-container" id="today-calendar-container"></div>
+        
+        <!-- Botones de Importar/Exportar Datos -->
+        <div class="today-data-buttons-row">
+            <button class="btn-today-data btn-today-data-import" onclick="openImportDataModal()">
+                <i class="fa-solid fa-file-import"></i> Importar datos
+            </button>
+            <button class="btn-today-data btn-today-data-export" onclick="openExportDataModal()">
+                <i class="fa-solid fa-file-export"></i> Exportar datos
+            </button>
+        </div>
         
         ${historyDB.length === 0 ? `
             <div class="today-empty-state">
