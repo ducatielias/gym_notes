@@ -3,7 +3,7 @@
  * Renderizado de la página de historial: lista de entrenamientos, tarjetas, estadísticas
  * 
  * MODIFICADO: Menú de opciones simplificado: Exportar JSON, Importar Historial, Borrar todo
- * MODIFICADO: Añadido botón "Editar" en las tarjetas del historial
+ * MODIFICADO: Eliminado el botón "Editar" de las tarjetas del historial
  */
 
 // ==========================================================================
@@ -181,10 +181,7 @@ function renderHistory() {
                         <div class="card-history-content">${tieneContenido ? linkifyHistoryHTML(item.contenido_editado) : '<em>Sin anotaciones</em>'}</div>
                         <div class="card-history-actions">
                             <button class="btn-history-action btn-history-action-view" onclick="event.stopPropagation(); viewHistoryDetail('${item.id}')">
-                                <i class="fa-solid fa-eye"></i> Ver completo
-                            </button>
-                            <button class="btn-history-action btn-history-action-edit" onclick="event.stopPropagation(); openHistoryEditFromCard('${item.id}')">
-                                <i class="fa-solid fa-pen"></i> Editar
+                                <i class="fa-solid fa-eye"></i> Ver
                             </button>
                             <button class="btn-history-action btn-history-action-share" onclick="event.stopPropagation(); shareHistoryItem('${item.id}')">
                                 <i class="fa-solid fa-share-nodes"></i> Compartir

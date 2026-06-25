@@ -4,10 +4,12 @@
  * Permite modificar fecha, hora y contenido (con editor Quill).
  * 
  * FUNCIONALIDADES:
- * - Abrir edición desde la tarjeta de historial.
+ * - Abrir edición desde el detalle del historial.
  * - Renderizar formulario con fecha, hora y editor Quill.
  * - Guardar cambios en localStorage y reordenar por fecha.
  * - Cancelar edición sin guardar.
+ * 
+ * MODIFICADO: Añadida función openHistoryEditFromDetail()
  */
 
 // ==========================================================================
@@ -38,7 +40,7 @@ function openHistoryEdit(id) {
     if (!container) return;
     
     renderHistoryEdit(container, item);
-    switchTab('history-detail');
+    // No cambiamos de pestaña porque ya estamos en history-detail
 }
 
 // ==========================================================================
@@ -314,10 +316,34 @@ function closeHistoryEdit() {
 }
 
 // ==========================================================================
+// ABRIR EDICIÓN DESDE EL DETALLE DEL HISTORIAL
+// ==========================================================================
+
+function openHistoryEditFromDetail(id) {
+    console.log('[history-edit] Abriendo edición desde el detalle para ID:', id);
+    
+    const item = getHistoryRecord(id);
+    if (!item) {
+        window.showAlert('Registro no encontrado.', 'Error');
+        return;
+    }
+    
+    historyEditingId = id;
+    historyEditOriginalItem = JSON.parse(JSON.stringify(item)); // Copia para cancelar
+    
+    const container = document.getElementById('history-detail-ui');
+    if (!container) return;
+    
+    renderHistoryEdit(container, item);
+    // No cambiamos de pestaña porque ya estamos en history-detail
+}
+
+// ==========================================================================
 // EXPOSICIÓN GLOBAL
 // ==========================================================================
 
 window.openHistoryEdit = openHistoryEdit;
+window.openHistoryEditFromDetail = openHistoryEditFromDetail;
 window.saveHistoryEdit = saveHistoryEdit;
 window.cancelHistoryEdit = cancelHistoryEdit;
 window.closeHistoryEdit = closeHistoryEdit;

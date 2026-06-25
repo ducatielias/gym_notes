@@ -283,7 +283,7 @@
 
 .btn-today-data-import {
     background: #f3f4f6;
-    color: #4b5563;
+    color: var(--primary-color, #000000);
     border: 1.5px solid #e5e7eb;
 }
 
@@ -292,13 +292,13 @@
 }
 
 .btn-today-data-export {
-    background: var(--accent-color, #ccff00);
+    background: #f3f4f6;
     color: var(--primary-color, #000000);
-    border: 1.5px solid var(--accent-color, #ccff00);
+    border: 1.5px solid #e5e7eb;
 }
 
 .btn-today-data-export:active {
-    filter: brightness(0.9);
+    background: #e5e7eb;
 }
 
 .btn-today-data i {

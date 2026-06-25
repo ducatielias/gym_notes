@@ -278,7 +278,7 @@
     overflow: hidden;
     transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 0 16px;
-    background-color: #f9fafb;
+    background-color: #ffffff;
 }
 
 .card-history.expanded .card-history-body {
@@ -292,7 +292,7 @@
     white-space: pre-wrap;
     word-break: break-word;
     padding: 12px;
-    background: #ffffff;
+    background: #f9fafb;
     border-radius: 10px;
     border: 1px solid #f3f4f6;
     max-height: 200px;
@@ -744,6 +744,151 @@
         min-width: auto;
     }
     
+    .btn-history-detail-save {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    #history-edit-editor-container {
+        height: 220px !important;
+    }
+}
+
+@media (max-width: 360px) {
+    #history-edit-editor-container {
+        height: 180px !important;
+    }
+}
+
+/* ==========================================================================
+   ESTILOS PARA EDICIÓN DEL HISTORIAL
+   ========================================================================== */
+
+/* Botón Editar en el header del detalle del historial */
+.btn-history-detail-edit {
+    background-color: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.1s ease, transform 0.1s ease;
+}
+
+.btn-history-detail-edit:active {
+    transform: scale(0.96);
+    filter: brightness(0.9);
+}
+
+/* Botón Guardar en el header del detalle */
+.btn-history-detail-save {
+    background-color: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.1s ease, transform 0.1s ease;
+}
+
+.btn-history-detail-save:active {
+    transform: scale(0.96);
+    filter: brightness(0.9);
+}
+
+/* Fila de fecha y hora en edición */
+.history-edit-datetime-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.history-edit-field {
+    flex: 1;
+    min-width: 120px;
+}
+
+.history-edit-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 4px;
+}
+
+.history-edit-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    font-size: 15px;
+    outline: none;
+    background-color: #ffffff;
+    transition: border-color 0.15s ease;
+    font-family: inherit;
+    color: var(--primary-color, #000000);
+    box-sizing: border-box;
+}
+
+.history-edit-input:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+/* Editor Quill en el historial */
+#history-edit-editor-container .ql-toolbar {
+    border: none !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    background: #f9fafb;
+    border-radius: 12px 12px 0 0;
+}
+
+#history-edit-editor-container .ql-container {
+    border: none !important;
+    border-radius: 0 0 12px 12px;
+    background: white;
+    height: calc(100% - 42px);
+}
+
+#history-edit-editor-container .ql-editor {
+    padding: 16px !important;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #1f2937;
+    min-height: 200px;
+}
+
+#history-edit-editor-container .ql-editor.ql-blank::before {
+    left: 16px !important;
+    color: #9ca3af;
+    font-style: normal;
+}
+
+/* ==========================================================================
+   RESPONSIVE PARA EDICIÓN
+   ========================================================================== */
+
+@media (max-width: 480px) {
+    .history-edit-datetime-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .history-edit-field {
+        min-width: auto;
+    }
+    
+    .btn-history-detail-edit,
     .btn-history-detail-save {
         font-size: 12px;
         padding: 6px 12px;

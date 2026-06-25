@@ -2,6 +2,8 @@
  * MÓDULO: history.js
  * PUNTO DE ENTRADA del módulo de Historial
  * Coordina la inicialización y las funciones de integración con el entrenamiento
+ * 
+ * MODIFICADO: Añadido botón "Editar" en el detalle del historial
  */
 
 // ==========================================================================
@@ -251,6 +253,9 @@ function viewHistoryDetail(id) {
                     <button class="btn-history-detail-close" onclick="closeHistoryDetail()" title="Volver">
                         <i class="fa-solid fa-chevron-left"></i>
                     </button>
+                    <button class="btn-history-detail-edit" onclick="openHistoryEditFromDetail('${item.id}')" title="Editar">
+                        <i class="fa-solid fa-pen"></i> Editar
+                    </button>
                 </div>
 
                 <div class="history-detail-title-row">
@@ -295,10 +300,10 @@ function closeHistoryDetail() {
 }
 
 // ==========================================================================
-// FUNCIONES DE EDICIÓN DEL HISTORIAL (INTEGRACIÓN)
+// FUNCIÓN PARA ABRIR EDICIÓN DESDE EL DETALLE (INTEGRACIÓN)
 // ==========================================================================
 
-function openHistoryEditFromCard(id) {
+function openHistoryEditFromDetail(id) {
     // Llamar a la función del módulo history-edit.js
     if (typeof window.openHistoryEdit === 'function') {
         window.openHistoryEdit(id);
@@ -307,7 +312,6 @@ function openHistoryEditFromCard(id) {
         window.showAlert('Error: El módulo de edición no está disponible.', 'Error');
     }
 }
-
 
 // ==========================================================================
 // EXPOSICIÓN GLOBAL
@@ -319,4 +323,4 @@ window.cerrarModalHistorialEntrenoActual = cerrarModalHistorialEntrenoActual;
 window.goBackFromHistory = goBackFromHistory;
 window.viewHistoryDetail = viewHistoryDetail;
 window.closeHistoryDetail = closeHistoryDetail;
-window.openHistoryEditFromCard = openHistoryEditFromCard;
+window.openHistoryEditFromDetail = openHistoryEditFromDetail;
