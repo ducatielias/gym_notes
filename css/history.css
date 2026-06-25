@@ -1,6 +1,10 @@
 /**
  * ESTILOS DE INTERFAZ: history.css
  * Controla la pantalla de historial: lista de entrenamientos, filtros, búsqueda y detalles.
+ * 
+ * MODIFICADO: Estructura mejorada para animación fluida de tarjetas (solución Gemini)
+ * MODIFICADO: Añadidos estilos para el botón "Editar" en el detalle del historial
+ * MODIFICADO: Añadidos estilos para el modo edición (fecha/hora, editor Quill)
  */
 
 /* ==========================================================================
@@ -182,7 +186,7 @@
 }
 
 /* ==========================================================================
-   TARJETAS DE HISTORIAL
+   TARJETAS DE HISTORIAL - ESTRUCTURA MEJORADA PARA ANIMACIÓN FLUIDA
    ========================================================================== */
 
 .card-history {
@@ -270,21 +274,30 @@
 }
 
 /* ==========================================================================
-   CUERPO DE TARJETA DE HISTORIAL (EXPANDIBLE)
+   CUERPO DE TARJETA DE HISTORIAL - ANIMACIÓN MEJORADA
    ========================================================================== */
 
+/* El contenedor que se anima: NUNCA debe tener padding ni margin vertical */
 .card-history-body {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 0 16px;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     background-color: #ffffff;
+    /* Sin padding aquí - el padding está en el inner */
 }
 
-.card-history.expanded .card-history-body {
+/* El contenedor interno: mantiene su padding fijo siempre */
+.card-history-inner {
     padding: 16px 16px 20px 16px;
 }
 
+/* Cuando la tarjeta está expandida, el body se abre */
+.card-history.expanded .card-history-body {
+    max-height: 500px; /* Valor inicial, luego JS lo sobreescribe */
+    overflow: hidden;
+}
+
+/* Contenido interno de la tarjeta */
 .card-history-content {
     font-size: 14px;
     line-height: 1.6;
@@ -300,7 +313,7 @@
 }
 
 .card-history-content a {
-    color: var(--accent-color, #ccff00);
+    color: #496bff;
     text-decoration: underline;
     word-break: break-word;
 }
@@ -590,177 +603,6 @@
 }
 
 /* ==========================================================================
-   RESPONSIVE
-   ========================================================================== */
-
-@media (max-width: 480px) {
-    .card-history-actions {
-        gap: 6px;
-    }
-    
-    .btn-history-action {
-        font-size: 11px;
-        padding: 8px 0;
-        min-width: 36px;
-    }
-    
-    .btn-history-action i {
-        font-size: 12px;
-    }
-    
-    .card-history-icon {
-        width: 38px;
-        height: 38px;
-        font-size: 15px;
-    }
-    
-    .card-history-title {
-        font-size: 15px;
-    }
-    
-    .history-header-top h1 {
-        font-size: 24px;
-    }
-    
-    .history-filter-bar select {
-        font-size: 12px;
-        padding: 8px 10px;
-        min-width: 60px;
-    }
-    
-    .history-detail-body {
-        padding: 12px 12px 100px 12px;
-    }
-    
-    .history-grid {
-        padding: 12px 12px calc(100px + env(safe-area-inset-bottom, 20px)) 12px;
-    }
-}
-
-/* ==========================================================================
-   ESTILOS PARA EDICIÓN DEL HISTORIAL
-   ========================================================================== */
-
-/* Botón Guardar en el header del detalle */
-.btn-history-detail-save {
-    background-color: var(--accent-color, #ccff00);
-    color: var(--primary-color, #000000);
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: background-color 0.1s ease, transform 0.1s ease;
-}
-
-.btn-history-detail-save:active {
-    transform: scale(0.96);
-    filter: brightness(0.9);
-}
-
-/* Fila de fecha y hora en edición */
-.history-edit-datetime-row {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
-}
-
-.history-edit-field {
-    flex: 1;
-    min-width: 120px;
-}
-
-.history-edit-field label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #4b5563;
-    margin-bottom: 4px;
-}
-
-.history-edit-input {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
-    font-size: 15px;
-    outline: none;
-    background-color: #ffffff;
-    transition: border-color 0.15s ease;
-    font-family: inherit;
-    color: var(--primary-color, #000000);
-    box-sizing: border-box;
-}
-
-.history-edit-input:focus {
-    border-color: var(--primary-color, #000000);
-}
-
-/* Editor Quill en el historial */
-#history-edit-editor-container .ql-toolbar {
-    border: none !important;
-    border-bottom: 1px solid #e5e7eb !important;
-    background: #f9fafb;
-    border-radius: 12px 12px 0 0;
-}
-
-#history-edit-editor-container .ql-container {
-    border: none !important;
-    border-radius: 0 0 12px 12px;
-    background: white;
-    height: calc(100% - 42px);
-}
-
-#history-edit-editor-container .ql-editor {
-    padding: 16px !important;
-    font-size: 15px;
-    line-height: 1.7;
-    color: #1f2937;
-    min-height: 200px;
-}
-
-#history-edit-editor-container .ql-editor.ql-blank::before {
-    left: 16px !important;
-    color: #9ca3af;
-    font-style: normal;
-}
-
-/* ==========================================================================
-   RESPONSIVE PARA EDICIÓN
-   ========================================================================== */
-
-@media (max-width: 480px) {
-    .history-edit-datetime-row {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .history-edit-field {
-        min-width: auto;
-    }
-    
-    .btn-history-detail-save {
-        font-size: 12px;
-        padding: 6px 12px;
-    }
-    
-    #history-edit-editor-container {
-        height: 220px !important;
-    }
-}
-
-@media (max-width: 360px) {
-    #history-edit-editor-container {
-        height: 180px !important;
-    }
-}
-
-/* ==========================================================================
    ESTILOS PARA EDICIÓN DEL HISTORIAL
    ========================================================================== */
 
@@ -875,10 +717,53 @@
 }
 
 /* ==========================================================================
-   RESPONSIVE PARA EDICIÓN
+   RESPONSIVE
    ========================================================================== */
 
 @media (max-width: 480px) {
+    .card-history-actions {
+        gap: 6px;
+    }
+    
+    .btn-history-action {
+        font-size: 11px;
+        padding: 8px 0;
+        min-width: 36px;
+    }
+    
+    .btn-history-action i {
+        font-size: 12px;
+    }
+    
+    .card-history-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 15px;
+    }
+    
+    .card-history-title {
+        font-size: 15px;
+    }
+    
+    .history-header-top h1 {
+        font-size: 24px;
+    }
+    
+    .history-filter-bar select {
+        font-size: 12px;
+        padding: 8px 10px;
+        min-width: 60px;
+    }
+    
+    .history-detail-body {
+        padding: 12px 12px 100px 12px;
+    }
+    
+    .history-grid {
+        padding: 12px 12px calc(100px + env(safe-area-inset-bottom, 20px)) 12px;
+    }
+
+    /* Responsive para edición */
     .history-edit-datetime-row {
         flex-direction: column;
         gap: 10px;

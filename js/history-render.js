@@ -4,6 +4,7 @@
  * 
  * MODIFICADO: Menú de opciones simplificado: Exportar JSON, Importar Historial, Borrar todo
  * MODIFICADO: Eliminado el botón "Editar" de las tarjetas del historial
+ * MODIFICADO: Animación de expansión mejorada (solución Gemini - sin layout thrashing)
  */
 
 // ==========================================================================
@@ -178,17 +179,19 @@ function renderHistory() {
                         <i class="fa-solid fa-chevron-down card-history-chevron"></i>
                     </div>
                     <div class="card-history-body">
-                        <div class="card-history-content">${tieneContenido ? linkifyHistoryHTML(item.contenido_editado) : '<em>Sin anotaciones</em>'}</div>
-                        <div class="card-history-actions">
-                            <button class="btn-history-action btn-history-action-view" onclick="event.stopPropagation(); viewHistoryDetail('${item.id}')">
-                                <i class="fa-solid fa-eye"></i> Ver
-                            </button>
-                            <button class="btn-history-action btn-history-action-share" onclick="event.stopPropagation(); shareHistoryItem('${item.id}')">
-                                <i class="fa-solid fa-share-nodes"></i> Compartir
-                            </button>
-                            <button class="btn-history-action btn-history-action-delete" onclick="event.stopPropagation(); deleteHistoryItem('${item.id}')">
-                                <i class="fa-solid fa-trash-can"></i> Eliminar
-                            </button>
+                        <div class="card-history-inner">
+                            <div class="card-history-content">${tieneContenido ? linkifyHistoryHTML(item.contenido_editado) : '<em>Sin anotaciones</em>'}</div>
+                            <div class="card-history-actions">
+                                <button class="btn-history-action btn-history-action-view" onclick="event.stopPropagation(); viewHistoryDetail('${item.id}')">
+                                    <i class="fa-solid fa-eye"></i> Ver
+                                </button>
+                                <button class="btn-history-action btn-history-action-share" onclick="event.stopPropagation(); shareHistoryItem('${item.id}')">
+                                    <i class="fa-solid fa-share-nodes"></i> Compartir
+                                </button>
+                                <button class="btn-history-action btn-history-action-delete" onclick="event.stopPropagation(); deleteHistoryItem('${item.id}')">
+                                    <i class="fa-solid fa-trash-can"></i> Eliminar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -233,32 +236,69 @@ function linkifyHistoryHTML(html) {
 }
 
 // ==========================================================================
-// TARJETAS EXPANDIBLES
+// TARJETAS EXPANDIBLES (VERSIÓN MEJORADA - SOLUCIÓN GEMINI)
 // ==========================================================================
 
 function toggleHistoryCard(id) {
     const card = document.getElementById(`history-card-${id}`);
     if (!card) return;
-    
+
+    // Cerrar otras tarjetas expandidas
     document.querySelectorAll('.card-history.expanded').forEach(el => {
         if (el.id !== `history-card-${id}`) {
             el.classList.remove('expanded');
             const body = el.querySelector('.card-history-body');
-            if (body) body.style.maxHeight = null;
+            if (body) {
+                body.style.maxHeight = '0px';
+                body.style.overflow = 'hidden';
+            }
         }
     });
 
     const isExpanding = !card.classList.contains('expanded');
+    const body = card.querySelector('.card-history-body');
+    
+    if (!body) return;
+
     if (isExpanding) {
+        // Añadir la clase expanded primero (para que el inner se muestre)
         card.classList.add('expanded');
-        const body = card.querySelector('.card-history-body');
-        if (body) {
-            body.style.maxHeight = body.scrollHeight + 60 + 'px';
-        }
+        
+        // Forzar un reflow rápido antes de medir
+        void body.offsetHeight;
+        
+        // Medir el scrollHeight real (el inner tiene el padding fijo)
+        const height = body.scrollHeight;
+        body.style.maxHeight = height + 'px';
+        body.style.overflow = 'hidden';
+        
+        // Cuando termine la animación, remover max-height para que sea 100% responsivo
+        // y permitir que el contenido crezca dinámicamente si es necesario
+        const onTransitionEnd = function(e) {
+            if (e.propertyName === 'max-height' && card.classList.contains('expanded')) {
+                body.style.maxHeight = 'none';
+                body.style.overflow = 'visible';
+                body.removeEventListener('transitionend', onTransitionEnd);
+            }
+        };
+        body.addEventListener('transitionend', onTransitionEnd);
+        
     } else {
+        // Si estaba en 'none', primero reasignamos la altura actual en px
+        // para que haya transición al colapsar
+        if (body.style.maxHeight === 'none' || !body.style.maxHeight) {
+            body.style.maxHeight = body.scrollHeight + 'px';
+            // Forzar un único reflow rápido antes de colapsar
+            void body.offsetHeight;
+        }
+        
         card.classList.remove('expanded');
-        const body = card.querySelector('.card-history-body');
-        if (body) body.style.maxHeight = null;
+        
+        // Usar requestAnimationFrame para asegurar que el navegador procese el cambio a 0
+        requestAnimationFrame(() => {
+            body.style.maxHeight = '0px';
+            body.style.overflow = 'hidden';
+        });
     }
 }
 
