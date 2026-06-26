@@ -1,6 +1,10 @@
 /**
  * ESTILOS DE INTERFAZ: gym-exercises.css
  * Controla la página de ejercicios, tarjetas, filtros, búsqueda y editor de ejercicios.
+ * 
+ * MODIFICADO: Estructura mejorada para animación fluida de tarjetas (solución Gemini)
+ * MODIFICADO: Añadida opción "Borrar todos los ejercicios" en el menú de opciones
+ * MODIFICADO: Orden de elementos al expandir: botones primero, notas después
  */
 
 /* ==========================================================================
@@ -175,7 +179,7 @@
 }
 
 /* ==========================================================================
-   TARJETAS DE EJERCICIOS
+   TARJETAS DE EJERCICIOS - ESTRUCTURA MEJORADA PARA ANIMACIÓN FLUIDA
    ========================================================================== */
 
 .card-exercise {
@@ -243,19 +247,27 @@
 }
 
 /* ==========================================================================
-   CUERPO DE TARJETA (EXPANDIBLE)
+   CUERPO DE TARJETA (EXPANDIBLE) - VERSIÓN MEJORADA PARA ANIMACIÓN FLUIDA
    ========================================================================== */
 
+/* El contenedor que se anima: NUNCA debe tener padding ni margin vertical */
 .card-exercise-body {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 0 16px;
-    background-color: #f9fafb;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: #ffffff;
+    /* Sin padding aquí - el padding está en el inner */
 }
 
+/* El contenedor interno: mantiene su padding fijo siempre */
+.card-exercise-inner {
+    padding: 0px 16px 20px 16px;
+}
+
+/* Cuando la tarjeta está expandida, el body se abre */
 .card-exercise.expanded .card-exercise-body {
-    padding: 16px 16px 20px 16px;
+    max-height: 500px; /* Valor inicial, luego JS lo sobreescribe */
+    overflow: hidden;
 }
 
 .card-exercise-notes {
@@ -265,9 +277,10 @@
     white-space: pre-wrap;
     word-break: break-word;
     padding: 12px;
-    background: #ffffff;
+    background: #f9fafb;
     border-radius: 10px;
     border: 1px solid #f3f4f6;
+    margin-top: 12px; /* Separación de los botones */
 }
 
 .card-exercise-notes a {

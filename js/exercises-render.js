@@ -4,6 +4,8 @@
  * 
  * MODIFICADO: Añadida opción "Borrar todos los ejercicios" en el menú de opciones
  * CORREGIDO: El input de búsqueda ya no pierde el foco al escribir
+ * MODIFICADO: Animación de expansión con CSS Grid (solución Gemini - sin cálculos JS)
+ * MODIFICADO: Orden de los elementos al expandir: botones primero, notas después
  */
 
 // ==========================================================================
@@ -175,26 +177,30 @@ function renderExercises() {
                         <i class="fa-solid fa-chevron-down card-exercise-chevron"></i>
                     </div>
                     <div class="card-exercise-body">
-                        <div class="card-exercise-notes">${linkifyExerciseHTML(ex.notas || 'Sin notas adicionales.')}</div>
-                        <div class="card-exercise-actions">
-                            <button class="btn-exercise-action btn-exercise-action-video" onclick="event.stopPropagation(); openExerciseVideo('${ex.video || ''}')" ${!hasVideo ? 'disabled' : ''} data-tooltip="Vídeo">
-                                <i class="fa-solid fa-play"></i>
-                            </button>
-                            <button class="btn-exercise-action btn-exercise-action-share" onclick="event.stopPropagation(); shareExercise('${ex.id}')" data-tooltip="Compartir">
-                                <i class="fa-solid fa-share-nodes"></i>
-                            </button>
-                            <button class="btn-exercise-action btn-exercise-action-history" onclick="event.stopPropagation(); showExerciseHistory('${nombreEscapado}')" data-tooltip="Historial">
-                                <i class="fa-solid fa-clock-rotate-left"></i>
-                            </button>
-                            <button class="btn-exercise-action btn-exercise-action-web" onclick="event.stopPropagation(); searchExerciseOnWeb('${nombreEscapado}')" data-tooltip="Buscar en web">
-                                <i class="fa-solid fa-globe"></i>
-                            </button>
-                            <button class="btn-exercise-action btn-exercise-action-edit" onclick="event.stopPropagation(); openExerciseModal('${ex.id}')" data-tooltip="Editar">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button class="btn-exercise-action btn-exercise-action-delete" onclick="event.stopPropagation(); deleteExercise('${ex.id}')" data-tooltip="Eliminar">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
+                        <div class="card-exercise-inner">
+                            <!-- PRIMERO: BOTONES DE ACCIÓN -->
+                            <div class="card-exercise-actions">
+                                <button class="btn-exercise-action btn-exercise-action-video" onclick="event.stopPropagation(); openExerciseVideo('${ex.video || ''}')" ${!hasVideo ? 'disabled' : ''} data-tooltip="Vídeo">
+                                    <i class="fa-solid fa-play"></i>
+                                </button>
+                                <button class="btn-exercise-action btn-exercise-action-share" onclick="event.stopPropagation(); shareExercise('${ex.id}')" data-tooltip="Compartir">
+                                    <i class="fa-solid fa-share-nodes"></i>
+                                </button>
+                                <button class="btn-exercise-action btn-exercise-action-history" onclick="event.stopPropagation(); showExerciseHistory('${nombreEscapado}')" data-tooltip="Historial">
+                                    <i class="fa-solid fa-clock-rotate-left"></i>
+                                </button>
+                                <button class="btn-exercise-action btn-exercise-action-web" onclick="event.stopPropagation(); searchExerciseOnWeb('${nombreEscapado}')" data-tooltip="Buscar en web">
+                                    <i class="fa-solid fa-globe"></i>
+                                </button>
+                                <button class="btn-exercise-action btn-exercise-action-edit" onclick="event.stopPropagation(); openExerciseModal('${ex.id}')" data-tooltip="Editar">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button class="btn-exercise-action btn-exercise-action-delete" onclick="event.stopPropagation(); deleteExercise('${ex.id}')" data-tooltip="Eliminar">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                            <!-- SEGUNDO: NOTAS / TÉCNICA -->
+                            <div class="card-exercise-notes">${linkifyExerciseHTML(ex.notas || 'Sin notas adicionales.')}</div>
                         </div>
                     </div>
                 </div>
@@ -274,33 +280,22 @@ function onExercisesFilterChange() {
 }
 
 // ==========================================================================
-// TARJETAS EXPANDIBLES
+// TARJETAS EXPANDIBLES (VERSIÓN CSS GRID - SIN CÁLCULOS DE ALTURA)
 // ==========================================================================
 
 function toggleExerciseCard(id) {
     const card = document.getElementById(`exercise-card-${id}`);
     if (!card) return;
     
+    // Cerrar otras tarjetas expandidas
     document.querySelectorAll('.card-exercise.expanded').forEach(el => {
         if (el.id !== `exercise-card-${id}`) {
             el.classList.remove('expanded');
-            const body = el.querySelector('.card-exercise-body');
-            if (body) body.style.maxHeight = null;
         }
     });
 
-    const isExpanding = !card.classList.contains('expanded');
-    if (isExpanding) {
-        card.classList.add('expanded');
-        const body = card.querySelector('.card-exercise-body');
-        if (body) {
-            body.style.maxHeight = body.scrollHeight + 40 + 'px';
-        }
-    } else {
-        card.classList.remove('expanded');
-        const body = card.querySelector('.card-exercise-body');
-        if (body) body.style.maxHeight = null;
-    }
+    // Alternar la clase en la tarjeta actual (CSS Grid hace el resto)
+    card.classList.toggle('expanded');
 }
 
 // ==========================================================================
