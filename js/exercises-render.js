@@ -2,10 +2,12 @@
  * MÓDULO: exercises-render.js
  * Renderizado de la página de ejercicios: lista, tarjetas, filtros y búsqueda
  * 
+ * CORREGIDO: Estructura de tarjetas y renderizado de notas
  * MODIFICADO: Añadida opción "Borrar todos los ejercicios" en el menú de opciones
  * CORREGIDO: El input de búsqueda ya no pierde el foco al escribir
  * MODIFICADO: Animación de expansión con CSS Grid (solución Gemini - sin cálculos JS)
  * MODIFICADO: Orden de los elementos al expandir: botones primero, notas después
+ * MODIFICADO: Notas con linkifyExerciseHTML que convierte URLs y saltos de línea
  */
 
 // ==========================================================================
@@ -17,12 +19,16 @@ let exercisesSearchInputRef = null;
 
 function renderExercises() {
     const container = document.getElementById('exercises-container');
-    if (!container) return;
+    if (!container) {
+        console.error('[exercises-render] Contenedor exercises-container no encontrado');
+        return;
+    }
 
     const exercises = getExercises();
     const searchTerm = exercisesSearchTerm.toLowerCase().trim();
     const filter = exercisesFilter;
 
+    // Aplicar filtros
     let filtered = exercises;
     if (filter !== 'Todos') {
         filtered = filtered.filter(ex => ex.grupo === filter);
@@ -92,37 +98,28 @@ function renderExercises() {
         // Guardar referencia al input
         input = document.getElementById('exercisesSearchInput');
         if (input) {
-            // Guardar el valor actual
             input.value = exercisesSearchTerm;
             exercisesSearchInputRef = input;
         }
         
-        // Actualizar el wrapper
         updateClearButton();
-        
-        // Actualizar el grid container
         gridContainer = document.querySelector('.exercises-grid-container');
     } else {
         // Si el header ya existe, solo actualizar el grid container
         gridContainer = document.querySelector('.exercises-grid-container');
         if (!gridContainer) {
-            // Si no hay grid container, crearlo
             gridContainer = document.createElement('div');
             gridContainer.className = 'exercises-grid-container';
             header.insertAdjacentElement('afterend', gridContainer);
         }
         
-        // Actualizar el valor del input (sin perder el foco)
         if (input) {
-            // Solo actualizar si el valor cambió (para no perder el cursor)
             if (input.value !== exercisesSearchTerm) {
                 input.value = exercisesSearchTerm;
             }
-            // Actualizar el wrapper
             updateClearButton();
         }
         
-        // Actualizar el select de filtros
         const filterSelect = document.getElementById('exercisesFilterSelect');
         if (filterSelect && filterSelect.value !== filter) {
             filterSelect.value = filter;
@@ -133,7 +130,6 @@ function renderExercises() {
     // 2. RENDERIZAR LA LISTA DE EJERCICIOS
     // ============================================================
     if (!gridContainer) {
-        // Si por algún motivo no hay grid container, crearlo
         gridContainer = document.createElement('div');
         gridContainer.className = 'exercises-grid-container';
         if (header) {
@@ -165,6 +161,9 @@ function renderExercises() {
             const imgSrc = ex.img || getExercisePlaceholder(ex.nombre);
             const nombreEscapado = ex.nombre.replace(/'/g, "\\'");
             const hasVideo = ex.video && ex.video.trim() !== '';
+            
+            // IMPORTANTE: Procesar las notas correctamente con linkifyExerciseHTML
+            const notasProcesadas = ex.notas ? linkifyExerciseHTML(ex.notas) : 'Sin notas adicionales.';
             
             html += `
                 <div class="card-exercise" id="exercise-card-${ex.id}">
@@ -200,7 +199,7 @@ function renderExercises() {
                                 </button>
                             </div>
                             <!-- SEGUNDO: NOTAS / TÉCNICA -->
-                            <div class="card-exercise-notes">${linkifyExerciseHTML(ex.notas || 'Sin notas adicionales.')}</div>
+                            <div class="card-exercise-notes">${notasProcesadas}</div>
                         </div>
                     </div>
                 </div>
@@ -241,9 +240,7 @@ function onExercisesSearch() {
     renderExercises();
 }
 
-// Función para capturar el foco del input
 function onExercisesSearchFocus() {
-    // Guardar referencia al input
     const input = document.getElementById('exercisesSearchInput');
     if (input) {
         exercisesSearchInputRef = input;
@@ -314,8 +311,19 @@ function getExercisePlaceholder(text) {
 
 function linkifyExerciseHTML(html) {
     if (!html) return 'Sin notas adicionales.';
+    
+    // Escapar caracteres HTML para evitar inyección (opcional, pero recomendado)
+    // Si tus notas pueden contener HTML seguro, omite esta línea
+    // let text = html;
+    
+    // Convertir saltos de línea a <br>
+    let text = html.replace(/\n/g, '<br>');
+    
+    // Convertir URLs en enlaces clicables
     const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-    return html.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+    text = text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+    
+    return text;
 }
 
 function openExerciseLightbox(src) {

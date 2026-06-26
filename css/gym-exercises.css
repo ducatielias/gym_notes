@@ -2,9 +2,12 @@
  * ESTILOS DE INTERFAZ: gym-exercises.css
  * Controla la página de ejercicios, tarjetas, filtros, búsqueda y editor de ejercicios.
  * 
- * MODIFICADO: Estructura mejorada para animación fluida de tarjetas (solución Gemini)
+ * MODIFICADO: Estructura mejorada para animación fluida de tarjetas (CSS Grid)
  * MODIFICADO: Añadida opción "Borrar todos los ejercicios" en el menú de opciones
  * MODIFICADO: Orden de elementos al expandir: botones primero, notas después
+ * MODIFICADO: Notas con scroll para contenido largo (max-height + overflow-y)
+ * CORREGIDO: El padding vertical se aplica SOLO cuando la tarjeta está expandida.
+ *           Esto permite que grid-template-rows: 0fr colapse completamente a 0px.
  */
 
 /* ==========================================================================
@@ -179,7 +182,7 @@
 }
 
 /* ==========================================================================
-   TARJETAS DE EJERCICIOS - ESTRUCTURA MEJORADA PARA ANIMACIÓN FLUIDA
+   TARJETAS DE EJERCICIOS - ESTRUCTURA CON CSS GRID
    ========================================================================== */
 
 .card-exercise {
@@ -247,28 +250,40 @@
 }
 
 /* ==========================================================================
-   CUERPO DE TARJETA (EXPANDIBLE) - VERSIÓN MEJORADA PARA ANIMACIÓN FLUIDA
+   CUERPO DE TARJETA (EXPANDIBLE) - CSS GRID CON PADDING CONDICIONAL
    ========================================================================== */
 
-/* El contenedor que se anima: NUNCA debe tener padding ni margin vertical */
+/* El contenedor body controla la altura mediante filas de Grid */
 .card-exercise-body {
-    max-height: 0;
+    display: grid;
+    grid-template-rows: 0fr; /* Colapsado - las tarjetas empiezan cerradas */
     overflow: hidden;
-    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     background-color: #ffffff;
-    /* Sin padding aquí - el padding está en el inner */
 }
 
-/* El contenedor interno: mantiene su padding fijo siempre */
-.card-exercise-inner {
-    padding: 0px 16px 20px 16px;
-}
-
-/* Cuando la tarjeta está expandida, el body se abre */
+/* Cuando se expande, la fila pasa a ocupar 1 fracción del espacio disponible */
 .card-exercise.expanded .card-exercise-body {
-    max-height: 500px; /* Valor inicial, luego JS lo sobreescribe */
-    overflow: hidden;
+    grid-template-rows: 1fr; /* Expandido */
 }
+
+/* CRITICAL: El contenedor interno DEBE tener min-height: 0 */
+/* El padding vertical es 0 por defecto para permitir el colapso total a 0px */
+.card-exercise-inner {
+    min-height: 0;
+    padding: 0px 16px 0px 16px; /* Sin padding vertical cuando está colapsado */
+    transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* El padding vertical se aplica SOLO cuando la tarjeta está expandida */
+.card-exercise.expanded .card-exercise-inner {
+    padding-top: 12px;   /* Espacio superior para separar del header */
+    padding-bottom: 20px; /* Espacio inferior original */
+}
+
+/* ==========================================================================
+   NOTAS DEL EJERCICIO - CON SCROLL PARA CONTENIDO LARGO
+   ========================================================================== */
 
 .card-exercise-notes {
     font-size: 14px;
@@ -280,13 +295,46 @@
     background: #f9fafb;
     border-radius: 10px;
     border: 1px solid #f3f4f6;
-    margin-top: 12px; /* Separación de los botones */
+    margin-top: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 480px) {
+    .card-exercise-notes {
+        max-height: 220px;
+    }
+}
+
+@media (max-width: 360px) {
+    .card-exercise-notes {
+        max-height: 160px;
+    }
 }
 
 .card-exercise-notes a {
-    color: #5070ff;
+    color: #2563eb;
     text-decoration: underline;
     word-break: break-word;
+}
+
+.card-exercise-notes::-webkit-scrollbar {
+    width: 4px;
+}
+
+.card-exercise-notes::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.card-exercise-notes::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.card-exercise-notes::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
 }
 
 /* ==========================================================================
