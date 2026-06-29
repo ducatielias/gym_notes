@@ -7,7 +7,7 @@
  * CORREGIDO: Stale-While-Revalidate optimizado
  */
 
-const CACHE_VERSION = 'gym-notes-v0-74';
+const CACHE_VERSION = 'gym-notes-v0-75';
 const CACHE_NAME = CACHE_VERSION;
 
 // ============================================================
