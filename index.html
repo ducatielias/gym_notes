@@ -34,45 +34,43 @@
 
     <main id="main-content">
         
-        <section id="screen-today" class="screen">
+        <section id="screen-today" class="screen view">
             <header class="screen-header">
                 <h1>Gym Notes</h1>
             </header>
-            <div class="empty-state">
-                <p>📅 Tu actividad de hoy aparecerá aquí.</p>
-            </div>
+            <div id="today-dashboard-content"></div>
         </section>
 
-        <section id="screen-plan" class="screen hidden">
+        <section id="screen-plan" class="screen view hidden">
             <div id="plan-container"></div>
             <input type="file" id="file-import-routine-list" style="display:none" accept=".json,.txt" onchange="importRoutinesFromFile(event)">
             <input type="file" id="file-import-session-list" style="display:none" accept=".json,.txt" onchange="importSessionsFromFile(event)">
         </section>
 
-        <section id="screen-history" class="screen hidden">
+        <section id="screen-history" class="screen view hidden">
             <div id="history-container"></div>
         </section>
 
-        <section id="screen-exercises" class="screen hidden">
+        <section id="screen-exercises" class="screen view hidden">
             <div id="exercises-container"></div>
         </section>
 
-        <section id="screen-editor" class="screen hidden">
+        <section id="screen-editor" class="screen view hidden">
             <div id="session-editor-ui"></div>
         </section>
 
-        <section id="screen-exercise-editor" class="screen hidden">
+        <section id="screen-exercise-editor" class="screen view hidden">
             <div id="exercise-editor-ui"></div>
         </section>
 
-        <section id="screen-history-detail" class="screen hidden">
+        <section id="screen-history-detail" class="screen view hidden">
             <div id="history-detail-ui"></div>
         </section>
         
-        <section id="screen-exercise-viewer" class="screen hidden">
+        <section id="screen-exercise-viewer" class="screen view hidden">
         </section>
 
-        <section id="screen-ia-assistant" class="screen hidden">
+        <section id="screen-ia-assistant" class="screen view hidden">
             <div id="ia-assistant-ui"></div>
         </section>
 
@@ -83,19 +81,19 @@
     </button>
 
     <nav class="bottom-nav">
-        <button class="nav-item active" onclick="switchTab('today')">
+        <button class="nav-item active" data-view="today" onclick="navigateToView('today')">
             <i class="fa-solid fa-calendar-day"></i>
             <span>Hoy</span>
         </button>
-        <button class="nav-item" onclick="switchTab('plan')">
+        <button class="nav-item" data-view="plan" onclick="navigateToView('plan')">
             <i class="fa-solid fa-dumbbell"></i>
             <span>Plan</span>
         </button>
-        <button class="nav-item" onclick="switchTab('history')">
+        <button class="nav-item" data-view="history" onclick="navigateToView('history')">
             <i class="fa-solid fa-clock-rotate-left"></i>
             <span>Historial</span>
         </button>
-        <button class="nav-item" onclick="switchTab('exercises')">
+        <button class="nav-item" data-view="exercises" onclick="navigateToView('exercises')">
             <i class="fa-solid fa-list-check"></i>
             <span>Ejercicios</span>
         </button>
@@ -280,58 +278,183 @@
     <script src="js/today-dashboard.js"></script>
 
     <!-- ============================================================
-    REGISTRO DEL SERVICE WORKER (CON RUTA DINÁMICA)
+    INICIALIZACIÓN PRINCIPAL DE LA APP
     ============================================================ -->
     <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-            console.log('[PWA] Iniciando registro del Service Worker...');
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('[App] Inicializando Gym Notes...');
+        
+        // ============================================================
+        // 1. INICIALIZAR EL CONTROL DE RETROCESO (SAMSUNG COMPATIBLE)
+        // ============================================================
+        function renderViewByRoute(route) {
+            console.log('[App] Renderizando vista:', route);
             
-            // Obtener la ruta base dinámica (ej: '/' o '/gym-notes/')
+            // Mapeo de rutas a IDs de pantallas
+            const routeMap = {
+                'today': 'screen-today',
+                'plan': 'screen-plan',
+                'history': 'screen-history',
+                'exercises': 'screen-exercises',
+                'editor': 'screen-editor',
+                'exercise-editor': 'screen-exercise-editor',
+                'history-detail': 'screen-history-detail',
+                'exercise-viewer': 'screen-exercise-viewer',
+                'ia-assistant': 'screen-ia-assistant'
+            };
+            
+            // Si la ruta es 'home', redirigir a 'today'
+            if (route === 'home') {
+                route = 'today';
+            }
+            
+            const screenId = routeMap[route];
+            if (!screenId) {
+                console.warn('[App] Ruta no reconocida:', route);
+                return;
+            }
+            
+            // Obtener la pantalla destino
+            const targetScreen = document.getElementById(screenId);
+            if (!targetScreen) {
+                console.warn('[App] Pantalla no encontrada:', screenId);
+                return;
+            }
+            
+            // Ocultar todas las pantallas
+            document.querySelectorAll('.screen.view').forEach(s => {
+                s.classList.add('hidden');
+            });
+            
+            // Mostrar la pantalla destino
+            targetScreen.classList.remove('hidden');
+            
+            // Actualizar el menú inferior
+            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                const view = item.getAttribute('data-view');
+                if (view === route) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Si la ruta es 'history' y la pantalla está visible, renderizar historial
+            if (route === 'history') {
+                setTimeout(function() {
+                    if (typeof initHistoryPage === 'function') {
+                        initHistoryPage();
+                    } else if (typeof renderHistory === 'function') {
+                        renderHistory();
+                    }
+                }, 50);
+            }
+            
+            // Si la ruta es 'exercises', inicializar ejercicios
+            if (route === 'exercises') {
+                setTimeout(function() {
+                    if (typeof initExercisesPage === 'function') {
+                        initExercisesPage();
+                    } else if (typeof renderExercises === 'function') {
+                        renderExercises();
+                    }
+                }, 50);
+            }
+            
+            // Si la ruta es 'plan', renderizar lista de rutinas
+            if (route === 'plan') {
+                setTimeout(function() {
+                    if (typeof renderRoutineList === 'function') {
+                        renderRoutineList();
+                    }
+                }, 50);
+            }
+            
+            // Si la ruta es 'today', renderizar dashboard
+            if (route === 'today') {
+                setTimeout(function() {
+                    if (typeof renderTodayDashboard === 'function') {
+                        renderTodayDashboard();
+                    }
+                }, 50);
+            }
+            
+            // Si la ruta es 'ia-assistant', renderizar asistente IA
+            if (route === 'ia-assistant') {
+                setTimeout(function() {
+                    if (typeof renderIAAssistant === 'function') {
+                        renderIAAssistant();
+                    }
+                }, 50);
+            }
+        }
+        
+        // Inicializar el control de retroceso
+        if (typeof initBackHandler === 'function') {
+            initBackHandler(renderViewByRoute);
+        }
+        
+        // ============================================================
+        // 2. PROCESAR LA RUTA INICIAL
+        // ============================================================
+        const initialRoute = window.getCurrentView ? window.getCurrentView() : 'today';
+        renderViewByRoute(initialRoute);
+        
+        // ============================================================
+        // 3. REGISTRO DEL SERVICE WORKER
+        // ============================================================
+        if ('serviceWorker' in navigator) {
+            // Obtener la ruta base dinámica
             const pathname = window.location.pathname;
             const base = pathname.substring(0, pathname.lastIndexOf('/') + 1);
             const swPath = base + 'sw.js';
             
-            console.log('[PWA] Ruta base detectada:', base);
             console.log('[PWA] Ruta del Service Worker:', swPath);
             
             navigator.serviceWorker.register(swPath)
                 .then(function(registration) {
-                    console.log('[PWA] Service Worker registrado con éxito en el scope:', registration.scope);
+                    console.log('[PWA] Service Worker registrado correctamente');
                     
-                    // Escuchar actualizaciones
                     registration.addEventListener('updatefound', function() {
                         const newWorker = registration.installing;
-                        console.log('[PWA] Nueva versión del Service Worker detectada.');
-                        
                         newWorker.addEventListener('statechange', function() {
-                            console.log('[PWA] Estado del nuevo worker:', newWorker.state);
-                            
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('[PWA] Nueva versión instalada. Mostrando modal de actualización...');
+                                console.log('[PWA] Nueva versión detectada');
                                 if (typeof window.showUpdateModal === 'function') {
-                                    setTimeout(function() {
-                                        window.showUpdateModal();
-                                    }, 500);
+                                    setTimeout(window.showUpdateModal, 500);
                                 }
                             }
                         });
                     });
                 })
                 .catch(function(error) {
-                    console.warn('[PWA] Error al registrar el Service Worker:', error);
+                    console.warn('[PWA] Error al registrar SW:', error);
                 });
             
             // Comprobar actualizaciones cada hora
             setInterval(function() {
                 navigator.serviceWorker.ready.then(function(registration) {
                     registration.update();
-                    console.log('[PWA] Comprobando actualizaciones...');
                 });
             }, 60 * 60 * 1000);
-        });
-    }
-
+        }
+        
+        console.log('[App] Inicialización completada');
+    });
+    
+    // ============================================================
+    // FUNCIÓN DE NAVEGACIÓN GLOBAL (para usar desde cualquier parte)
+    // ============================================================
+    window.navigateToView = function(viewName) {
+        if (typeof window.navigateToView === 'function') {
+            // Usar la función del back-handler si está disponible
+            window.location.hash = '#/' + viewName;
+        } else {
+            // Fallback: cambiar hash directamente
+            window.location.hash = '#/' + viewName;
+        }
+    };
+    
     // ============================================================
     // GENERADOR DE ICONOS PARA PWA (OPCIONAL)
     // ============================================================
@@ -373,7 +496,7 @@
         
         console.log('[PWA] Todos los iconos generados.');
     }
-
+    
     window.generatePWAicons = generatePWAicons;
     console.log('[PWA] Para generar iconos, ejecuta generatePWAicons() en la consola');
     </script>
