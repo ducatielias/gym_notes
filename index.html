@@ -45,9 +45,7 @@
 
         <section id="screen-plan" class="screen hidden">
             <div id="plan-container"></div>
-            <!-- Input oculto para importar rutinas desde el menú de opciones -->
             <input type="file" id="file-import-routine-list" style="display:none" accept=".json,.txt" onchange="importRoutinesFromFile(event)">
-            <!-- Input oculto para importar sesiones desde el menú de opciones -->
             <input type="file" id="file-import-session-list" style="display:none" accept=".json,.txt" onchange="importSessionsFromFile(event)">
         </section>
 
@@ -72,10 +70,8 @@
         </section>
         
         <section id="screen-exercise-viewer" class="screen hidden">
-            <!-- El contenido se genera dinámicamente desde exercise-viewer.js -->
         </section>
 
-        <!-- PANTALLA ASISTENTE IA -->
         <section id="screen-ia-assistant" class="screen hidden">
             <div id="ia-assistant-ui"></div>
         </section>
@@ -111,7 +107,6 @@
             <div class="aw-header">
                 <div class="aw-header-top">
                     <div id="aw-title-small" class="aw-title">Entrenando: <span id="aw-session-title"></span></div>
-                    <!-- BOTÓN DE HISTORIAL CON ID Y ESTILOS PARA GARANTIZAR CLIC -->
                     <button id="aw-history-btn" class="aw-history-btn" title="Historial de esta sesión" style="position: relative; z-index: 10; pointer-events: auto;">
                         <i class="fa-solid fa-clock-rotate-left"></i>
                     </button>
@@ -147,7 +142,6 @@
                     </div>
                 </div>
 
-                <!-- PANEL DE CONFIGURACIÓN DE DESCANSO -->
                 <div id="descanso-panel" class="timer-panel aw-rest-panel" style="display:none; flex-wrap: wrap; align-items: center; gap: 10px; background: white; padding: 10px 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
                     <div class="preset-buttons">
                         <button onclick="setTiempoDescanso(30)">30s</button>
@@ -162,7 +156,6 @@
                     </div>
                 </div>
 
-                <!-- PANEL DE CONFIGURACIÓN DE TIMER (INTERVALOS) -->
                 <div id="timer-panel" class="timer-panel aw-rest-panel" style="display:none; flex-wrap: wrap; align-items: center; gap: 10px; background: white; padding: 10px 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
                     <div class="preset-buttons">
                         <button onclick="aplicarPresetTimer('tabata')">Tabata</button>
@@ -245,6 +238,7 @@
     <script src="js/back-handler.js"></script>
     <script src="js/wake-lock.js"></script>
     <script src="js/data-import-export.js"></script>
+    <script src="js/sw-update.js"></script>
     
     <!-- JS - PLAN -->
     <script src="js/plan-state.js"></script>
@@ -261,7 +255,7 @@
     <script src="js/exercises-share.js"></script>
     <script src="js/exercises.js"></script>
     
-    <!-- JS - HISTORY (DEBE CARGARSE ANTES DE WORKOUT) -->
+    <!-- JS - HISTORY -->
     <script src="js/history-state.js"></script>
     <script src="js/history-filters.js"></script>
     <script src="js/history-render.js"></script>
@@ -269,7 +263,7 @@
     <script src="js/history-edit.js"></script>
     <script src="js/history.js"></script>
     
-    <!-- JS - WORKOUT & SESSION (DEBE CARGARSE DESPUÉS DE HISTORY) -->
+    <!-- JS - WORKOUT & SESSION -->
     <script src="js/workout-state.js"></script>
     <script src="js/workout-timers.js"></script>
     <script src="js/workout-editor.js"></script>
@@ -285,32 +279,25 @@
     <!-- JS - TODAY DASHBOARD -->
     <script src="js/today-dashboard.js"></script>
 
-    <!-- JS - SW UPDATE (DETECTOR DE ACTUALIZACIONES) -->
-    <script src="js/sw-update.js"></script>
-
-    <!-- REGISTRO DEL SERVICE WORKER PARA PWA -->
+    <!-- ============================================================
+    REGISTRO DEL SERVICE WORKER (CON RUTA DINÁMICA)
+    ============================================================ -->
     <script>
-    // ==========================================================================
-    // REGISTRO DEL SERVICE WORKER
-    // ==========================================================================
-
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-            console.log('[PWA] Registrando Service Worker...');
+            console.log('[PWA] Iniciando registro del Service Worker...');
             
-            // Comprobar si ya está registrado
-            navigator.serviceWorker.getRegistrations()
-                .then(registrations => {
-                    if (registrations.length > 0) {
-                        console.log('[PWA] Service Worker ya registrado.');
-                    }
-                })
-                .catch(() => {});
+            // Obtener la ruta base dinámica (ej: '/' o '/gym-notes/')
+            const pathname = window.location.pathname;
+            const base = pathname.substring(0, pathname.lastIndexOf('/') + 1);
+            const swPath = base + 'sw.js';
             
-            // Registrar el Service Worker
-            navigator.serviceWorker.register('/sw.js')
+            console.log('[PWA] Ruta base detectada:', base);
+            console.log('[PWA] Ruta del Service Worker:', swPath);
+            
+            navigator.serviceWorker.register(swPath)
                 .then(function(registration) {
-                    console.log('[PWA] Service Worker registrado correctamente:', registration);
+                    console.log('[PWA] Service Worker registrado con éxito en el scope:', registration.scope);
                     
                     // Escuchar actualizaciones
                     registration.addEventListener('updatefound', function() {
@@ -322,7 +309,6 @@
                             
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                                 console.log('[PWA] Nueva versión instalada. Mostrando modal de actualización...');
-                                // Mostrar el modal de actualización
                                 if (typeof window.showUpdateModal === 'function') {
                                     setTimeout(function() {
                                         window.showUpdateModal();
@@ -336,23 +322,21 @@
                     console.warn('[PWA] Error al registrar el Service Worker:', error);
                 });
             
-            // Comprobar actualizaciones periódicamente (cada hora)
+            // Comprobar actualizaciones cada hora
             setInterval(function() {
                 navigator.serviceWorker.ready.then(function(registration) {
                     registration.update();
                     console.log('[PWA] Comprobando actualizaciones...');
                 });
-            }, 60 * 60 * 1000); // Cada hora
+            }, 60 * 60 * 1000);
         });
     }
 
-    // ==========================================================================
-    // GENERADOR DE ICONOS PARA PWA (OPCIONAL - EJECUTAR EN CONSOLA)
-    // ==========================================================================
-
+    // ============================================================
+    // GENERADOR DE ICONOS PARA PWA (OPCIONAL)
+    // ============================================================
     function generatePWAicons() {
         console.log('[PWA] Generando iconos...');
-        
         const iconSizes = [72, 96, 128, 144, 152, 192, 256, 384, 512];
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -361,11 +345,9 @@
             canvas.width = size;
             canvas.height = size;
             
-            // Fondo
             ctx.fillStyle = '#000000';
             ctx.fillRect(0, 0, size, size);
             
-            // Círculo de fondo (verde lima)
             const margin = size * 0.08;
             const radius = (size / 2) - margin;
             ctx.beginPath();
@@ -373,7 +355,6 @@
             ctx.fillStyle = '#ccff00';
             ctx.fill();
             
-            // Icono de pesa (dumbbell) con Font Awesome
             ctx.fillStyle = '#000000';
             ctx.font = `${size * 0.55}px "Font Awesome 6 Free", Arial, sans-serif`;
             ctx.fontWeight = '900';
@@ -381,7 +362,6 @@
             ctx.textBaseline = 'middle';
             ctx.fillText('💪', size/2, size/2 + size * 0.04);
             
-            // Descargar el icono
             const link = document.createElement('a');
             link.download = `icon-${size}x${size}.png`;
             link.href = canvas.toDataURL('image/png');
@@ -394,7 +374,6 @@
         console.log('[PWA] Todos los iconos generados.');
     }
 
-    // Exponer la función globalmente
     window.generatePWAicons = generatePWAicons;
     console.log('[PWA] Para generar iconos, ejecuta generatePWAicons() en la consola');
     </script>
