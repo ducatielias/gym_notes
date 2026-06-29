@@ -4,7 +4,7 @@
  * 
  * FUNCIONALIDADES:
  * - 3 modos: Rutina, Sesión, Media (analizar imagen/video/texto para extraer sesión)
- * - Expandibles con checklist para Ejercicios, Material y Tipo de entrenamiento
+ * - Expandibles con checklist para Ejercicios y Material
  * - Textarea normal para notas adicionales
  * - Al seleccionar Media, se ocultan: Ejercicios, Material, Nivel, Duración, Objetivo y Tipo
  * - Generar prompt personalizado según el modo seleccionado
@@ -12,8 +12,15 @@
  * - Pegar respuesta de IA y procesarla (para rutinas/sesiones)
  * - Guardar como rutina o sesión
  * 
- * ESTRUCTURA DEL FLUJO:
- * Configuración → Prompt → Vista Previa (solo rutinas/sesiones) → Guardado
+ * MODIFICADO: Título del header alineado a la derecha
+ * MODIFICADO: Grid de ejercicios con altura fija y scroll
+ * MODIFICADO: Material con altura fija y scroll
+ * MODIFICADO: Tipo de entrenamiento con altura fija y scroll
+ * MODIFICADO: Tipo de entrenamiento como expandible
+ * MODIFICADO: Material en grid de 2 columnas con nuevos items
+ * MODIFICADO: Tipo de entrenamiento con checkboxes (múltiple selección)
+ * MODIFICADO: Eliminado "Comentarios" de la lista de tipos
+ * MODIFICADO: Formato de series y repeticiones con cL (cada lado)
  */
 
 // ==========================================================================
@@ -26,20 +33,46 @@ let iaSelectedMaterials = [];
 let iaSelectedTipos = [];
 let iaUltimaRespuesta = null;
 let iaStep = 'config'; // 'config' | 'prompt' | 'preview' | 'import'
+let _iaGeneratedPrompt = null;
 
 // ==========================================================================
 // CONSTANTES
 // ==========================================================================
 
+// Materiales ordenados alfabéticamente
 const IA_MATERIALS = [
-    'Barra', 'Mancuernas', 'Kettlebell', 'Bandas elásticas',
-    'Máquinas', 'Peso corporal', 'Cable', 'Polea',
-    'Disco', 'Fitball', 'TRX'
-];
+    'Bandas elásticas',
+    'Barra',
+    'Barra dominadas',
+    'Cable',
+    'Clubbell',
+    'Disco',
+    'Dumbell',
+    'Fitball',
+    'Kettlebell',
+    'Mancuernas',
+    'Máquinas',
+    'Peso corporal',
+    'Polea',
+    'Rueda abdominal',
+    'Saco de boxeo',
+    'Saco de peso',
+    'TRX'
+].sort();
 
+// Tipos de entrenamiento (sin "Comentarios")
 const IA_TIPOS_ENTRENAMIENTO = [
-    'Superseries', 'Series', 'For time', 'EMOM', 
-    'AMRAP', 'Tabata', 'Cardio', 'Calentamiento', 'Comentarios'
+    'Superseries',
+    'Series',
+    'For time',
+    'EMOM',
+    'AMRAP',
+    'Tabata',
+    'Cardio',
+    'Calentamiento',
+    'Rounds for Time',
+    'Bloques de volumen',
+    'Partner WOD'
 ];
 
 const IA_LEVELS = ['Principiante', 'Intermedio', 'Avanzado'];
@@ -57,6 +90,8 @@ function openIAAssistant() {
     iaSelectedExercises = [];
     iaSelectedMaterials = [];
     iaSelectedTipos = [];
+    _iaGeneratedPrompt = null;
+    window._iaGeneratedPrompt = null;
     switchTab('ia-assistant');
     renderIAAssistant();
 }
@@ -94,6 +129,8 @@ function goBackFromIA() {
     iaStep = 'config';
     window._iaPromptParams = null;
     window._iaPreviewData = null;
+    _iaGeneratedPrompt = null;
+    window._iaGeneratedPrompt = null;
     switchTab('plan');
     renderRoutineList();
 }
@@ -102,6 +139,8 @@ function goBackToConfig() {
     iaStep = 'config';
     window._iaPromptParams = null;
     window._iaPreviewData = null;
+    _iaGeneratedPrompt = null;
+    window._iaGeneratedPrompt = null;
     renderIAAssistant();
 }
 
@@ -125,17 +164,17 @@ function renderConfigScreen(container) {
                     <i class="fa-solid fa-chevron-left"></i> Volver
                 </button>
                 <h1><i class="fa-solid fa-robot"></i> Asistente IA</h1>
-                <div style="width:40px;"></div>
             </div>
             <p>Configura tus preferencias y genera un prompt para usar con tu IA favorita.</p>
         </header>
 
         <div class="ia-container">
             ${renderConfigTipo()}
+            
             <div id="iaOpcionesConfigurables">
                 ${renderConfigEjercicios(exercises)}
                 ${renderConfigMaterial()}
-                ${renderConfigTiposEntrenamiento()}
+                ${renderConfigTipoEntrenamiento()}
                 ${renderConfigNivel()}
                 ${renderConfigDuracion()}
                 ${renderConfigFrecuencia()}
@@ -170,21 +209,6 @@ function renderConfigScreen(container) {
             btn.addEventListener('click', function() { selectIAType(this); });
         });
 
-        // Configurar listeners de ejercicios (checkboxes)
-        document.querySelectorAll('.ia-exercise-check').forEach(cb => {
-            cb.addEventListener('change', function() { toggleIAExerciseCheck(this); });
-        });
-
-        // Configurar listeners de materiales (checkboxes)
-        document.querySelectorAll('.ia-material-check').forEach(cb => {
-            cb.addEventListener('change', function() { toggleIAMaterialCheck(this); });
-        });
-
-        // Configurar listeners de tipos de entrenamiento (checkboxes)
-        document.querySelectorAll('.ia-tipo-check').forEach(cb => {
-            cb.addEventListener('change', function() { toggleIATipoCheck(this); });
-        });
-
         // Configurar listeners de selección única
         document.querySelectorAll('#iaLevelGroup .ia-option-btn, #iaDurationGroup .ia-option-btn, #iaFrequencyGroup .ia-option-btn, #iaGoalGroup .ia-option-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -200,6 +224,24 @@ function renderConfigScreen(container) {
 
         // Aplicar estado inicial según el modo
         actualizarOpcionesSegunModo(iaCurrentMode);
+        
+        // Configurar buscador de ejercicios
+        configurarBuscadorEjercicios();
+        
+        // Configurar checkboxes de ejercicios
+        document.querySelectorAll('.ia-exercise-item input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', function() { toggleIAExerciseCheck(this); });
+        });
+        
+        // Configurar checkboxes de materiales
+        document.querySelectorAll('.ia-material-check-item input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', function() { toggleIAMaterialCheck(this); });
+        });
+
+        // Configurar checkboxes de tipos de entrenamiento
+        document.querySelectorAll('.ia-tipo-check-item input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', function() { toggleIATipoCheck(this); });
+        });
     }, 100);
 }
 
@@ -225,10 +267,14 @@ function renderConfigTipo() {
 function renderConfigEjercicios(exercises) {
     const exercisesHtml = exercises.length > 0 
         ? exercises.map(ex => `
-            <label class="muscle-check">
+            <div class="ia-exercise-item" data-id="${ex.id}">
                 <input type="checkbox" class="ia-exercise-check" data-id="${ex.id}">
-                <span class="muscle-label">${ex.nombre}</span>
-            </label>
+                <img class="exercise-thumb" src="${ex.img || getExercisePlaceholder(ex.nombre)}" onerror="this.src='${getExercisePlaceholder(ex.nombre)}'" alt="${ex.nombre}">
+                <div class="exercise-info">
+                    <span class="exercise-name">${ex.nombre}</span>
+                    <span class="exercise-group-badge">${ex.grupo || 'General'}</span>
+                </div>
+            </div>
         `).join('')
         : '<p style="font-size:13px; color:#9ca3af; padding:8px 0;">No hay ejercicios guardados. Ve a "Ejercicios" para crear algunos.</p>';
 
@@ -240,7 +286,14 @@ function renderConfigEjercicios(exercises) {
             </button>
             <div id="iaExercisesContainer" class="ia-expand-container">
                 <div class="ia-expand-content">
-                    ${exercisesHtml}
+                    <input type="text" class="ia-exercise-search" id="iaExerciseSearch" placeholder="Buscar ejercicio..." oninput="filtrarEjerciciosIA()">
+                    <div class="ia-select-actions">
+                        <button onclick="seleccionarTodosEjerciciosIA(true)">Seleccionar todos</button>
+                        <button onclick="seleccionarTodosEjerciciosIA(false)">Deseleccionar todos</button>
+                    </div>
+                    <div class="ia-exercises-grid" id="iaExercisesGrid">
+                        ${exercisesHtml}
+                    </div>
                 </div>
             </div>
         </div>
@@ -255,34 +308,38 @@ function renderConfigMaterial() {
                 Material disponible <span style="font-weight:400; color:#9ca3af; font-size:12px;">(opcional)</span>
             </button>
             <div id="iaMaterialsContainer" class="ia-expand-container">
-                <div class="ia-expand-content ia-material-grid">
-                    ${IA_MATERIALS.map(m => `
-                        <label class="muscle-check">
-                            <input type="checkbox" class="ia-material-check" data-value="${m}">
-                            <span class="muscle-label">${m}</span>
-                        </label>
-                    `).join('')}
+                <div class="ia-expand-content">
+                    <div class="ia-material-grid">
+                        ${IA_MATERIALS.map(m => `
+                            <label class="ia-material-check-item">
+                                <input type="checkbox" class="ia-material-check" data-value="${m}">
+                                <span class="material-label">${m}</span>
+                            </label>
+                        `).join('')}
+                    </div>
                 </div>
             </div>
         </div>
     `;
 }
 
-function renderConfigTiposEntrenamiento() {
+function renderConfigTipoEntrenamiento() {
     return `
-        <div id="iaTiposWrapper" class="ia-section">
+        <div id="iaTipoEntrenamientoWrapper" class="ia-section">
             <button type="button" class="ia-expand-toggle" onclick="toggleIAExpand('iaTiposContainer', 'iaTiposIcon')">
                 <i class="fa-solid fa-chevron-right" id="iaTiposIcon"></i>
-                Tipo de entrenamiento <span style="font-weight:400; color:#9ca3af; font-size:12px;">(opcional)</span>
+                Tipo de entrenamiento <span style="font-weight:400; color:#9ca3af; font-size:12px;">(elige varios)</span>
             </button>
             <div id="iaTiposContainer" class="ia-expand-container">
-                <div class="ia-expand-content ia-tipos-grid">
-                    ${IA_TIPOS_ENTRENAMIENTO.map(t => `
-                        <label class="muscle-check">
-                            <input type="checkbox" class="ia-tipo-check" data-value="${t}">
-                            <span class="muscle-label">${t}</span>
-                        </label>
-                    `).join('')}
+                <div class="ia-expand-content">
+                    <div class="ia-tipos-grid">
+                        ${IA_TIPOS_ENTRENAMIENTO.map(t => `
+                            <label class="ia-tipo-check-item">
+                                <input type="checkbox" class="ia-tipo-check" data-value="${t}">
+                                <span class="tipo-label">${t}</span>
+                            </label>
+                        `).join('')}
+                    </div>
                 </div>
             </div>
         </div>
@@ -336,8 +393,8 @@ function renderConfigObjetivo() {
 function renderConfigNotas() {
     return `
         <div class="ia-section">
-            <div class="ia-section-title">Contenido a analizar</div>
-            <textarea id="iaNotesInput" class="ia-textarea" placeholder="Describe aquí la imagen, video o pega el texto de la rutina que quieres analizar..."></textarea>
+            <div class="ia-section-title">Notas adicionales</div>
+            <textarea id="iaNotesInput" class="ia-textarea" placeholder="Añade instrucciones extra, restricciones o comentarios..."></textarea>
         </div>
     `;
 }
@@ -355,17 +412,57 @@ function renderConfigBotones() {
 }
 
 // ==========================================================================
+// FILTRAR EJERCICIOS EN EL GRID
+// ==========================================================================
+
+function filtrarEjerciciosIA() {
+    const searchInput = document.getElementById('iaExerciseSearch');
+    if (!searchInput) return;
+    
+    const query = searchInput.value.toLowerCase().trim();
+    const items = document.querySelectorAll('#iaExercisesGrid .ia-exercise-item');
+    
+    items.forEach(item => {
+        const name = item.querySelector('.exercise-name')?.textContent?.toLowerCase() || '';
+        const group = item.querySelector('.exercise-group-badge')?.textContent?.toLowerCase() || '';
+        const match = name.includes(query) || group.includes(query);
+        item.style.display = match ? 'flex' : 'none';
+    });
+}
+
+function seleccionarTodosEjerciciosIA(seleccionar) {
+    const checkboxes = document.querySelectorAll('#iaExercisesGrid .ia-exercise-item input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.checked = seleccionar;
+        const event = new Event('change', { bubbles: true });
+        cb.dispatchEvent(event);
+    });
+}
+
+function getExercisePlaceholder(text) {
+    return 'data:image/svg+xml,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <rect width="28" height="28" fill="#f3f4f6" rx="6"/>
+            <text x="14" y="18" font-family="Arial" font-size="12" text-anchor="middle" fill="#9ca3af">💪</text>
+        </svg>
+    `);
+}
+
+function configurarBuscadorEjercicios() {
+    // El buscador ya tiene su listener en el HTML
+}
+
+// ==========================================================================
 // ACTUALIZAR OPCIONES SEGÚN MODO
 // ==========================================================================
 
 function actualizarOpcionesSegunModo(mode) {
     const isMedia = mode === 'media';
     
-    // Elementos a ocultar/mostrar en modo Media
     const elementos = [
         { id: 'iaEjerciciosWrapper', display: isMedia ? 'none' : '' },
         { id: 'iaMaterialWrapper', display: isMedia ? 'none' : '' },
-        { id: 'iaTiposWrapper', display: isMedia ? 'none' : '' },
+        { id: 'iaTipoEntrenamientoWrapper', display: isMedia ? 'none' : '' },
         { id: 'iaNivelWrapper', display: isMedia ? 'none' : '' },
         { id: 'iaDuracionWrapper', display: isMedia ? 'none' : '' },
         { id: 'iaFrecuenciaWrapper', display: isMedia ? 'none' : '' },
@@ -379,7 +476,6 @@ function actualizarOpcionesSegunModo(mode) {
         }
     });
     
-    // Gestión de frecuencia para modo session
     const frequencyTitle = document.getElementById('iaFrequencyTitle');
     const frequencyGroup = document.getElementById('iaFrequencyGroup');
     const frecuenciaWrapper = document.getElementById('iaFrecuenciaWrapper');
@@ -427,8 +523,6 @@ function selectIAType(element) {
     element.setAttribute('data-selected', 'true');
     
     iaCurrentMode = element.dataset.mode;
-    
-    // Actualizar opciones según el modo seleccionado
     actualizarOpcionesSegunModo(iaCurrentMode);
 }
 
@@ -470,8 +564,12 @@ function getIASelectedValue(groupId) {
     return firstBtn ? firstBtn.dataset.value : null;
 }
 
+function getIATiposEntrenamiento() {
+    return iaSelectedTipos;
+}
+
 // ==========================================================================
-// GENERACIÓN DEL PROMPT (SEGÚN MODO)
+// GENERACIÓN DEL PROMPT
 // ==========================================================================
 
 function generarPromptIA() {
@@ -482,6 +580,7 @@ function generarPromptIA() {
     const duration = getIASelectedValue('iaDurationGroup') || '60 min';
     const goal = getIASelectedValue('iaGoalGroup') || 'Hipertrofia';
     const frequency = mode === 'routine' ? (getIASelectedValue('iaFrequencyGroup') || '3 días') : null;
+    const tiposEntrenamiento = getIATiposEntrenamiento();
     const notes = document.getElementById('iaNotesInput')?.value?.trim() || '';
     
     let exercisesNames = [];
@@ -502,14 +601,25 @@ function generarPromptIA() {
         notes,
         exercises: exercisesNames,
         materials: iaSelectedMaterials,
-        tipos: iaSelectedTipos
+        tiposEntrenamiento: tiposEntrenamiento
     };
     
     console.log('[ia-assistant] Parámetros:', params);
     
+    const prompt = generarPromptTexto(params);
+    
     iaStep = 'prompt';
     window._iaPromptParams = params;
+    window._iaGeneratedPrompt = prompt;
+    _iaGeneratedPrompt = prompt;
     renderIAAssistant();
+    
+    setTimeout(() => {
+        const textarea = document.getElementById('iaPromptTextarea');
+        if (textarea) {
+            textarea.value = prompt;
+        }
+    }, 150);
 }
 
 function generarPromptTexto(params) {
@@ -520,9 +630,6 @@ function generarPromptTexto(params) {
     
     let prompt = '';
     
-    // ============================================================
-    // MODO RUTINA / SESIÓN (CON ESTRUCTURA DE ARRAY DE EJERCICIOS)
-    // ============================================================
     if (isRoutine || isSession) {
         prompt = `Actúa como un entrenador personal experto. Créame ${isRoutine ? 'una rutina de entrenamiento' : 'una sesión de entrenamiento'} de gimnasio.\n\n`;
         
@@ -536,12 +643,12 @@ function generarPromptTexto(params) {
             prompt += `- Frecuencia semanal: ${params.frequency}\n`;
         }
         
-        if (params.materials.length > 0) {
-            prompt += `- Material disponible: ${params.materials.join(', ')}\n`;
+        if (params.tiposEntrenamiento && params.tiposEntrenamiento.length > 0) {
+            prompt += `- Tipo(s) de entrenamiento: ${params.tiposEntrenamiento.join(', ')}\n`;
         }
         
-        if (params.tipos.length > 0) {
-            prompt += `- Tipo de entrenamiento: ${params.tipos.join(', ')}\n`;
+        if (params.materials.length > 0) {
+            prompt += `- Material disponible: ${params.materials.join(', ')}\n`;
         }
         
         if (params.exercises.length > 0) {
@@ -562,44 +669,36 @@ function generarPromptTexto(params) {
         prompt += `      "ejercicios": [\n`;
         prompt += `        {\n`;
         prompt += `          "nombre": "Nombre del ejercicio",\n`;
-        prompt += `          "series": 4,\n`;
-        prompt += `          "repeticiones": "8-12",\n`;
+        prompt += `          "series": "4",\n`;
+        prompt += `          "repeticiones": "10-16r",\n`;
         prompt += `          "notas": "Notas adicionales (opcional)"\n`;
-        prompt += `        },\n`;
-        prompt += `        {\n`;
-        prompt += `          "nombre": "Otro ejercicio",\n`;
-        prompt += `          "series": 3,\n`;
-        prompt += `          "repeticiones": "10-15",\n`;
-        prompt += `          "notas": "Mantener técnica"`;
-        prompt += `\n        }\n`;
+        prompt += `        }\n`;
         prompt += `      ]\n`;
         prompt += `    }\n`;
         prompt += `  ]\n`;
         prompt += `}\n\n`;
+        prompt += `⚠️ REGLAS ESTRICTAS DE FORMATO DE SERIES Y REPETICIONES:\n`;
+        prompt += `El campo "series" debe ser un número (ej: "4", "5", "3").\n`;
+        prompt += `El campo "repeticiones" debe seguir este formato:\n`;
+        prompt += `- Rango de repeticiones bilateral: "10-16r" (10 a 16 repeticiones, trabajando ambos lados)\n`;
+        prompt += `- Repetición fija bilateral: "15r" (15 repeticiones, trabajando ambos lados)\n`;
+        prompt += `- Repetición fija UNILATERAL (cada lado): "20r cL" (20 repeticiones por cada lado, ej: pierna o brazo)\n`;
+        prompt += `- Rango UNILATERAL (cada lado): "12-15r cL" (12 a 15 repeticiones por cada lado)\n`;
+        prompt += `\n📌 EJEMPLOS CORRECTOS de "series" y "repeticiones":\n`;
+        prompt += `{"nombre":"Press banca","series":"4","repeticiones":"8-12r","notas":"RIR 1"} → 4 series de 8-12 reps bilateral\n`;
+        prompt += `{"nombre":"Sentadilla búlgara","series":"4","repeticiones":"20r cL","notas":"Enfoque en estabilidad"} → 4 series de 20 reps CADA LADO\n`;
+        prompt += `{"nombre":"Peso muerto","series":"3","repeticiones":"5r","notas":"Técnica perfecta"} → 3 series de 5 reps bilateral\n`;
+        prompt += `{"nombre":"Zancadas con mancuerna","series":"4","repeticiones":"12-15r cL","notas":"Controlar descenso"} → 4 series de 12-15 reps CADA LADO\n`;
+        prompt += `\n📌 SIGNIFICADO DE "cL": significa "cada lado" y se usa para ejercicios unilaterales (piernas, brazos, hombros individuales).\n`;
+        prompt += `Cuando un ejercicio es unilateral, las repeticiones indican el trabajo de UN SOLO LADO, no el total sumando ambos.\n\n`;
         prompt += `⚠️ REGLAS ESTRICTAS DE FORMATO TÉCNICO:\n`;
         prompt += `1. NO incluyas texto adicional, SOLO el JSON.\n`;
         prompt += `2. PROHIBIDO usar saltos de línea reales (tecla Enter) dentro de los valores de texto.\n`;
         prompt += `3. Si necesitas separar texto, usa \\n (barra invertida y n minúscula) en una sola línea.\n`;
         prompt += `4. Asegúrate de que todas las comillas sean dobles (").\n`;
-        prompt += `5. Revisa que NO haya comas extrañas al final de objetos o arrays.\n\n`;
-        prompt += `✅ EJEMPLO CORRECTO DE "ejercicios":\n`;
-        prompt += `"ejercicios": [\n`;
-        prompt += `  {"nombre":"Press banca","series":4,"repeticiones":"8-10","notas":"RIR 1"},\n`;
-        prompt += `  {"nombre":"Remo con barra","series":4,"repeticiones":"8-10","notas":"Enfocado en espalda"}\n`;
-        prompt += `]\n\n`;
-        prompt += `❌ EJEMPLO INCORRECTO (NO HAGAS ESTO):\n`;
-        prompt += `"ejercicios": [\n`;
-        prompt += `  {\n`;
-        prompt += `    "nombre": "Press banca",\n`;
-        prompt += `    "series": 4\n`;
-        prompt += `  }\n`;
-        prompt += `]\n`;
-        prompt += `(Los saltos de línea dentro de los valores NO están permitidos)`;
+        prompt += `5. Revisa que NO haya comas extrañas al final de objetos o arrays.`;
     }
     
-    // ============================================================
-    // MODO MEDIA (Analizar imagen, video o texto)
-    // ============================================================
     if (isMedia) {
         const contenido = params.notes || '';
         
@@ -628,14 +727,22 @@ function generarPromptTexto(params) {
         prompt += `      "ejercicios": [\n`;
         prompt += `        {\n`;
         prompt += `          "nombre": "Nombre del ejercicio",\n`;
-        prompt += `          "series": 4,\n`;
-        prompt += `          "repeticiones": "8-12",\n`;
+        prompt += `          "series": "4",\n`;
+        prompt += `          "repeticiones": "10-16r",\n`;
         prompt += `          "notas": "Notas adicionales (opcional)"\n`;
         prompt += `        }\n`;
         prompt += `      ]\n`;
         prompt += `    }\n`;
         prompt += `  ]\n`;
         prompt += `}\n\n`;
+        prompt += `⚠️ REGLAS DE FORMATO DE SERIES Y REPETICIONES:\n`;
+        prompt += `El campo "series" debe ser un número (ej: "4", "5", "3").\n`;
+        prompt += `El campo "repeticiones" debe seguir este formato:\n`;
+        prompt += `- Rango de repeticiones bilateral: "10-16r" (10 a 16 repeticiones, trabajando ambos lados)\n`;
+        prompt += `- Repetición fija bilateral: "15r" (15 repeticiones, trabajando ambos lados)\n`;
+        prompt += `- Repetición fija UNILATERAL (cada lado): "20r cL" (20 repeticiones por cada lado)\n`;
+        prompt += `- Rango UNILATERAL (cada lado): "12-15r cL" (12 a 15 repeticiones por cada lado)\n`;
+        prompt += `\n📌 SIGNIFICADO DE "cL": significa "cada lado" y se usa para ejercicios unilaterales.\n\n`;
         prompt += `⚠️ IMPORTANTE:\n`;
         prompt += `- Si el contenido es una imagen o video, describe lo que ves y extrae la información.\n`;
         prompt += `- Si el contenido es texto, analiza el formato y conviértelo al formato JSON.\n`;
@@ -660,7 +767,7 @@ function renderPromptScreen(container) {
         return;
     }
 
-    const prompt = generarPromptTexto(params);
+    const prompt = window._iaGeneratedPrompt || generarPromptTexto(params);
     const isMedia = params.mode === 'media';
 
     container.innerHTML = `
@@ -670,7 +777,6 @@ function renderPromptScreen(container) {
                     <i class="fa-solid fa-chevron-left"></i> Volver
                 </button>
                 <h1><i class="fa-solid fa-robot"></i> Asistente IA</h1>
-                <div style="width:40px;"></div>
             </div>
             <p>Copia el prompt, pégalo en tu IA favorita y pega la respuesta abajo.</p>
         </header>
@@ -717,7 +823,7 @@ function copiarPrompt() {
 }
 
 // ==========================================================================
-// PROCESAMIENTO DE RESPUESTA - FUNCIÓN ROBUSTA Y DEFINITIVA
+// PROCESAMIENTO DE RESPUESTA
 // ==========================================================================
 
 function limpiarYParsearJSON(texto) {
@@ -726,11 +832,8 @@ function limpiarYParsearJSON(texto) {
     }
 
     let jsonText = texto.trim();
-
-    // 1. Limpiar bloques de código Markdown si existen (```json ... ```)
     jsonText = jsonText.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
 
-    // 2. Extraer el objeto JSON principal (desde el primer '{' hasta el último '}')
     const startIndex = jsonText.indexOf('{');
     const endIndex = jsonText.lastIndexOf('}');
     
@@ -739,9 +842,6 @@ function limpiarYParsearJSON(texto) {
     }
     
     jsonText = jsonText.substring(startIndex, endIndex + 1);
-
-    // 3. REGLA CLAVE: Escapar saltos de línea reales SOLO dentro de las cadenas de texto.
-    // Este regex busca contenido entre comillas dobles y reemplaza los saltos de línea literales.
     jsonText = jsonText.replace(/"([^"\\]|\\.)*"/g, (match) => {
         return match
             .replace(/\r/g, '\\r')
@@ -749,14 +849,10 @@ function limpiarYParsearJSON(texto) {
             .replace(/\t/g, '\\t');
     });
 
-    // 4. Intentar el parseo final
     try {
         return JSON.parse(jsonText);
     } catch (error) {
-        console.error("Error original de JSON.parse:", error.message);
-        // Backup por si la IA dejó una coma suelta al final de un array/objeto (muy común)
         try {
-            // Remueve comas finales antes de un cierre de llave o corchete
             let jsonLimpioComas = jsonText.replace(/,(\s*[\]}])/g, '$1');
             return JSON.parse(jsonLimpioComas);
         } catch (e) {
@@ -764,10 +860,6 @@ function limpiarYParsearJSON(texto) {
         }
     }
 }
-
-// ==========================================================================
-// CONVERTIR EJERCICIOS DE ARRAY A HTML
-// ==========================================================================
 
 function convertirEjerciciosAHTML(ejercicios) {
     if (!ejercicios || !Array.isArray(ejercicios) || ejercicios.length === 0) {
@@ -781,14 +873,14 @@ function convertirEjerciciosAHTML(ejercicios) {
         let repeticiones = ej.repeticiones || '';
         let notas = ej.notas || '';
         
-        // Construir línea de series/repeticiones
+        // Construir el formato (x4) 10-16r o (x4) 20r cL
         let info = '';
         if (series && repeticiones) {
-            info = `(x${series}) ${repeticiones} repeticiones`;
+            info = `(x${series}) ${repeticiones}`;
         } else if (series) {
             info = `(x${series}) series`;
         } else if (repeticiones) {
-            info = `${repeticiones} repeticiones`;
+            info = `${repeticiones}`;
         }
         
         html += `<b>${nombre}</b>`;
@@ -817,31 +909,22 @@ function procesarRespuestaDesdePantalla() {
     try {
         let data = limpiarYParsearJSON(jsonText);
         
-        // Si el JSON tiene una propiedad "respuesta" anidada
         if (data.respuesta && typeof data.respuesta === 'string') {
             try {
                 data = limpiarYParsearJSON(data.respuesta);
             } catch (e) {}
         }
         
-        // Validar estructura
         if (!data.sessions || !Array.isArray(data.sessions) || data.sessions.length === 0) {
             window.showAlert('El JSON debe contener un array "sessions" con al menos una sesión.', 'Error de formato');
             return;
         }
         
-        // Procesar cada sesión: convertir ejercicios array a HTML si es necesario
         data.sessions.forEach((session, index) => {
-            // Si tiene "ejercicios" (array), convertirlo a HTML en "content"
             if (session.ejercicios && Array.isArray(session.ejercicios) && session.ejercicios.length > 0) {
-                // Guardar los ejercicios estructurados para futuros usos
                 session._ejercicios_raw = session.ejercicios;
-                // Convertir a HTML
                 session.content = convertirEjerciciosAHTML(session.ejercicios);
-                // Eliminar el array original para no duplicar
-                // delete session.ejercicios;
             } else if (!session.content || session.content.trim() === '') {
-                // Si no tiene content ni ejercicios, es un error
                 window.showAlert(`La sesión ${index + 1} no tiene "content" ni "ejercicios".`, 'Error de formato');
                 return;
             }
@@ -855,16 +938,10 @@ function procesarRespuestaDesdePantalla() {
         
     } catch (error) {
         console.error('[ia-assistant] Error parsing JSON:', error);
-        console.log('[ia-assistant] Texto recibido:', jsonText.substring(0, 500) + '...');
-        
         window.showAlert(
             'Error al parsear el JSON: ' + error.message + 
             '\n\n💡 Asegúrate de que la respuesta sea un JSON válido.' +
-            '\n\n📝 Revisa la consola del navegador (F12) para ver el texto completo.' +
-            '\n\n✅ Tips:' +
-            '\n- La IA solo debe devolver el JSON, sin texto adicional' +
-            '\n- Los saltos de línea deben ser \\n dentro de las cadenas' +
-            '\n- Revisa que no haya comas extrañas al final',
+            '\n\n📝 Revisa la consola del navegador (F12) para ver el texto completo.',
             'Error'
         );
     }
@@ -887,20 +964,17 @@ function procesarRespuestaMedia() {
     try {
         let data = limpiarYParsearJSON(jsonText);
         
-        // Si el JSON tiene una propiedad "respuesta" anidada
         if (data.respuesta && typeof data.respuesta === 'string') {
             try {
                 data = limpiarYParsearJSON(data.respuesta);
             } catch (e) {}
         }
         
-        // Validar estructura para Media
         if (!data.sessions || !Array.isArray(data.sessions) || data.sessions.length === 0) {
             window.showAlert('El JSON debe contener un array "sessions" con al menos una sesión.', 'Error de formato');
             return;
         }
         
-        // Procesar cada sesión: convertir ejercicios array a HTML si es necesario
         data.sessions.forEach((session, index) => {
             if (session.ejercicios && Array.isArray(session.ejercicios) && session.ejercicios.length > 0) {
                 session._ejercicios_raw = session.ejercicios;
@@ -911,7 +985,6 @@ function procesarRespuestaMedia() {
             }
         });
         
-        // Mostrar resultado en un alert
         const nombre = data.nombre || 'Sesión extraída';
         const sesionesCount = data.sessions.length;
         let previewText = `📋 ${nombre}\n📊 ${sesionesCount} sesión(es)\n\n`;
@@ -922,7 +995,6 @@ function procesarRespuestaMedia() {
         
         window.showAlert(previewText, '📥 Contenido extraído');
         
-        // Preguntar si quiere guardar la sesión
         window.showConfirm(
             `¿Quieres guardar "${nombre}" como una nueva sesión?`,
             'Guardar sesión'
@@ -935,23 +1007,17 @@ function procesarRespuestaMedia() {
         
     } catch (error) {
         console.error('[ia-assistant] Error parsing JSON:', error);
-        console.log('[ia-assistant] Texto recibido:', jsonText.substring(0, 500) + '...');
-        
         window.showAlert(
             'Error al parsear el JSON: ' + error.message + 
             '\n\n💡 Asegúrate de que la respuesta sea un JSON válido.' +
-            '\n\n📝 Revisa la consola del navegador (F12) para ver el texto completo.' +
-            '\n\n✅ Tips:' +
-            '\n- La IA solo debe devolver el JSON, sin texto adicional' +
-            '\n- Los saltos de línea deben ser \\n dentro de las cadenas' +
-            '\n- Revisa que no haya comas extrañas al final',
+            '\n\n📝 Revisa la consola del navegador (F12) para ver el texto completo.',
             'Error'
         );
     }
 }
 
 // ==========================================================================
-// PANTALLA 3: VISTA PREVIA (SOLO PARA RUTINAS/SESIONES)
+// PANTALLA 3: VISTA PREVIA
 // ==========================================================================
 
 function renderPreviewScreen(container) {
@@ -980,7 +1046,6 @@ function renderPreviewScreen(container) {
                     <i class="fa-solid fa-chevron-left"></i> Volver
                 </button>
                 <h1><i class="fa-solid fa-robot"></i> Asistente IA</h1>
-                <div style="width:40px;"></div>
             </div>
             <p>Revisa el contenido generado y decide qué hacer.</p>
         </header>
@@ -1023,8 +1088,7 @@ function renderImportScreen(container) {
                 <button class="btn-ia-back" onclick="goBackToConfig()">
                     <i class="fa-solid fa-chevron-left"></i> Volver
                 </button>
-                <h1><i class="fa-solid fa-file-import"></i> Importar desde IA</h1>
-                <div style="width:40px;"></div>
+                <h1><i class="fa-solid fa-file-import"></i> Asistente IA</h1>
             </div>
             <p>Pega directamente el JSON generado por tu IA favorita.</p>
         </header>
@@ -1043,9 +1107,15 @@ function renderImportScreen(container) {
       "ejercicios": [
         {
           "nombre": "Press banca",
-          "series": 4,
-          "repeticiones": "8-12",
+          "series": "4",
+          "repeticiones": "8-12r",
           "notas": "RIR 1"
+        },
+        {
+          "nombre": "Sentadilla búlgara",
+          "series": "4",
+          "repeticiones": "20r cL",
+          "notas": "Enfoque en estabilidad"
         }
       ]
     }
@@ -1062,9 +1132,15 @@ function renderImportScreen(container) {
       "ejercicios": [
         {
           "nombre": "Press banca",
-          "series": 4,
-          "repeticiones": "8-12",
+          "series": "4",
+          "repeticiones": "8-12r",
           "notas": "RIR 1"
+        },
+        {
+          "nombre": "Sentadilla búlgara",
+          "series": "4",
+          "repeticiones": "20r cL",
+          "notas": "Enfoque en estabilidad"
         }
       ]
     }
@@ -1108,7 +1184,6 @@ function processIAImportDesdePantalla() {
             return;
         }
         
-        // Procesar cada sesión: convertir ejercicios array a HTML si es necesario
         data.sessions.forEach((session, index) => {
             if (session.ejercicios && Array.isArray(session.ejercicios) && session.ejercicios.length > 0) {
                 session._ejercicios_raw = session.ejercicios;
@@ -1252,6 +1327,8 @@ function guardarRutinaIA(result, params) {
                 iaStep = 'config';
                 window._iaPromptParams = null;
                 window._iaPreviewData = null;
+                _iaGeneratedPrompt = null;
+                window._iaGeneratedPrompt = null;
                 renderIAAssistant();
                 renderRoutineList();
             }
@@ -1277,6 +1354,8 @@ function guardarRutinaIA(result, params) {
     iaStep = 'config';
     window._iaPromptParams = null;
     window._iaPreviewData = null;
+    _iaGeneratedPrompt = null;
+    window._iaGeneratedPrompt = null;
     renderIAAssistant();
     renderRoutineList();
 }
@@ -1307,6 +1386,8 @@ function guardarSesionIA(result, params) {
                 iaStep = 'config';
                 window._iaPromptParams = null;
                 window._iaPreviewData = null;
+                _iaGeneratedPrompt = null;
+                window._iaGeneratedPrompt = null;
                 renderIAAssistant();
                 renderRoutineList();
             });
@@ -1334,6 +1415,8 @@ function guardarSesionIA(result, params) {
         iaStep = 'config';
         window._iaPromptParams = null;
         window._iaPreviewData = null;
+        _iaGeneratedPrompt = null;
+        window._iaGeneratedPrompt = null;
         renderIAAssistant();
         renderRoutineList();
     });
@@ -1365,6 +1448,7 @@ window.toggleIAExerciseCheck = toggleIAExerciseCheck;
 window.toggleIAMaterialCheck = toggleIAMaterialCheck;
 window.toggleIATipoCheck = toggleIATipoCheck;
 window.getIASelectedValue = getIASelectedValue;
+window.getIATiposEntrenamiento = getIATiposEntrenamiento;
 window.generarPromptIA = generarPromptIA;
 window.generarPromptTexto = generarPromptTexto;
 window.copiarPrompt = copiarPrompt;
@@ -1379,3 +1463,17 @@ window.guardarSesionIA = guardarSesionIA;
 window.processIAImportDesdePantalla = processIAImportDesdePantalla;
 window.toggleIAExpand = toggleIAExpand;
 window.actualizarOpcionesSegunModo = actualizarOpcionesSegunModo;
+window.filtrarEjerciciosIA = filtrarEjerciciosIA;
+window.seleccionarTodosEjerciciosIA = seleccionarTodosEjerciciosIA;
+
+// ==========================================================================
+// EXPOSICIÓN GLOBAL (adicional)
+// ==========================================================================
+
+window.iaCurrentMode = iaCurrentMode;
+window.iaSelectedExercises = iaSelectedExercises;
+window.iaSelectedMaterials = iaSelectedMaterials;
+window.iaSelectedTipos = iaSelectedTipos;
+window.iaStep = iaStep;
+window._iaPromptParams = _iaPromptParams;
+window._iaGeneratedPrompt = _iaGeneratedPrompt;

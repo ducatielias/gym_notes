@@ -7,6 +7,12 @@
  * - Secciones con fondo blanco y bordes sutiles
  * - Sin sombras ni efectos de elevación
  * - Sin efectos de click en contenedores
+ * 
+ * MODIFICADO: Título del header alineado a la derecha
+ * MODIFICADO: Grid de ejercicios con altura fija y scroll
+ * MODIFICADO: Material con altura fija y scroll
+ * MODIFICADO: Tipo de entrenamiento con altura fija y scroll
+ * MODIFICADO: Tipo de entrenamiento como expandible
  */
 
 /* ==========================================================================
@@ -34,6 +40,9 @@
     width: 100%;
 }
 
+/* ==========================================================================
+   PROBLEMA 1: Header con título a la derecha
+   ========================================================================== */
 .ia-header-top {
     display: flex;
     justify-content: space-between;
@@ -42,13 +51,15 @@
 }
 
 .ia-header-top h1 {
+    flex: 0 1 auto;
+    margin: 0;
     font-size: 24px;
     font-weight: 800;
     letter-spacing: -0.5px;
-    margin: 0;
     display: flex;
     align-items: center;
     gap: 10px;
+    order: 2; /* Mueve el título a la derecha */
 }
 
 .ia-header-top h1 i {
@@ -73,6 +84,8 @@
     align-items: center;
     gap: 4px;
     padding: 4px 0;
+    flex-shrink: 0;
+    order: 1; /* Mueve el botón a la izquierda */
 }
 
 .btn-ia-back:active {
@@ -168,7 +181,7 @@
 }
 
 /* ==========================================================================
-   EXPANDIBLES (Ejercicios y Material)
+   EXPANDIBLES (Ejercicios, Material y Tipo de entrenamiento)
    ========================================================================== */
 
 .ia-expand-toggle {
@@ -214,7 +227,7 @@
 }
 
 .ia-expand-container.open {
-    max-height: 300px;
+    max-height: 500px;
     padding: 4px 0;
     margin-top: 8px;
 }
@@ -226,18 +239,66 @@
     gap: 2px;
 }
 
-/* Checkboxes dentro de expandibles */
-.ia-expand-container .muscle-check {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 0;
-    cursor: pointer;
-    font-size: 14px;
-    color: #374151;
+/* ==========================================================================
+   EJERCICIOS - GRID DE 2 COLUMNAS CON BADGES Y SCROLL FIJO
+   ========================================================================== */
+
+.ia-exercises-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+    width: 100%;
+    max-height: 180px;
+    overflow-y: auto;
+    align-content: start;
+    padding-right: 4px;
 }
 
-.ia-expand-container .muscle-check input[type="checkbox"] {
+/* Personalización de la barra de scroll para consistencia visual */
+.ia-exercises-grid::-webkit-scrollbar,
+.ia-material-grid::-webkit-scrollbar,
+.ia-tipos-grid::-webkit-scrollbar {
+    width: 4px;
+}
+
+.ia-exercises-grid::-webkit-scrollbar-track,
+.ia-material-grid::-webkit-scrollbar-track,
+.ia-tipos-grid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.ia-exercises-grid::-webkit-scrollbar-thumb,
+.ia-material-grid::-webkit-scrollbar-thumb,
+.ia-tipos-grid::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.ia-exercises-grid::-webkit-scrollbar-thumb:hover,
+.ia-material-grid::-webkit-scrollbar-thumb:hover,
+.ia-tipos-grid::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.ia-exercise-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    min-height: 40px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.ia-exercise-item:active {
+    background-color: #f3f4f6;
+}
+
+.ia-exercise-item input[type="checkbox"] {
     width: 18px;
     height: 18px;
     margin: 0;
@@ -247,17 +308,171 @@
     cursor: pointer;
 }
 
-.ia-expand-container .muscle-check .muscle-label {
+.ia-exercise-item .exercise-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.ia-exercise-item .exercise-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+.ia-exercise-item .exercise-group-badge {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #9ca3af;
+    background: #f3f4f6;
+    padding: 1px 8px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-top: 1px;
+    width: fit-content;
+}
+
+.ia-exercise-item .exercise-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: #f3f4f6;
+    flex-shrink: 0;
+}
+
+/* Buscador dentro del expandible */
+.ia-exercise-search {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    outline: none;
+    margin-bottom: 6px;
+    background: #ffffff;
+    color: var(--primary-color, #000000);
+    box-sizing: border-box;
+}
+
+.ia-exercise-search:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+.ia-exercise-search::placeholder {
+    color: #9ca3af;
+}
+
+/* Botones de selección masiva */
+.ia-select-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.ia-select-actions button {
+    padding: 4px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    color: #4b5563;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.ia-select-actions button:active {
+    background: #f3f4f6;
+}
+
+/* ==========================================================================
+   MATERIAL - GRID DE 2 COLUMNAS CON SCROLL FIJO
+   ========================================================================== */
+
+.ia-material-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 16px;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    align-content: start;
+    padding-right: 4px;
+}
+
+.ia-material-check-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    cursor: pointer;
+    font-size: 14px;
+    color: #374151;
+}
+
+.ia-material-check-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    accent-color: var(--accent-color, #ccff00);
+    cursor: pointer;
+}
+
+.ia-material-check-item .material-label {
     font-size: 14px;
     color: #374151;
     line-height: 1.3;
 }
 
-/* Grid para materiales (2 columnas) */
-.ia-material-grid {
+/* ==========================================================================
+   TIPO DE ENTRENAMIENTO - GRID DE 2 COLUMNAS CON SCROLL FIJO
+   ========================================================================== */
+
+.ia-tipos-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 2px 16px;
+    gap: 4px 16px;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    align-content: start;
+    padding-right: 4px;
+}
+
+.ia-tipo-check-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    cursor: pointer;
+    font-size: 14px;
+    color: #374151;
+}
+
+.ia-tipo-check-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    accent-color: var(--accent-color, #ccff00);
+    cursor: pointer;
+}
+
+.ia-tipo-check-item .tipo-label {
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.3;
 }
 
 /* ==========================================================================
@@ -510,9 +725,41 @@
         min-width: 50px;
     }
     
+    .ia-exercises-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 4px 8px;
+        max-height: 150px;
+    }
+    
+    .ia-exercise-item {
+        padding: 4px 6px;
+        min-height: 34px;
+    }
+    
+    .ia-exercise-item .exercise-name {
+        font-size: 12px;
+    }
+    
+    .ia-exercise-item .exercise-group-badge {
+        font-size: 8px;
+        padding: 1px 6px;
+    }
+    
+    .ia-exercise-item .exercise-thumb {
+        width: 24px;
+        height: 24px;
+    }
+    
     .ia-material-grid {
         grid-template-columns: 1fr 1fr;
         gap: 2px 12px;
+        max-height: 130px;
+    }
+    
+    .ia-tipos-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 2px 12px;
+        max-height: 130px;
     }
     
     .ia-preview-actions {
@@ -539,8 +786,21 @@
         min-width: 44px;
     }
     
+    .ia-exercises-grid {
+        grid-template-columns: 1fr;
+        gap: 2px;
+        max-height: 200px;
+    }
+    
     .ia-material-grid {
         grid-template-columns: 1fr;
         gap: 0px;
+        max-height: 180px;
+    }
+    
+    .ia-tipos-grid {
+        grid-template-columns: 1fr;
+        gap: 0px;
+        max-height: 180px;
     }
 }
