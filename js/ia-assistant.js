@@ -13,14 +13,12 @@
  * - Guardar como rutina o sesión
  * 
  * MODIFICADO: Título del header alineado a la derecha
- * MODIFICADO: Grid de ejercicios con altura fija y scroll
+ * MODIFICADO: Listas de ejercicios, material y tipos en una sola columna
  * MODIFICADO: Material con altura fija y scroll
  * MODIFICADO: Tipo de entrenamiento con altura fija y scroll
  * MODIFICADO: Tipo de entrenamiento como expandible
- * MODIFICADO: Material en grid de 2 columnas con nuevos items
- * MODIFICADO: Tipo de entrenamiento con checkboxes (múltiple selección)
- * MODIFICADO: Eliminado "Comentarios" de la lista de tipos
  * MODIFICADO: Formato de series y repeticiones con cL (cada lado)
+ * MODIFICADO: Resetear estado correctamente al volver a entrar al asistente
  */
 
 // ==========================================================================
@@ -86,12 +84,18 @@ const IA_GOALS = ['Fuerza', 'Hipertrofia', 'Resistencia', 'Definición', 'Rendim
 
 function openIAAssistant() {
     console.log('[ia-assistant] Abriendo asistente IA');
-    iaStep = 'config';
+    
+    // RESETEAR COMPLETAMENTE EL ESTADO AL ABRIR
+    iaCurrentMode = 'routine';
     iaSelectedExercises = [];
     iaSelectedMaterials = [];
     iaSelectedTipos = [];
+    iaStep = 'config';
     _iaGeneratedPrompt = null;
     window._iaGeneratedPrompt = null;
+    window._iaPromptParams = null;
+    window._iaPreviewData = null;
+    
     switchTab('ia-assistant');
     renderIAAssistant();
 }
@@ -141,6 +145,8 @@ function goBackToConfig() {
     window._iaPreviewData = null;
     _iaGeneratedPrompt = null;
     window._iaGeneratedPrompt = null;
+    // Resetear modo a routine por defecto al volver a configuración
+    iaCurrentMode = 'routine';
     renderIAAssistant();
 }
 
@@ -187,6 +193,28 @@ function renderConfigScreen(container) {
 
     // Inicializar valores por defecto después de renderizar
     setTimeout(() => {
+        // Asegurar que el modo actual sea 'routine' si no está en media
+        if (iaCurrentMode !== 'media') {
+            iaCurrentMode = 'routine';
+        }
+        
+        // Actualizar el botón seleccionado
+        document.querySelectorAll('#iaTypeGroup .ia-type-btn').forEach(btn => {
+            btn.classList.remove('selected');
+            btn.removeAttribute('data-selected');
+            if (btn.dataset.mode === iaCurrentMode) {
+                btn.classList.add('selected');
+                btn.setAttribute('data-selected', 'true');
+            }
+        });
+        
+        // Si el modo es 'routine', asegurar que todas las opciones estén visibles
+        if (iaCurrentMode !== 'media') {
+            actualizarOpcionesSegunModo('routine');
+        } else {
+            actualizarOpcionesSegunModo('media');
+        }
+
         const defaults = [
             { group: 'iaLevelGroup', value: 'Intermedio' },
             { group: 'iaDurationGroup', value: '60 min' },
@@ -222,9 +250,6 @@ function renderConfigScreen(container) {
             });
         });
 
-        // Aplicar estado inicial según el modo
-        actualizarOpcionesSegunModo(iaCurrentMode);
-        
         // Configurar buscador de ejercicios
         configurarBuscadorEjercicios();
         
@@ -242,6 +267,12 @@ function renderConfigScreen(container) {
         document.querySelectorAll('.ia-tipo-check-item input[type="checkbox"]').forEach(cb => {
             cb.addEventListener('change', function() { toggleIATipoCheck(this); });
         });
+        
+        // Asegurar que el textarea de notas esté visible
+        const notasWrapper = document.querySelector('.ia-section:has(#iaNotesInput)');
+        if (notasWrapper) {
+            notasWrapper.style.display = '';
+        }
     }, 100);
 }
 
@@ -873,7 +904,6 @@ function convertirEjerciciosAHTML(ejercicios) {
         let repeticiones = ej.repeticiones || '';
         let notas = ej.notas || '';
         
-        // Construir el formato (x4) 10-16r o (x4) 20r cL
         let info = '';
         if (series && repeticiones) {
             info = `(x${series}) ${repeticiones}`;
