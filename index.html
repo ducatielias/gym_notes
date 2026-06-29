@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Gym Notes</title>
     
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Gym Notes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <meta name="application-name" content="Gym Notes">
+    
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
@@ -274,6 +284,116 @@
     
     <!-- JS - TODAY DASHBOARD -->
     <script src="js/today-dashboard.js"></script>
+
+    <!-- REGISTRO DEL SERVICE WORKER PARA PWA -->
+    <script>
+    // ==========================================================================
+    // REGISTRO DEL SERVICE WORKER
+    // ==========================================================================
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            console.log('[PWA] Registrando Service Worker...');
+            
+            // Comprobar si ya está registrado
+            navigator.serviceWorker.getRegistrations()
+                .then(registrations => {
+                    if (registrations.length > 0) {
+                        console.log('[PWA] Service Worker ya registrado.');
+                    }
+                })
+                .catch(() => {});
+            
+            // Registrar el Service Worker
+            navigator.serviceWorker.register('/sw.js')
+                .then(function(registration) {
+                    console.log('[PWA] Service Worker registrado correctamente:', registration);
+                    
+                    // Escuchar actualizaciones
+                    registration.addEventListener('updatefound', function() {
+                        const newWorker = registration.installing;
+                        console.log('[PWA] Nueva versión del Service Worker detectada.');
+                        
+                        newWorker.addEventListener('statechange', function() {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('[PWA] Nueva versión instalada. Recarga para aplicar.');
+                                // Mostrar notificación al usuario
+                                if (typeof window.showAlert === 'function') {
+                                    window.showAlert(
+                                        '¡Nueva versión disponible!\nRecarga la página para actualizar.',
+                                        'Actualización'
+                                    );
+                                }
+                            }
+                        });
+                    });
+                })
+                .catch(function(error) {
+                    console.warn('[PWA] Error al registrar el Service Worker:', error);
+                });
+            
+            // Comprobar actualizaciones periódicamente
+            setInterval(function() {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    registration.update();
+                    console.log('[PWA] Comprobando actualizaciones...');
+                });
+            }, 60 * 60 * 1000); // Cada hora
+        });
+    }
+
+    // ==========================================================================
+    // GENERADOR DE ICONOS PARA PWA (OPCIONAL - EJECUTAR EN CONSOLA)
+    // ==========================================================================
+
+    function generatePWAicons() {
+        console.log('[PWA] Generando iconos...');
+        
+        const iconSizes = [72, 96, 128, 144, 152, 192, 256, 384, 512];
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        iconSizes.forEach(size => {
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Fondo
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Círculo de fondo (verde lima)
+            const margin = size * 0.08;
+            const radius = (size / 2) - margin;
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#ccff00';
+            ctx.fill();
+            
+            // Icono de pesa (dumbbell) con Font Awesome
+            ctx.fillStyle = '#000000';
+            ctx.font = `${size * 0.55}px "Font Awesome 6 Free", Arial, sans-serif`;
+            ctx.fontWeight = '900';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('💪', size/2, size/2 + size * 0.04);
+            
+            // Descargar el icono
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            console.log(`[PWA] Icono ${size}x${size} descargado`);
+        });
+        
+        console.log('[PWA] Todos los iconos generados.');
+    }
+
+    // Exponer la función globalmente
+    window.generatePWAicons = generatePWAicons;
+    console.log('[PWA] Para generar iconos, ejecuta generatePWAicons() en la consola');
+    </script>
     
 </body>
 </html>
