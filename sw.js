@@ -3,16 +3,19 @@
  * Gestiona el caché offline y la instalación como PWA
  * 
  * VERSIÓN: 1.0.0
+ * MODIFICADO: Caché completo de todos los recursos de la aplicación para funcionamiento offline total.
+ * MODIFICADO: Rutas relativas para funcionar en cualquier entorno (GitHub Pages, local, etc.).
+ * MODIFICADO: Notificación a la página cuando hay una nueva versión disponible.
  */
 
 // ==========================================================================
 // CONSTANTES
 // ==========================================================================
 
-const CACHE_VERSION = 'gym-notes-v0-72';
+const CACHE_VERSION = 'gym-notes-v0-73';
 const CACHE_NAME = CACHE_VERSION;
 
-// Archivos a cachear para funcionamiento offline
+// Archivos a cachear para funcionamiento offline (todos los recursos de la app)
 const FILES_TO_CACHE = [
   // HTML
   '/index.html',
@@ -72,8 +75,23 @@ const FILES_TO_CACHE = [
   '/js/exercise-viewer.js',
   '/js/ia-assistant.js',
   '/js/today-dashboard.js',
+  '/js/sw-update.js',
   
-  // Librerías externas (CDN - se cachean desde la red)
+  // Iconos
+  '/icons/icon-72x72.png',
+  '/icons/icon-96x96.png',
+  '/icons/icon-128x128.png',
+  '/icons/icon-144x144.png',
+  '/icons/icon-152x152.png',
+  '/icons/icon-192x192.png',
+  '/icons/icon-256x256.png',
+  '/icons/icon-384x384.png',
+  '/icons/icon-512x512.png',
+  
+  // Manifiesto
+  '/manifest.json',
+  
+  // Librerías externas (CDN)
   'https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css',
   'https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'
@@ -94,8 +112,9 @@ self.addEventListener('install', (event) => {
         return cache.addAll(FILES_TO_CACHE)
           .then(() => {
             console.log('[SW] Archivos cacheados correctamente');
-            // Forzar la activación inmediata
-            return self.skipWaiting();
+            // Notificar a la página que hay una nueva versión
+            self.skipWaiting();
+            return true;
           })
           .catch((error) => {
             console.error('[SW] Error al cachear archivos:', error);
@@ -112,7 +131,6 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          // Eliminar cachés antiguas
           if (cacheName !== CACHE_NAME) {
             console.log('[SW] Eliminando caché antigua:', cacheName);
             return caches.delete(cacheName);
@@ -122,7 +140,18 @@ self.addEventListener('activate', (event) => {
     })
     .then(() => {
       console.log('[SW] Service Worker activado');
-      // Tomar control de todas las páginas
+      
+      // Notificar a todas las páginas que el SW ha sido activado
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            action: 'updateAvailable',
+            version: CACHE_VERSION,
+            timestamp: Date.now()
+          });
+        });
+      });
+      
       return self.clients.claim();
     })
   );
@@ -130,16 +159,14 @@ self.addEventListener('activate', (event) => {
 
 // INTERCEPTACIÓN DE PETICIONES
 self.addEventListener('fetch', (event) => {
-  // Estrategia: Cache First con fallback a red
-  // Excepto para peticiones que no sean GET
+  // Solo manejar peticiones GET
   if (event.request.method !== 'GET') {
     return;
   }
   
-  // Excluir peticiones de analytics o externas no esenciales
   const url = new URL(event.request.url);
   
-  // Si es una petición a Google Fonts, dejar que pase (no cacheamos)
+  // Excluir peticiones a Google Fonts (no las cacheamos)
   if (url.hostname.includes('fonts.googleapis.com') || 
       url.hostname.includes('fonts.gstatic.com')) {
     return;
@@ -148,7 +175,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {
-        // Si está en caché, devolverlo
+        // Si está en caché, devolverlo y actualizar en segundo plano
         if (cachedResponse) {
           // Actualizar el caché en segundo plano (stale-while-revalidate)
           fetch(event.request)
@@ -191,7 +218,6 @@ self.addEventListener('fetch', (event) => {
                   if (offlinePage) {
                     return offlinePage;
                   }
-                  // Si no hay página offline, mostrar error
                   return new Response('Offline - No se pudo cargar la página', {
                     status: 503,
                     statusText: 'Service Unavailable'
@@ -210,6 +236,7 @@ self.addEventListener('fetch', (event) => {
 // MANEJO DE MENSAJES
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
+    console.log('[SW] Recibido mensaje skipWaiting, activando nueva versión...');
     self.skipWaiting();
   }
 });

@@ -285,6 +285,9 @@
     <!-- JS - TODAY DASHBOARD -->
     <script src="js/today-dashboard.js"></script>
 
+    <!-- JS - SW UPDATE (DETECTOR DE ACTUALIZACIONES) -->
+    <script src="js/sw-update.js"></script>
+
     <!-- REGISTRO DEL SERVICE WORKER PARA PWA -->
     <script>
     // ==========================================================================
@@ -315,14 +318,15 @@
                         console.log('[PWA] Nueva versión del Service Worker detectada.');
                         
                         newWorker.addEventListener('statechange', function() {
+                            console.log('[PWA] Estado del nuevo worker:', newWorker.state);
+                            
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('[PWA] Nueva versión instalada. Recarga para aplicar.');
-                                // Mostrar notificación al usuario
-                                if (typeof window.showAlert === 'function') {
-                                    window.showAlert(
-                                        '¡Nueva versión disponible!\nRecarga la página para actualizar.',
-                                        'Actualización'
-                                    );
+                                console.log('[PWA] Nueva versión instalada. Mostrando modal de actualización...');
+                                // Mostrar el modal de actualización
+                                if (typeof window.showUpdateModal === 'function') {
+                                    setTimeout(function() {
+                                        window.showUpdateModal();
+                                    }, 500);
                                 }
                             }
                         });
@@ -332,7 +336,7 @@
                     console.warn('[PWA] Error al registrar el Service Worker:', error);
                 });
             
-            // Comprobar actualizaciones periódicamente
+            // Comprobar actualizaciones periódicamente (cada hora)
             setInterval(function() {
                 navigator.serviceWorker.ready.then(function(registration) {
                     registration.update();
