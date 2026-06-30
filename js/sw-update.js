@@ -109,7 +109,7 @@ function showUpdateModal() {
                 </p>
                 <div style="margin-top:8px; padding:10px 12px; background:#f3f4f6; border-radius:8px; font-size:12px; color:#6b7280; text-align:center;">
                     <i class="fa-solid fa-cloud-arrow-up"></i> 
-                    Versión actual: <span id="sw-current-version">v.0.80</span>
+                    Versión actual: <span id="sw-current-version">v.0.81</span>
                 </div>
             </div>
             <div class="modal-footer" style="padding:12px 20px 20px; display:flex; flex-direction:column; gap:8px; border-top:1px solid #f3f4f6;">
