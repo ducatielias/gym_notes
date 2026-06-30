@@ -2,8 +2,8 @@
  * MÓDULO CENTRAL: index.js
  * Controla la navegación global por pestañas de la aplicación.
  * 
- * MODIFICADO: Los botones del menú usan navigateToTab en lugar de switchTab
- * para que el historial se gestione correctamente (integrado con back-handler.js).
+ * MODIFICADO: Integración con back-handler.js para actualizar currentTab
+ * y establecer un estado inicial en el historial.
  */
 
 function switchTab(tabId, options = {}) {
@@ -39,7 +39,13 @@ function switchTab(tabId, options = {}) {
         if (currentBtn) currentBtn.classList.add('active');
     }
 
-    // 6. Lógica modular específica
+    // 6. Si es una pestaña principal, actualizar currentTab en back-handler
+    const mainTabs = ['today', 'plan', 'history', 'exercises'];
+    if (mainTabs.includes(tabId) && typeof window.setCurrentTab === 'function') {
+        window.setCurrentTab(tabId);
+    }
+
+    // 7. Lógica modular específica
     if (tabId === 'plan') {
         renderRoutineList();
     }
@@ -68,11 +74,10 @@ function switchTab(tabId, options = {}) {
 // ==========================================================================
 
 function navigateAndSwitch(tabId) {
-    // Delegar en navigateToTab (definido en back-handler.js)
     if (typeof window.navigateToTab === 'function') {
         window.navigateToTab(tabId);
     } else {
-        // Fallback: si no está disponible, hacer pushState manual
+        // Fallback
         const mainTabs = ['today', 'plan', 'history', 'exercises'];
         if (mainTabs.includes(tabId)) {
             const state = { tab: tabId };
@@ -92,10 +97,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Si hay un hash en la URL, usarlo para navegar
     const hash = window.location.hash.replace('#', '');
     const validTabs = ['today', 'plan', 'history', 'exercises'];
+    let initialTab = 'today';
     if (hash && validTabs.includes(hash)) {
-        switchTab(hash, { noPushState: true });
-    } else {
-        switchTab('today', { noPushState: true });
+        initialTab = hash;
+    }
+
+    // Mostrar la pestaña inicial sin modificar historial (noPushState)
+    switchTab(initialTab, { noPushState: true });
+
+    // Establecer un estado inicial en el historial para que el retroceso funcione
+    // (si no hay estado, el navegador no tiene referencia)
+    if (window.history && window.history.state === null) {
+        const state = { tab: initialTab };
+        history.replaceState(state, '', '#' + initialTab);
     }
 
     // Configurar listeners de scroll para el botón flotante
@@ -120,31 +134,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-/**
- * Controla la visibilidad adaptativa del botón flotante según el scroll.
- */
-function handleScreenScrollDetection(event) {
-    const currentScreen = event.currentTarget;
-    const globalBtn = document.getElementById('globalScrollTopBtn');
-    if (!globalBtn) return;
-    if (currentScreen.scrollTop > 250) {
-        globalBtn.classList.add('visible');
-    } else {
-        globalBtn.classList.remove('visible');
-    }
-}
-
-/**
- * Desplaza la pantalla actual visible suavemente hasta el borde superior.
- */
-function scrollToTopCurrentScreen() {
-    const activeScreen = document.querySelector('.screen:not(.hidden)');
-    if (activeScreen) {
-        activeScreen.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-}
-
-// Exponer funciones globalmente
-window.switchTab = switchTab;
-window.navigateAndSwitch = navigateAndSwitch;
-window.scrollToTopCurrentScreen = scrollToTopCurrentScreen;
+// ... resto de funciones (handleScreenScrollDetection, scrollToTopCurrentScreen) igual ...

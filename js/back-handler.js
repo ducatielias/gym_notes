@@ -7,7 +7,7 @@
  * 
  * Compatible con Samsung Internet y Chrome Android.
  * 
- * Inspirado en las soluciones de Gemini y Copilot.
+ * AHORA: Confirmación de salida en TODAS las pantallas (no solo entrenamiento).
  */
 
 // ==========================================================================
@@ -16,6 +16,7 @@
 
 let backHandlerInitialized = false;
 let esBloqueoActivo = false; // true mientras el entrenamiento esté activo
+let currentTab = 'today'; // Pestaña actual (se actualiza en switchTab)
 
 // ==========================================================================
 // INICIALIZACIÓN
@@ -31,28 +32,35 @@ function initBackHandler() {
 }
 
 // ==========================================================================
-// FUNCIONES PARA EL ENTRENAMIENTO (LLAMAR DESDE workout.js)
+// FUNCIONES PARA EL ENTRENAMIENTO
 // ==========================================================================
 
-/**
- * Se debe llamar justo cuando se abre el modal de entrenamiento (display: flex)
- */
 function alAbrirEntrenamiento() {
     esBloqueoActivo = true;
-    // Empujamos el estado del entrenamiento al historial.
-    // Esto crea el "freno de mano" en la pila.
     history.pushState({ tab: 'workout' }, '', '#workout');
     console.log('[back-handler] Entrenamiento abierto, estado pushState.');
 }
 
-/**
- * Se debe llamar cuando el entrenamiento se cierra definitivamente (confirmado)
- */
 function cerrarEntrenamiento() {
     const workoutModal = document.getElementById('active-workout');
     if (workoutModal) workoutModal.style.display = 'none';
     esBloqueoActivo = false;
     console.log('[back-handler] Entrenamiento cerrado.');
+}
+
+// ==========================================================================
+// DETECTAR PANTALLAS INTERNAS
+// ==========================================================================
+
+function hayPantallaInternaVisible() {
+    const internals = ['editor', 'exercise-editor', 'history-detail', 'exercise-viewer'];
+    for (const id of internals) {
+        const el = document.getElementById(`screen-${id}`);
+        if (el && !el.classList.contains('hidden')) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // ==========================================================================
@@ -66,23 +74,17 @@ function handlePopState(event) {
 
     console.log('[back-handler] popstate:', state, 'visible:', isWorkoutVisible, 'bloqueo:', esBloqueoActivo);
 
-    // CASO 1: El entrenamiento está visible y el bloqueo está activo
+    // CASO 1: Entrenamiento visible
     if (isWorkoutVisible && esBloqueoActivo) {
-        // El navegador ya ha retrocedido un paso (salió del estado #workout).
-        // Mostramos la confirmación.
         window.showConfirm(
             '¿Salir del entrenamiento? Se perderán las notas no guardadas.',
             'Cancelar entrenamiento'
         ).then((confirmado) => {
             if (confirmado) {
-                // Usuario confirma: cerrar entrenamiento y liberar bloqueo.
-                // El navegador ya está en la pestaña anterior, no hacemos push.
-                console.log('[back-handler] Usuario confirmó salida.');
+                console.log('[back-handler] Usuario confirmó salida del entrenamiento.');
                 esBloqueoActivo = false;
                 cerrarEntrenamiento();
             } else {
-                // Usuario cancela: reconstruir la trampa del historial.
-                // Pequeño delay para evitar race conditions en Samsung/Chrome.
                 console.log('[back-handler] Usuario canceló. Reconstruyendo trampa...');
                 setTimeout(() => {
                     if (esBloqueoActivo) {
@@ -95,16 +97,52 @@ function handlePopState(event) {
         return;
     }
 
-    // CASO 2: Navegación normal entre pestañas (sin entrenamiento activo)
+    // CASO 2: Navegación entre pestañas (hay estado)
     if (state && state.tab && state.tab !== 'workout') {
         console.log('[back-handler] Navegando a pestaña:', state.tab);
         window.switchTab(state.tab, { noPushState: true });
         return;
     }
 
-    // CASO 3: Sin estado (raíz) o estado no reconocido: permitir salida nativa
-    console.log('[back-handler] Estado raíz o no reconocido. Permitiendo salida nativa.');
-    // No hacemos nada, el navegador cerrará la PWA.
+    // CASO 3: Sin estado (raíz)
+    console.log('[back-handler] Estado raíz detectado.');
+
+    // 3a: Si hay pantalla interna visible, cerrarla y mantener la app
+    if (hayPantallaInternaVisible()) {
+        console.log('[back-handler] Pantalla interna visible. Cerrando...');
+        // Cerrar la interna y volver a la pestaña actual
+        window.switchTab(currentTab, { noPushState: true });
+        // Restaurar el estado de la pestaña actual para que la siguiente pulsación de atrás
+        // vuelva a mostrar la confirmación (si no hay más historial) o navegue.
+        history.pushState({ tab: currentTab }, '', '#' + currentTab);
+        return;
+    }
+
+    // 3b: No hay interna, mostrar confirmación de salida de la app
+    console.log('[back-handler] Mostrando confirmación de salida de la app.');
+    window.showConfirm(
+        '¿Estás seguro de que quieres salir de Gym Notes?',
+        'Salir de la app'
+    ).then((confirmado) => {
+        if (confirmado) {
+            // El usuario confirma: permitir salida nativa (no hacer nada)
+            console.log('[back-handler] Usuario confirmó salir de la app.');
+            // Eliminar el listener para evitar conflictos
+            window.removeEventListener('popstate', handlePopState);
+            // Si el navegador no cierra, forzar recarga (fallback)
+            setTimeout(() => {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.close();
+                }
+            }, 100);
+        } else {
+            // Usuario cancela: restaurar el estado de la pestaña actual
+            console.log('[back-handler] Usuario canceló salida. Restaurando estado.');
+            history.pushState({ tab: currentTab }, '', '#' + currentTab);
+        }
+    });
 }
 
 // ==========================================================================
@@ -112,8 +150,6 @@ function handlePopState(event) {
 // ==========================================================================
 
 function navigateToTab(tabName) {
-    // Si el entrenamiento está activo, no permitimos cambiar de pestaña
-    // (el usuario debe salir del entrenamiento primero).
     if (esBloqueoActivo) {
         console.warn('[back-handler] No se puede cambiar de pestaña durante el entrenamiento.');
         return;
@@ -124,9 +160,18 @@ function navigateToTab(tabName) {
         const state = { tab: tabName };
         history.pushState(state, '', '#' + tabName);
         window.switchTab(tabName, { noPushState: true });
+        currentTab = tabName; // Actualizar pestaña actual
     } else {
         window.switchTab(tabName, { noPushState: true });
     }
+}
+
+// ==========================================================================
+// ACTUALIZAR PESTAÑA ACTUAL (LLAMAR DESDE switchTab)
+// ==========================================================================
+
+function setCurrentTab(tabName) {
+    if (tabName) currentTab = tabName;
 }
 
 // ==========================================================================
@@ -137,6 +182,7 @@ window.initBackHandler = initBackHandler;
 window.alAbrirEntrenamiento = alAbrirEntrenamiento;
 window.cerrarEntrenamiento = cerrarEntrenamiento;
 window.navigateToTab = navigateToTab;
+window.setCurrentTab = setCurrentTab;
 
 // ==========================================================================
 // INICIALIZACIÓN AUTOMÁTICA
