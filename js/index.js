@@ -2,15 +2,9 @@
  * MÓDULO CENTRAL: index.js
  * Controla la navegación global por pestañas de la aplicación.
  * 
- * MODIFICADO: switchTab solo gestiona la UI. La navegación con historial
- * se maneja desde los botones del menú inferior mediante navigateAndSwitch.
- * CORREGIDO: El menú inferior ya no se oculta al entrar a "history",
- * solo se oculta en pantallas internas (editor, detalle, visor).
+ * MODIFICADO: Los botones del menú usan navigateToTab en lugar de switchTab
+ * para que el historial se gestione correctamente (integrado con back-handler.js).
  */
-
-// ==========================================================================
-// FUNCIÓN PRINCIPAL: CAMBIAR DE PESTAÑA (SOLO UI)
-// ==========================================================================
 
 function switchTab(tabId, options = {}) {
     const noPushState = options.noPushState || false;
@@ -25,7 +19,6 @@ function switchTab(tabId, options = {}) {
 
     // 3. Gestionar la visibilidad del menú inferior
     const bottomNav = document.querySelector('.bottom-nav');
-    // Pantallas que deben ocultar el menú inferior (modales o pantallas completas)
     const internalScreens = ['editor', 'exercise-editor', 'history-detail', 'exercise-viewer'];
     if (internalScreens.includes(tabId)) {
         if (bottomNav) bottomNav.classList.add('hidden-nav');
@@ -46,7 +39,7 @@ function switchTab(tabId, options = {}) {
         if (currentBtn) currentBtn.classList.add('active');
     }
 
-    // 6. Lógica modular específica (con delay para asegurar renderizado)
+    // 6. Lógica modular específica
     if (tabId === 'plan') {
         renderRoutineList();
     }
@@ -71,21 +64,24 @@ function switchTab(tabId, options = {}) {
 }
 
 // ==========================================================================
-// FUNCIÓN PARA NAVEGAR Y CAMBIAR DE PESTAÑA (CON HISTORIAL)
+// NAVEGAR Y CAMBIAR DE PESTAÑA (CON HISTORIAL)
 // ==========================================================================
 
 function navigateAndSwitch(tabId) {
-    // Solo para pestañas principales (no internas)
-    const mainTabs = ['today', 'plan', 'history', 'exercises'];
-    if (mainTabs.includes(tabId)) {
-        // Añadir estado al historial
-        const state = { tab: tabId };
-        const url = new URL(window.location);
-        url.hash = tabId;
-        history.pushState(state, '', url.toString());
+    // Delegar en navigateToTab (definido en back-handler.js)
+    if (typeof window.navigateToTab === 'function') {
+        window.navigateToTab(tabId);
+    } else {
+        // Fallback: si no está disponible, hacer pushState manual
+        const mainTabs = ['today', 'plan', 'history', 'exercises'];
+        if (mainTabs.includes(tabId)) {
+            const state = { tab: tabId };
+            const url = new URL(window.location);
+            url.hash = tabId;
+            history.pushState(state, '', url.toString());
+        }
+        switchTab(tabId, { noPushState: true });
     }
-    // Cambiar la UI sin volver a modificar el historial
-    switchTab(tabId, { noPushState: true });
 }
 
 // ==========================================================================

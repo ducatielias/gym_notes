@@ -4,11 +4,9 @@
  * Gestiona el entrenamiento activo: inicialización, finalización, cierre
  * y funciones de ejercicios (Formato y Ejercicios Gym)
  * 
- * MODIFICADO: Los ejercicios insertados usan formato nativo de Quill
- * y se detectan por texto para abrir el visor.
- * CORREGIDO: Inserción usando insertText para mantener compatibilidad con Quill.
- * 
- * MODIFICADO: Ahora muestra TODOS los ejercicios sin límite de 8.
+ * MODIFICADO: Integración con back-handler.js para control del historial.
+ * - Al abrir entrenamiento: llama a alAbrirEntrenamiento() para activar bloqueo.
+ * - Al cerrar/terminar: llama a cerrarEntrenamiento() para liberar bloqueo.
  */
 
 // ==========================================================================
@@ -65,13 +63,13 @@ window.iniciarEntrenamiento = function(sessionData) {
         id: 'w-' + Date.now(),
         sessionId: sessionData.id,
         sessionTitle: sessionData.title,
-        sessionContent: sessionData.content, // Copia del contenido original
+        sessionContent: sessionData.content,
         routineName: sessionData.routineName,
         fecha: new Date().toISOString(),
         duracion_minutos: 0
     };
     
-    // Actualizar título en el modal (usando textContent, no innerHTML)
+    // Actualizar título en el modal
     const titleSpan = document.getElementById('aw-session-title');
     if (titleSpan) {
         titleSpan.textContent = `${aw_currentWorkout.routineName} - ${aw_currentWorkout.sessionTitle}`;
@@ -80,14 +78,24 @@ window.iniciarEntrenamiento = function(sessionData) {
         console.warn('[iniciarEntrenamiento] No se encontró el elemento aw-session-title');
     }
     
-    // --- CORRECCIÓN: Mostrar el modal ANTES de inicializar Quill ---
+    // Mostrar el modal
     const modal = document.getElementById('active-workout');
     if (modal) {
         modal.style.display = 'flex';
         console.log('[iniciarEntrenamiento] Modal mostrado');
     }
     
-    // Configurar listeners para los paneles de temporizadores (antes de inicializar Quill)
+    // ============================================================
+    // NUEVO: ACTIVAR EL BLOQUEO DEL HISTORIAL
+    // ============================================================
+    if (typeof window.alAbrirEntrenamiento === 'function') {
+        window.alAbrirEntrenamiento();
+        console.log('[iniciarEntrenamiento] Bloqueo de historial activado.');
+    } else {
+        console.warn('[iniciarEntrenamiento] window.alAbrirEntrenamiento no está disponible.');
+    }
+    
+    // Configurar listeners para los paneles de temporizadores
     const timerDescansoArea = document.getElementById('timer-descanso-area');
     const timerTrabajoArea = document.getElementById('timer-trabajo-area');
     if (timerDescansoArea) {
@@ -110,7 +118,6 @@ window.iniciarEntrenamiento = function(sessionData) {
     // Inicializar el editor y enlazar el botón de historial
     setTimeout(() => {
         inicializarEditorEntrenamiento();
-        // Configurar listener global para ejercicios
         if (typeof window.configurarListenerGlobalEjercicios === 'function') {
             window.configurarListenerGlobalEjercicios();
         }
@@ -130,7 +137,6 @@ window.finalizarEntrenamiento = async function() {
         return;
     }
     
-    // Usar modal personalizado en lugar de confirm nativo
     if (!await window.showConfirm('¿Terminar entrenamiento y guardar las anotaciones?', 'Finalizar entrenamiento')) return;
     
     // Detener todos los temporizadores
@@ -157,25 +163,22 @@ window.finalizarEntrenamiento = async function() {
         timestamp_fin: new Date().toISOString()
     };
     
-    // Guardar en historyDB usando la función de history-state.js
+    // Guardar en historyDB
     try {
         if (typeof window.addHistoryRecord === 'function') {
             window.addHistoryRecord(historyRecord);
             console.log('[workout.js] Historial guardado correctamente mediante addHistoryRecord');
         } else {
-            // Fallback: guardar directamente en localStorage
             console.warn('[workout.js] addHistoryRecord no disponible, usando fallback');
             let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
             historyDB.unshift(historyRecord);
             localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
-            // Intentar actualizar window.historyDB
             if (window.historyDB !== undefined) {
                 window.historyDB = historyDB;
             }
         }
     } catch (error) {
         console.error('[workout.js] Error guardando historial:', error);
-        // Fallback de emergencia
         let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
         historyDB.unshift(historyRecord);
         localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
@@ -187,8 +190,21 @@ window.finalizarEntrenamiento = async function() {
         modal.style.display = 'none';
     }
     
-    // LIMPIAR FILTROS Y NAVEGAR AL HISTORIAL NORMAL (SIN FILTRO, SIN BOTÓN DE RETROCESO)
-    // Limpiar todos los filtros
+    // ============================================================
+    // NUEVO: LIBERAR EL BLOQUEO DEL HISTORIAL
+    // ============================================================
+    if (typeof window.cerrarEntrenamiento === 'function') {
+        window.cerrarEntrenamiento();
+        console.log('[finalizarEntrenamiento] Bloqueo de historial liberado.');
+    } else {
+        console.warn('[finalizarEntrenamiento] window.cerrarEntrenamiento no está disponible.');
+        // Fallback: liberar manualmente
+        if (typeof window.esBloqueoActivo !== 'undefined') {
+            window.esBloqueoActivo = false;
+        }
+    }
+    
+    // LIMPIAR FILTROS Y NAVEGAR AL HISTORIAL NORMAL
     if (typeof window.resetHistoryFilters === 'function') {
         window.resetHistoryFilters();
     } else {
@@ -203,15 +219,12 @@ window.finalizarEntrenamiento = async function() {
     // Navegar al historial normal
     switchTab('history');
     
-    // Renderizar el historial después de un breve delay
     setTimeout(() => {
-        // Limpiar el input visualmente
         const input = document.getElementById('historySearchInput');
         if (input) {
             input.value = '';
             input.dispatchEvent(new Event('input', { bubbles: true }));
         }
-        // Actualizar el select de rutinas
         const routineSelect = document.getElementById('historyRoutineFilterSelect');
         if (routineSelect) {
             routineSelect.value = 'todos';
@@ -220,7 +233,6 @@ window.finalizarEntrenamiento = async function() {
         renderHistory();
     }, 100);
     
-    // Mostrar mensaje de éxito
     if (typeof window.showAlert === 'function') {
         await window.showAlert(`Entrenamiento guardado en el historial.\nDuración: ${duracionMinutos} minutos`, "Entrenamiento completado");
     } else {
@@ -233,7 +245,7 @@ window.finalizarEntrenamiento = async function() {
 };
 
 // ==========================================================================
-// FUNCIÓN CERRAR ENTRENAMIENTO
+// FUNCIÓN CERRAR ENTRENAMIENTO (SIN GUARDAR)
 // ==========================================================================
 
 window.cerrarEntrenamiento = async function() {
@@ -258,8 +270,20 @@ window.cerrarEntrenamiento = async function() {
         modal.style.display = 'none';
     }
     
-    // LIMPIAR FILTROS Y NAVEGAR AL HISTORIAL NORMAL (SIN FILTRO, SIN BOTÓN DE RETROCESO)
-    // Limpiar todos los filtros
+    // ============================================================
+    // NUEVO: LIBERAR EL BLOQUEO DEL HISTORIAL
+    // ============================================================
+    if (typeof window.cerrarEntrenamiento === 'function') {
+        window.cerrarEntrenamiento();
+        console.log('[cerrarEntrenamiento] Bloqueo de historial liberado.');
+    } else {
+        console.warn('[cerrarEntrenamiento] window.cerrarEntrenamiento no está disponible.');
+        if (typeof window.esBloqueoActivo !== 'undefined') {
+            window.esBloqueoActivo = false;
+        }
+    }
+    
+    // LIMPIAR FILTROS Y NAVEGAR AL HISTORIAL NORMAL
     if (typeof window.resetHistoryFilters === 'function') {
         window.resetHistoryFilters();
     } else {
@@ -274,7 +298,6 @@ window.cerrarEntrenamiento = async function() {
     // Navegar al historial normal
     switchTab('history');
     
-    // Renderizar el historial después de un breve delay
     setTimeout(() => {
         const input = document.getElementById('historySearchInput');
         if (input) {
@@ -299,21 +322,16 @@ window.cerrarEntrenamiento = async function() {
 // FUNCIONES PARA BOTONES DE FORMATO Y EJERCICIOS (entrenamiento)
 // ==========================================================================
 
-// Obtener lista de ejercicios SOLO desde la base de datos (SIN LÍMITE)
 function obtenerListaEjerciciosDesdeBD() {
-    // Obtener ejercicios desde el sistema de ejercicios
     if (typeof window.getExercises === 'function') {
         const exercises = window.getExercises();
         if (exercises && exercises.length > 0) {
             return exercises;
         }
     }
-    
-    // Si no hay ejercicios en la base de datos, devolver array vacío
     return [];
 }
 
-// Renderizar la lista de ejercicios dentro del entrenamiento
 function renderExercisesListEntrenamiento(lista) {
     const listContainer = document.getElementById('aw-exercises-list');
     if (!listContainer) return;
@@ -323,7 +341,6 @@ function renderExercisesListEntrenamiento(lista) {
         return;
     }
 
-    // Obtener la URL de la imagen o usar un placeholder
     listContainer.innerHTML = lista.map(ejercicio => {
         const imgSrc = ejercicio.img || getPlaceholderImage(ejercicio.nombre);
         const nombreEscapado = ejercicio.nombre.replace(/'/g, "\\'");
@@ -343,7 +360,6 @@ function renderExercisesListEntrenamiento(lista) {
     }).join('');
 }
 
-// Función para obtener imagen placeholder (entrenamiento)
 function getPlaceholderImage(text) {
     return 'data:image/svg+xml,' + encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
@@ -353,74 +369,56 @@ function getPlaceholderImage(text) {
     `);
 }
 
-// Filtrar ejercicios en tiempo real (entrenamiento) - SOLO desde la base de datos
 function filtrarEjerciciosEntrenamiento() {
     const searchInput = document.getElementById('aw-search-exercise');
     if (!searchInput) return;
 
     const query = searchInput.value.toLowerCase().trim();
     
-    // Usar el sistema de ejercicios SOLO de la base de datos
     if (typeof window.getExercises === 'function') {
         const exercises = window.getExercises();
         let filtered = exercises;
-        
         if (query) {
             filtered = exercises.filter(ex => 
                 ex.nombre.toLowerCase().includes(query) ||
                 (ex.grupo && ex.grupo.toLowerCase().includes(query))
             );
         }
-        
         if (filtered && filtered.length > 0) {
             renderExercisesListEntrenamiento(filtered);
             return;
         }
     }
-    
-    // Si no hay ejercicios en la base de datos o no hay coincidencias
     renderExercisesListEntrenamiento([]);
 }
 
-// Insertar el ejercicio seleccionado en el editor del entrenamiento
-// MODIFICADO: Usa insertText en lugar de dangerouslyPasteHTML para mantener compatibilidad
 function insertarEjercicioEnEntrenamiento(nombreEjercicio, ejercicioId) {
     if (!aw_quillInstance) {
         console.warn('[workout] Quill no está inicializado');
         return;
     }
 
-    // Obtener la posición actual del cursor
     const range = aw_quillInstance.getSelection(true);
     if (!range) {
         console.warn('[workout] No se pudo obtener la selección de Quill');
         return;
     }
     
-    // Asegurar que tenemos un ID válido (guardamos el ID para futuras referencias)
-    const id = ejercicioId || nombreEjercicio;
-    console.log('[workout] Insertando ejercicio:', nombreEjercicio, 'ID:', id);
-    
-    // Insertar el texto con formato (negrita + color azul)
-    // NOTA: Para que sea detectable por el listener, debe ser negrita y color azul
     aw_quillInstance.insertText(range.index, `${nombreEjercicio}`, {
         'bold': true,
         'color': '#2563eb'
     });
     
-    // Desplazar el cursor al final del bloque insertado
     const newRange = aw_quillInstance.getSelection();
     if (newRange) {
         aw_quillInstance.setSelection(newRange.index, 0);
     }
     
-    // Cerrar el panel de ejercicios automáticamente
     toggleSectionEntrenamiento('exercises');
     
     console.log('[workout] Ejercicio insertado correctamente');
 }
 
-// Controlar la conmutación de los paneles de formato y ejercicios (entrenamiento)
 window.toggleSectionEntrenamiento = function(type) {
     const toolbarWrapper = document.getElementById('aw-toolbar-wrapper');
     const exercisesWrapper = document.getElementById('aw-exercises-wrapper');
@@ -429,7 +427,6 @@ window.toggleSectionEntrenamiento = function(type) {
 
     if (!toolbarWrapper || !exercisesWrapper || !formatBtn || !exercisesBtn) return;
 
-    // Caso A: Click en el botón de Formato
     if (type === 'format') {
         if (toolbarWrapper.classList.contains('open')) {
             toolbarWrapper.classList.remove('open');
@@ -439,14 +436,12 @@ window.toggleSectionEntrenamiento = function(type) {
             toolbarWrapper.classList.add('open');
             toolbarWrapper.style.maxHeight = '240px';
             formatBtn.classList.add('active');
-
             exercisesWrapper.classList.remove('open');
             exercisesWrapper.style.maxHeight = '0px';
             exercisesBtn.classList.remove('active');
         }
     }
 
-    // Caso B: Click en el botón de Ejercicios Gym
     if (type === 'exercises') {
         if (exercisesWrapper.classList.contains('open')) {
             exercisesWrapper.classList.remove('open');
@@ -456,12 +451,9 @@ window.toggleSectionEntrenamiento = function(type) {
             exercisesWrapper.classList.add('open');
             exercisesWrapper.style.maxHeight = '240px';
             exercisesBtn.classList.add('active');
-            
-            // Limpiar buscador y cargar lista desde la base de datos
             const searchInput = document.getElementById('aw-search-exercise');
             if (searchInput) searchInput.value = "";
             renderExercisesListEntrenamiento(obtenerListaEjerciciosDesdeBD());
-
             toolbarWrapper.classList.remove('open');
             toolbarWrapper.style.maxHeight = '0px';
             formatBtn.classList.remove('active');
@@ -470,7 +462,7 @@ window.toggleSectionEntrenamiento = function(type) {
 };
 
 // ==========================================================================
-// EXPOSICIÓN GLOBAL DE FUNCIONES PRINCIPALES
+// EXPOSICIÓN GLOBAL
 // ==========================================================================
 
 window.resetAllTimersAndState = resetAllTimersAndState;
