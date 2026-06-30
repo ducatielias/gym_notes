@@ -2,36 +2,28 @@
  * MÓDULO CENTRAL: index.js
  * Controla la navegación global por pestañas de la aplicación.
  * 
- * MODIFICADO: Añadido soporte para exercise-viewer con gestión de menú inferior.
+ * MODIFICADO: Ahora utiliza el historial del navegador para la navegación
+ * entre pestañas principales, mediante pushState y popstate.
+ * Las pantallas internas (editor, detalle) no modifican el historial.
  */
 
-function switchTab(tabId) {
-    // 1. Ocultar todas las pantallas del contenedor principal
+function switchTab(tabId, options = {}) {
+    const noPushState = options.noPushState || false;
+
+    // 1. Ocultar todas las pantallas
     const screens = document.querySelectorAll('.screen');
     screens.forEach(s => s.classList.add('hidden'));
 
-    // 2. Desactivar el estado visual de todos los botones del menú inferior
+    // 2. Desactivar todos los botones del menú inferior
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => item.classList.remove('active'));
 
-    // 3. Capturar el contenedor del menú inferior (bottom-nav)
+    // 3. Gestionar la visibilidad del menú inferior
     const bottomNav = document.querySelector('.bottom-nav');
-
-    // SOLUCIÓN AL TECLADO: Si entramos al editor, ocultamos por completo el menú de pestañas
-    if (tabId === 'editor' || tabId === 'exercise-editor' || tabId === 'history-detail') {
+    const internalScreens = ['editor', 'exercise-editor', 'history-detail', 'exercise-viewer'];
+    if (internalScreens.includes(tabId) || tabId === 'history') {
         if (bottomNav) bottomNav.classList.add('hidden-nav');
-    } else if (tabId === 'exercise-viewer') {
-        // El visor de ejercicios siempre oculta el menú inferior
-        if (bottomNav) bottomNav.classList.add('hidden-nav');
-    } else if (tabId === 'history') {
-        // Si entramos al historial desde entrenamiento o sesión, ocultamos el menú
-        if (historyReturnScreen === 'workout' || historyReturnScreen === 'session') {
-            if (bottomNav) bottomNav.classList.add('hidden-nav');
-        } else {
-            if (bottomNav) bottomNav.classList.remove('hidden-nav');
-        }
     } else {
-        // Al regresar a cualquier otra pestaña, volvemos a mostrar el menú de inmediato
         if (bottomNav) bottomNav.classList.remove('hidden-nav');
     }
 
@@ -39,56 +31,47 @@ function switchTab(tabId) {
     const targetScreen = document.getElementById(`screen-${tabId}`);
     if (targetScreen) {
         targetScreen.classList.remove('hidden');
-        
-        // CORRECCIÓN SEGURO: Reiniciamos el scroll arriba solo al cambiar físicamente de pestaña
         targetScreen.scrollTop = 0;
     }
 
-    // 5. Buscar el botón correspondiente en el menú inferior y activarlo (si no estamos en el editor)
-    if (tabId !== 'editor' && tabId !== 'exercise-editor' && tabId !== 'history-detail' && tabId !== 'history' && tabId !== 'exercise-viewer') {
+    // 5. Activar el botón correspondiente en el menú (si no es pantalla interna)
+    if (!internalScreens.includes(tabId) && tabId !== 'history') {
         const currentBtn = Array.from(navItems).find(btn => btn.getAttribute('onclick').includes(`'${tabId}'`));
-        if (currentBtn) {
-            currentBtn.classList.add('active');
-        }
+        if (currentBtn) currentBtn.classList.add('active');
     }
 
-    // Lógica interna modular: Si el usuario entra a 'Plan', refrescar la lista de rutinas
-    if (tabId === 'plan') {
-        renderRoutineList(); 
+    // 6. Si la pestaña es principal y no viene de popstate, actualizar el historial
+    const mainTabs = ['today', 'plan', 'history', 'exercises'];
+    if (mainTabs.includes(tabId) && !noPushState && typeof window.navigateToTab === 'function') {
+        window.navigateToTab(tabId);
     }
 
-    // NUEVO: Si el usuario entra a 'Exercises', inicializar la página de ejercicios
+    // 7. Lógica modular específica
+    if (tabId === 'plan') renderRoutineList();
     if (tabId === 'exercises') {
-        setTimeout(function() {
-            if (typeof initExercisesPage === 'function') {
-                initExercisesPage();
-            } else {
-                const container = document.getElementById('exercises-container');
-                if (container && typeof renderExercises === 'function') {
-                    renderExercises();
-                }
-            }
+        setTimeout(() => {
+            if (typeof initExercisesPage === 'function') initExercisesPage();
+            else if (typeof renderExercises === 'function') renderExercises();
         }, 50);
     }
-
-    // NUEVO: Si el usuario entra a 'History', inicializar la página de historial
     if (tabId === 'history') {
-        setTimeout(function() {
-            if (typeof initHistoryPage === 'function') {
-                initHistoryPage();
-            } else {
-                const container = document.getElementById('history-container');
-                if (container && typeof renderHistory === 'function') {
-                    renderHistory();
-                }
-            }
+        setTimeout(() => {
+            if (typeof initHistoryPage === 'function') initHistoryPage();
+            else if (typeof renderHistory === 'function') renderHistory();
         }, 50);
     }
 }
 
 // Inicialización de la App al cargar el documento
 document.addEventListener('DOMContentLoaded', () => {
-    switchTab('today');
+    // Si hay un hash en la URL, usarlo para navegar
+    const hash = window.location.hash.replace('#', '');
+    const validTabs = ['today', 'plan', 'history', 'exercises'];
+    if (hash && validTabs.includes(hash)) {
+        switchTab(hash, { noPushState: true });
+    } else {
+        switchTab('today', { noPushState: true });
+    }
 
     const scrollableScreens = document.querySelectorAll('.screen');
     scrollableScreens.forEach(screen => {

@@ -1,4 +1,5 @@
 // today-dashboard.js - Calendario y entrenamiento libre para la pantalla "Hoy"
+// MODIFICADO: Se añade botón de opciones con opción "Salir" que usa el modal personalizado.
 
 // ==========================================================================
 // VARIABLES GLOBALES
@@ -41,26 +42,22 @@ function renderTodayCalendar() {
     const startWeekday = firstDay.getDay();
     let offset = startWeekday === 0 ? 6 : startWeekday - 1;
 
-    // Fecha actual para resaltar el día de hoy
     const today = new Date();
     const todayKey = formatLocalDate(today);
 
     let daysArray = [];
 
-    // Días del mes anterior
     const prevMonthLastDay = new Date(year, month, 0).getDate();
     for (let i = offset; i > 0; i--) {
         const d = new Date(year, month - 1, prevMonthLastDay - i + 1);
         daysArray.push({ day: prevMonthLastDay - i + 1, currentMonth: false, date: d });
     }
 
-    // Días del mes actual
     for (let i = 1; i <= lastDay.getDate(); i++) {
         const d = new Date(year, month, i);
         daysArray.push({ day: i, currentMonth: true, date: d });
     }
 
-    // Días del mes siguiente
     const remaining = 42 - daysArray.length;
     for (let i = 1; i <= remaining; i++) {
         const d = new Date(year, month + 1, i);
@@ -68,8 +65,6 @@ function renderTodayCalendar() {
     }
 
     const weekdays = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-
-    // Obtener historial
     const historyDB = getHistoryDB();
 
     let html = `
@@ -87,7 +82,6 @@ function renderTodayCalendar() {
         const isCurrentMonth = dayObj.currentMonth;
         const dateKey = formatLocalDate(dayObj.date);
         
-        // Verificar si hay entrenamiento en esta fecha
         let hasWorkout = false;
         let workoutId = null;
         if (historyDB && historyDB.length > 0) {
@@ -101,7 +95,6 @@ function renderTodayCalendar() {
             }
         }
 
-        // Verificar si es el día de hoy
         const isToday = dateKey === todayKey;
 
         let additionalClass = '';
@@ -109,7 +102,6 @@ function renderTodayCalendar() {
         if (hasWorkout && isCurrentMonth) additionalClass += ' has-workout';
         if (isToday && isCurrentMonth) additionalClass += ' today';
 
-        // Si tiene entrenamiento, añadir onclick para ir al historial
         let clickHandler = '';
         if (hasWorkout && isCurrentMonth) {
             clickHandler = `onclick="irAlHistorialDesdeCalendario('${dateKey}')"`;
@@ -129,10 +121,7 @@ function renderTodayCalendar() {
 function irAlHistorialDesdeCalendario(dateKey) {
     console.log('[today-dashboard] Buscando entrenamientos para la fecha:', dateKey);
     
-    // Obtener el historial
     const historyDB = getHistoryDB();
-    
-    // Buscar todos los entrenamientos en esa fecha
     const entrenamientos = historyDB.filter(h => {
         const hDate = new Date(h.fecha);
         return formatLocalDate(hDate) === dateKey;
@@ -145,11 +134,9 @@ function irAlHistorialDesdeCalendario(dateKey) {
     
     console.log('[today-dashboard] Entrenamientos encontrados:', entrenamientos.length);
     
-    // Cambiar a la pestaña de historial
     if (typeof window.switchTab === 'function') {
         window.switchTab('history');
     } else {
-        // Fallback: cambiar directamente
         const historyScreen = document.getElementById('screen-history');
         if (historyScreen) {
             document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
@@ -157,36 +144,28 @@ function irAlHistorialDesdeCalendario(dateKey) {
         }
     }
     
-    // Esperar a que el historial se renderice y luego expandir las tarjetas
     setTimeout(function() {
-        // Obtener el contenedor de scroll del historial
         const historyContainer = document.getElementById('history-container');
         if (!historyContainer) {
             console.warn('[today-dashboard] history-container no encontrado');
             return;
         }
         
-        // Obtener el contenedor de la pantalla (para el scroll)
         const historyScreen = document.getElementById('screen-history');
         if (!historyScreen) {
             console.warn('[today-dashboard] screen-history no encontrado');
             return;
         }
         
-        // Array para almacenar las tarjetas encontradas
         let tarjetasEncontradas = [];
         
-        // Recorrer todos los entrenamientos encontrados
         entrenamientos.forEach(entreno => {
-            // Buscar la tarjeta por ID
             const cardId = entreno.id;
             const card = document.getElementById(`history-card-${cardId}`);
-            
             if (card) {
                 console.log('[today-dashboard] Expandiendo tarjeta:', cardId);
                 tarjetasEncontradas.push(card);
             } else {
-                // Intentar buscar por nombre de sesión como fallback
                 const sessionTitle = entreno.nombre_sesion || entreno.nombre_rutina || '';
                 if (sessionTitle) {
                     const allCards = document.querySelectorAll('.card-history');
@@ -201,13 +180,11 @@ function irAlHistorialDesdeCalendario(dateKey) {
             }
         });
         
-        // Si no se encontraron tarjetas, salir
         if (tarjetasEncontradas.length === 0) {
             console.warn('[today-dashboard] No se encontraron tarjetas para expandir');
             return;
         }
         
-        // Expandir todas las tarjetas encontradas
         tarjetasEncontradas.forEach(card => {
             if (!card.classList.contains('expanded')) {
                 card.classList.add('expanded');
@@ -218,13 +195,8 @@ function irAlHistorialDesdeCalendario(dateKey) {
             }
         });
         
-        // Usar scrollIntoView para la primera tarjeta
         const primeraTarjeta = tarjetasEncontradas[0];
-        
-        // Forzar un reflow para que las posiciones sean correctas
         void primeraTarjeta.offsetHeight;
-        
-        // Scroll a la tarjeta usando scrollIntoView
         primeraTarjeta.scrollIntoView({
             behavior: 'smooth',
             block: 'center',
@@ -244,6 +216,25 @@ function cambiarMesToday(delta) {
 }
 
 // ==========================================================================
+// MANEJAR SALIDA DE LA APP (CON CONFIRMACIÓN)
+// ==========================================================================
+
+async function handleSalirApp() {
+    const confirmado = await window.showConfirm(
+        '¿Estás seguro de que quieres salir de Gym Notes?',
+        'Salir de la app'
+    );
+    if (confirmado) {
+        try {
+            window.close();
+        } catch (e) {
+            // Si window.close() falla (por seguridad), mostrar un mensaje de despedida
+            document.body.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100vh; font-size:24px; color:#374151;">👋 ¡Hasta luego!</div>';
+        }
+    }
+}
+
+// ==========================================================================
 // RENDERIZAR DASHBOARD DE "HOY"
 // ==========================================================================
 
@@ -256,35 +247,68 @@ function renderTodayDashboard() {
         return;
     }
 
-    // Obtener el header existente
-    const existingHeader = container.querySelector('.screen-header');
-    const emptyState = container.querySelector('.empty-state');
-
-    // Ocultar el empty state si existe (en lugar de eliminarlo)
-    if (emptyState) {
-        emptyState.style.display = 'none';
+    // Crear o actualizar el header con el botón de opciones
+    let header = container.querySelector('.screen-header');
+    if (!header) {
+        header = document.createElement('header');
+        header.className = 'screen-header';
+        container.prepend(header);
     }
+
+    // Añadir el botón de opciones y el menú si no existen
+    let optionsBtn = header.querySelector('.btn-today-options');
+    if (!optionsBtn) {
+        header.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0;">Gym Notes</h1>
+                <div style="position: relative;">
+                    <button class="btn-today-options" style="background: none; border: none; color: #9ca3af; font-size: 20px; padding: 8px 10px; cursor: pointer; border-radius: 50%; transition: background 0.15s ease, color 0.15s ease;">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <div class="today-options-menu hidden" style="position: absolute; top: 45px; right: 0; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 14px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); width: 160px; z-index: 200; display: flex; flex-direction: column; padding: 6px;">
+                        <button class="today-menu-item" data-action="salir" style="background: none; border: none; padding: 10px 12px; text-align: left; font-size: 14px; font-weight: 600; color: #ef4444; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; width: 100%;">
+                            <i class="fa-solid fa-right-from-bracket" style="color: #ef4444;"></i> Salir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        // Asignar eventos
+        const btn = header.querySelector('.btn-today-options');
+        const menu = header.querySelector('.today-options-menu');
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('hidden');
+        });
+        document.addEventListener('click', () => {
+            menu.classList.add('hidden');
+        });
+        const salirBtn = header.querySelector('.today-menu-item[data-action="salir"]');
+        salirBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.add('hidden');
+            handleSalirApp();
+        });
+    }
+
+    // Ocultar el empty state si existe
+    const emptyState = container.querySelector('.empty-state');
+    if (emptyState) emptyState.style.display = 'none';
 
     // Crear o actualizar el contenido del dashboard
     let dashboardContent = document.getElementById('today-dashboard-content');
-    
     if (!dashboardContent) {
-        // Si no existe, crearlo
         dashboardContent = document.createElement('div');
         dashboardContent.id = 'today-dashboard-content';
-        
-        // Insertar después del header o al principio
-        if (existingHeader) {
-            existingHeader.insertAdjacentElement('afterend', dashboardContent);
+        if (header) {
+            header.insertAdjacentElement('afterend', dashboardContent);
         } else {
             container.prepend(dashboardContent);
         }
     }
 
-    // Obtener historial para ver si hay datos
     const historyDB = getHistoryDB();
 
-    // Renderizar el contenido - PRIMERO EL BOTÓN, LUEGO EL CALENDARIO, LUEGO BOTONES DE IMPORTAR/EXPORTAR
     dashboardContent.innerHTML = `
         <!-- Botón Entrenamiento Libre -->
         <button class="btn-today-entrenamiento-libre" onclick="iniciarEntrenamientoLibreToday()">
@@ -325,39 +349,27 @@ function renderTodayDashboard() {
 function iniciarEntrenamientoLibreToday() {
     console.log('[today-dashboard] Iniciando entrenamiento libre');
     
-    // Verificar si existe la función de entrenamiento
     if (typeof window.iniciarEntrenamiento === 'function') {
-        // Crear un objeto de sesión temporal para entrenamiento libre
         const sessionData = {
             id: 'free-' + Date.now(),
             title: 'Entrenamiento Libre',
             content: '<p>💪 Entrenamiento libre - Anota aquí tus ejercicios</p>',
             routineName: 'Entrenamiento Libre'
         };
-        
-        // Llamar a la función existente
         window.iniciarEntrenamiento(sessionData);
     } else {
-        // Fallback: Mostrar el modal de entrenamiento directamente
         const modal = document.getElementById('active-workout');
         if (modal) {
-            // Configurar el título
             const titleSpan = document.getElementById('aw-session-title');
             if (titleSpan) {
                 titleSpan.textContent = 'Entrenamiento Libre';
             }
-            
-            // Mostrar el modal
             modal.style.display = 'flex';
-            
-            // Inicializar el editor si existe la función
             if (typeof window.inicializarEditorEntrenamiento === 'function') {
                 setTimeout(function() {
                     window.inicializarEditorEntrenamiento();
                 }, 100);
             }
-            
-            // Iniciar temporizador total
             if (typeof window.iniciarTotalTimer === 'function') {
                 window.iniciarTotalTimer();
             }
@@ -372,7 +384,6 @@ function iniciarEntrenamientoLibreToday() {
 // ==========================================================================
 
 function initTodayDashboard() {
-    // Verificar si la pantalla "today" está visible
     const todayScreen = document.getElementById('screen-today');
     if (todayScreen && !todayScreen.classList.contains('hidden')) {
         renderTodayDashboard();
@@ -384,16 +395,11 @@ function initTodayDashboard() {
 // INICIALIZACIÓN
 // ==========================================================================
 
-// Función para sobrescribir switchTab si no existe o para añadir el hook
 function setupSwitchTabHook() {
-    // Si existe switchTab, lo envolvemos
     if (typeof window.switchTab === 'function') {
         const originalSwitchTab = window.switchTab;
         window.switchTab = function(tabId) {
-            // Llamar a la función original
             originalSwitchTab.call(this, tabId);
-            
-            // Si es la pestaña "today", renderizar el dashboard después de un breve delay
             if (tabId === 'today') {
                 setTimeout(function() {
                     renderTodayDashboard();
@@ -406,7 +412,6 @@ function setupSwitchTabHook() {
     }
 }
 
-// Configurar MutationObserver para detectar cuando la pantalla "today" se hace visible
 function setupVisibilityObserver() {
     const todayScreen = document.getElementById('screen-today');
     if (!todayScreen) {
@@ -425,7 +430,6 @@ function setupVisibilityObserver() {
                         renderTodayDashboard();
                         todayDashboardInitialized = true;
                     } else if (!isHidden) {
-                        // Si ya está inicializado, solo renderizar de nuevo
                         renderTodayDashboard();
                     }
                 }
@@ -443,14 +447,8 @@ function setupVisibilityObserver() {
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[today-dashboard] DOMContentLoaded - Inicializando...');
-    
-    // Configurar el hook de switchTab
     setupSwitchTabHook();
-    
-    // Configurar el observer para detectar cambios de visibilidad
     setupVisibilityObserver();
-    
-    // Verificar si la pantalla "today" ya está visible al cargar
     setTimeout(function() {
         const todayScreen = document.getElementById('screen-today');
         if (todayScreen && !todayScreen.classList.contains('hidden')) {
@@ -461,7 +459,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 200);
 });
 
-// También ejecutar cuando el script se carga (por si el DOM ya está listo)
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     console.log('[today-dashboard] Script cargado en estado:', document.readyState);
     setTimeout(function() {
@@ -482,5 +479,6 @@ window.renderTodayCalendar = renderTodayCalendar;
 window.cambiarMesToday = cambiarMesToday;
 window.iniciarEntrenamientoLibreToday = iniciarEntrenamientoLibreToday;
 window.irAlHistorialDesdeCalendario = irAlHistorialDesdeCalendario;
-window.todayCalendarDate = todayCalendarDate;
 window.initTodayDashboard = initTodayDashboard;
+window.handleSalirApp = handleSalirApp;
+window.todayCalendarDate = todayCalendarDate;
