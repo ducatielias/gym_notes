@@ -1,5 +1,6 @@
 // today-dashboard.js - Calendario y entrenamiento libre para la pantalla "Hoy"
 // MODIFICADO: Se añade icono de la app en el header, antes del título.
+// MODIFICADO: Asegurado line-height:1 en el título para alinear con el icono.
 
 // ==========================================================================
 // VARIABLES GLOBALES
@@ -264,7 +265,7 @@ function renderTodayDashboard() {
                          alt="Gym Notes" 
                          style="height: 32px; width: 32px; border-radius: 8px;"
                          onerror="this.style.display='none'">
-                    <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0;">Gym Notes</h1>
+                    <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0; line-height: 1;">Gym Notes</h1>
                 </div>
                 <div style="position: relative;">
                     <button class="btn-today-options" style="background: none; border: none; color: #9ca3af; font-size: 20px; padding: 8px 10px; cursor: pointer; border-radius: 50%; transition: background 0.15s ease, color 0.15s ease;">

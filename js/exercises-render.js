@@ -8,6 +8,8 @@
  * MODIFICADO: Animación de expansión con CSS Grid (solución Gemini - sin cálculos JS)
  * MODIFICADO: Orden de los elementos al expandir: botones primero, notas después
  * MODIFICADO: Notas con linkifyExerciseHTML que convierte URLs y saltos de línea
+ * 
+ * MODIFICADO: Header con icono de la app y título "Ejercicios" (estilo Hoy)
  */
 
 // ==========================================================================
@@ -55,7 +57,13 @@ function renderExercises() {
         container.innerHTML = `
             <header class="exercises-header">
                 <div class="exercises-header-top">
-                    <h1>Ejercicios</h1>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="icons/icon-192x192.png" 
+                             alt="Gym Notes" 
+                             style="height: 32px; width: 32px; border-radius: 8px;"
+                             onerror="this.style.display='none'">
+                        <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0;">Ejercicios</h1>
+                    </div>
                     <div style="position:relative;">
                         <button class="btn-exercises-options" onclick="toggleExercisesOptionsMenu(event)" title="Opciones">
                             <i class="fa-solid fa-ellipsis-vertical"></i>
@@ -311,10 +319,6 @@ function getExercisePlaceholder(text) {
 
 function linkifyExerciseHTML(html) {
     if (!html) return 'Sin notas adicionales.';
-    
-    // Escapar caracteres HTML para evitar inyección (opcional, pero recomendado)
-    // Si tus notas pueden contener HTML seguro, omite esta línea
-    // let text = html;
     
     // Convertir saltos de línea a <br>
     let text = html.replace(/\n/g, '<br>');

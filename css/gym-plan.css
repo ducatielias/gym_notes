@@ -4,6 +4,7 @@
  * contextuales asegurando su total ocultación inicial mediante la clase .hidden.
  * 
  * MODIFICADO: Añadidos estilos para los menús de opciones de rutinas y sesiones.
+ * MODIFICADO: Añadido line-height:1 al título del header para alinear icono.
  */
 
 /* CLASE CRÍTICA DE OCULTACIÓN (Soluciona el despliegue automático al inicio) */
@@ -19,7 +20,7 @@
     top: 0;
     z-index: 100;
     background-color: var(--background-color, #fafafa);
-    padding: 16px 20px 14px 20px !important;
+    padding: 15px 20px 14px 20px !important;
     border-bottom: 1px solid #e5e7eb;
     display: flex;
     flex-direction: column;
@@ -44,6 +45,16 @@
     color: var(--primary-color, #000000);
     margin: 0;
     padding-left: 2px;
+    line-height: 1;
+}
+
+/* Título principal de la lista de rutinas */
+.screen-header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0;
+    line-height: 1;
 }
 
 /* Botón de opciones (tres puntos) en lugar del botón "+" */

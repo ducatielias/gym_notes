@@ -5,6 +5,7 @@
  * MODIFICADO: Estructura mejorada para animación fluida de tarjetas (solución Gemini)
  * MODIFICADO: Añadidos estilos para el botón "Editar" en el detalle del historial
  * MODIFICADO: Añadidos estilos para el modo edición (fecha/hora, editor Quill)
+ * MODIFICADO: Añadido line-height:1 al título del header para alinear icono.
  */
 
 /* ==========================================================================
@@ -40,6 +41,7 @@
     font-weight: 800;
     letter-spacing: -0.5px;
     margin: 0;
+    line-height: 1;
 }
 
 .btn-history-options {

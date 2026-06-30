@@ -5,6 +5,8 @@
  * MODIFICADO: Menú de opciones simplificado: Exportar JSON, Importar Historial, Borrar todo
  * MODIFICADO: Eliminado el botón "Editar" de las tarjetas del historial
  * MODIFICADO: Animación de expansión mejorada (solución Gemini - sin layout thrashing)
+ * 
+ * MODIFICADO: Header con icono de la app y título "Historial" (estilo Hoy)
  */
 
 // ==========================================================================
@@ -89,13 +91,19 @@ function renderHistory() {
     html += `
         <header class="history-header">
             <div class="history-header-top">
-                ${showBackButton ? `
-                    <button class="btn-back" onclick="goBackFromHistory()" style="background:none; border:none; color:var(--primary-color); font-size:16px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; padding:4px 0;">
-                        <i class="fa-solid fa-chevron-left"></i> ${backButtonLabel}
-                    </button>
-                ` : `
-                    <h1>Historial</h1>
-                `}
+                <div style="display: flex; align-items: center; gap: 10px; flex:1;">
+                    ${showBackButton ? `
+                        <button class="btn-back" onclick="goBackFromHistory()" style="background:none; border:none; color:var(--primary-color); font-size:16px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; padding:4px 0;">
+                            <i class="fa-solid fa-chevron-left"></i> ${backButtonLabel}
+                        </button>
+                    ` : `
+                        <img src="icons/icon-192x192.png" 
+                             alt="Gym Notes" 
+                             style="height: 32px; width: 32px; border-radius: 8px;"
+                             onerror="this.style.display='none'">
+                        <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0;">Historial</h1>
+                    `}
+                </div>
                 <div style="position:relative;">
                     <button class="btn-history-options" onclick="toggleHistoryOptionsMenu(event)" title="Opciones">
                         <i class="fa-solid fa-ellipsis-vertical"></i>

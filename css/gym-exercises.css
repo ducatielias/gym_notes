@@ -8,6 +8,7 @@
  * MODIFICADO: Notas con scroll para contenido largo (max-height + overflow-y)
  * CORREGIDO: El padding vertical se aplica SOLO cuando la tarjeta está expandida.
  *           Esto permite que grid-template-rows: 0fr colapse completamente a 0px.
+ * MODIFICADO: Añadido line-height:1 al título del header para alinear icono.
  */
 
 /* ==========================================================================
@@ -43,6 +44,7 @@
     font-weight: 800;
     letter-spacing: -0.5px;
     margin: 0;
+    line-height: 1;
 }
 
 .btn-exercises-options {
