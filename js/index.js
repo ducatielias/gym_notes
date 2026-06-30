@@ -2,10 +2,15 @@
  * MÓDULO CENTRAL: index.js
  * Controla la navegación global por pestañas de la aplicación.
  * 
- * MODIFICADO: Ahora utiliza el historial del navegador para la navegación
- * entre pestañas principales, mediante pushState y popstate.
- * Las pantallas internas (editor, detalle) no modifican el historial.
+ * MODIFICADO: switchTab solo gestiona la UI. La navegación con historial
+ * se maneja desde los botones del menú inferior mediante navigateAndSwitch.
+ * CORREGIDO: El menú inferior ya no se oculta al entrar a "history",
+ * solo se oculta en pantallas internas (editor, detalle, visor).
  */
+
+// ==========================================================================
+// FUNCIÓN PRINCIPAL: CAMBIAR DE PESTAÑA (SOLO UI)
+// ==========================================================================
 
 function switchTab(tabId, options = {}) {
     const noPushState = options.noPushState || false;
@@ -20,8 +25,9 @@ function switchTab(tabId, options = {}) {
 
     // 3. Gestionar la visibilidad del menú inferior
     const bottomNav = document.querySelector('.bottom-nav');
+    // Pantallas que deben ocultar el menú inferior (modales o pantallas completas)
     const internalScreens = ['editor', 'exercise-editor', 'history-detail', 'exercise-viewer'];
-    if (internalScreens.includes(tabId) || tabId === 'history') {
+    if (internalScreens.includes(tabId)) {
         if (bottomNav) bottomNav.classList.add('hidden-nav');
     } else {
         if (bottomNav) bottomNav.classList.remove('hidden-nav');
@@ -35,34 +41,57 @@ function switchTab(tabId, options = {}) {
     }
 
     // 5. Activar el botón correspondiente en el menú (si no es pantalla interna)
-    if (!internalScreens.includes(tabId) && tabId !== 'history') {
+    if (!internalScreens.includes(tabId)) {
         const currentBtn = Array.from(navItems).find(btn => btn.getAttribute('onclick').includes(`'${tabId}'`));
         if (currentBtn) currentBtn.classList.add('active');
     }
 
-    // 6. Si la pestaña es principal y no viene de popstate, actualizar el historial
-    const mainTabs = ['today', 'plan', 'history', 'exercises'];
-    if (mainTabs.includes(tabId) && !noPushState && typeof window.navigateToTab === 'function') {
-        window.navigateToTab(tabId);
+    // 6. Lógica modular específica (con delay para asegurar renderizado)
+    if (tabId === 'plan') {
+        renderRoutineList();
     }
-
-    // 7. Lógica modular específica
-    if (tabId === 'plan') renderRoutineList();
     if (tabId === 'exercises') {
         setTimeout(() => {
-            if (typeof initExercisesPage === 'function') initExercisesPage();
-            else if (typeof renderExercises === 'function') renderExercises();
+            if (typeof initExercisesPage === 'function') {
+                initExercisesPage();
+            } else if (typeof renderExercises === 'function') {
+                renderExercises();
+            }
         }, 50);
     }
     if (tabId === 'history') {
         setTimeout(() => {
-            if (typeof initHistoryPage === 'function') initHistoryPage();
-            else if (typeof renderHistory === 'function') renderHistory();
+            if (typeof initHistoryPage === 'function') {
+                initHistoryPage();
+            } else if (typeof renderHistory === 'function') {
+                renderHistory();
+            }
         }, 50);
     }
 }
 
-// Inicialización de la App al cargar el documento
+// ==========================================================================
+// FUNCIÓN PARA NAVEGAR Y CAMBIAR DE PESTAÑA (CON HISTORIAL)
+// ==========================================================================
+
+function navigateAndSwitch(tabId) {
+    // Solo para pestañas principales (no internas)
+    const mainTabs = ['today', 'plan', 'history', 'exercises'];
+    if (mainTabs.includes(tabId)) {
+        // Añadir estado al historial
+        const state = { tab: tabId };
+        const url = new URL(window.location);
+        url.hash = tabId;
+        history.pushState(state, '', url.toString());
+    }
+    // Cambiar la UI sin volver a modificar el historial
+    switchTab(tabId, { noPushState: true });
+}
+
+// ==========================================================================
+// INICIALIZACIÓN DE LA APP
+// ==========================================================================
+
 document.addEventListener('DOMContentLoaded', () => {
     // Si hay un hash en la URL, usarlo para navegar
     const hash = window.location.hash.replace('#', '');
@@ -73,41 +102,35 @@ document.addEventListener('DOMContentLoaded', () => {
         switchTab('today', { noPushState: true });
     }
 
+    // Configurar listeners de scroll para el botón flotante
     const scrollableScreens = document.querySelectorAll('.screen');
     scrollableScreens.forEach(screen => {
         screen.addEventListener('scroll', handleScreenScrollDetection);
     });
 
-    // Inicializar ejercicios si está visible
+    // Inicializar módulos si están visibles
     const exercisesScreen = document.getElementById('screen-exercises');
     if (exercisesScreen && !exercisesScreen.classList.contains('hidden')) {
-        setTimeout(function() {
-            if (typeof initExercisesPage === 'function') {
-                initExercisesPage();
-            }
+        setTimeout(() => {
+            if (typeof initExercisesPage === 'function') initExercisesPage();
         }, 100);
     }
 
-    // Inicializar historial si está visible
     const historyScreen = document.getElementById('screen-history');
     if (historyScreen && !historyScreen.classList.contains('hidden')) {
-        setTimeout(function() {
-            if (typeof initHistoryPage === 'function') {
-                initHistoryPage();
-            }
+        setTimeout(() => {
+            if (typeof initHistoryPage === 'function') initHistoryPage();
         }, 100);
     }
 });
 
 /**
- * Controla la visibilidad adaptativa del botón flotante según la posición del scroll.
+ * Controla la visibilidad adaptativa del botón flotante según el scroll.
  */
 function handleScreenScrollDetection(event) {
     const currentScreen = event.currentTarget;
     const globalBtn = document.getElementById('globalScrollTopBtn');
-    
     if (!globalBtn) return;
-
     if (currentScreen.scrollTop > 250) {
         globalBtn.classList.add('visible');
     } else {
@@ -121,9 +144,11 @@ function handleScreenScrollDetection(event) {
 function scrollToTopCurrentScreen() {
     const activeScreen = document.querySelector('.screen:not(.hidden)');
     if (activeScreen) {
-        activeScreen.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+        activeScreen.scrollTo({ top: 0, behavior: 'smooth' });
     }
 }
+
+// Exponer funciones globalmente
+window.switchTab = switchTab;
+window.navigateAndSwitch = navigateAndSwitch;
+window.scrollToTopCurrentScreen = scrollToTopCurrentScreen;

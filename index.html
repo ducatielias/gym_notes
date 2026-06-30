@@ -83,23 +83,23 @@
     </button>
 
     <nav class="bottom-nav">
-        <button class="nav-item active" onclick="switchTab('today')">
-            <i class="fa-solid fa-calendar-day"></i>
-            <span>Hoy</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('plan')">
-            <i class="fa-solid fa-dumbbell"></i>
-            <span>Plan</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('history')">
-            <i class="fa-solid fa-clock-rotate-left"></i>
-            <span>Historial</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('exercises')">
-            <i class="fa-solid fa-list-check"></i>
-            <span>Ejercicios</span>
-        </button>
-    </nav>
+    <button class="nav-item active" onclick="navigateAndSwitch('today')">
+        <i class="fa-solid fa-calendar-day"></i>
+        <span>Hoy</span>
+    </button>
+    <button class="nav-item" onclick="navigateAndSwitch('plan')">
+        <i class="fa-solid fa-dumbbell"></i>
+        <span>Plan</span>
+    </button>
+    <button class="nav-item" onclick="navigateAndSwitch('history')">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span>Historial</span>
+    </button>
+    <button class="nav-item" onclick="navigateAndSwitch('exercises')">
+        <i class="fa-solid fa-list-check"></i>
+        <span>Ejercicios</span>
+    </button>
+</nav>
 
     <!-- MODAL DE ENTRENAMIENTO ACTIVO -->
     <div id="active-workout" class="modal-overlay" style="display:none; align-items: stretch; justify-content: stretch; background: var(--background-color);">
