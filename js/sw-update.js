@@ -8,6 +8,8 @@
  * - Mostrar modal con opciones: Actualizar, Exportar y actualizar, Más tarde
  * - Permitir exportar datos antes de actualizar
  * - Forzar la actualización cuando el usuario lo decida
+ * - Obtener la versión actual desde sw.js dinámicamente
+ * - Comprobar actualizaciones bajo demanda (desde la interfaz)
  */
 
 // ==========================================================================
@@ -17,6 +19,42 @@
 let swUpdatePending = false;
 let swUpdateRegistration = null;
 let swUpdateResolve = null;
+let swCurrentVersion = 'desconocida';
+let swVersionLoaded = false;
+
+// ==========================================================================
+// OBTENER VERSIÓN DESDE sw.js
+// ==========================================================================
+
+async function fetchSWVersion() {
+    try {
+        const response = await fetch('./sw.js');
+        if (!response.ok) throw new Error('No se pudo cargar sw.js');
+        const text = await response.text();
+        // Buscar CACHE_VERSION = 'gym-notes-v0-81' o similar
+        const match = text.match(/CACHE_VERSION\s*=\s*['"]([^'"]+)['"]/);
+        if (match && match[1]) {
+            let version = match[1];
+            // Extraer número después de 'v' o 'gym-notes-v'
+            // formato esperado: gym-notes-v0-81 -> v0.81
+            const versionMatch = version.match(/v([\d-]+)/);
+            if (versionMatch) {
+                let num = versionMatch[1];
+                // Reemplazar guiones por puntos
+                num = num.replace(/-/g, '.');
+                swCurrentVersion = 'v' + num;
+            } else {
+                swCurrentVersion = version;
+            }
+            console.log('[sw-update] Versión detectada desde sw.js:', swCurrentVersion);
+        } else {
+            console.warn('[sw-update] No se encontró CACHE_VERSION en sw.js');
+        }
+    } catch (error) {
+        console.warn('[sw-update] Error al obtener versión desde sw.js:', error);
+    }
+    swVersionLoaded = true;
+}
 
 // ==========================================================================
 // DETECTAR ACTUALIZACIONES DEL SERVICE WORKER
@@ -24,6 +62,9 @@ let swUpdateResolve = null;
 
 function initSWUpdateDetection() {
     console.log('[sw-update] Inicializando detector de actualizaciones...');
+    
+    // Obtener la versión desde sw.js
+    fetchSWVersion();
     
     if (!('serviceWorker' in navigator)) {
         console.log('[sw-update] Service Worker no soportado');
@@ -71,6 +112,91 @@ function checkForSWUpdate() {
 }
 
 // ==========================================================================
+// COMPROBAR ACTUALIZACIÓN BAJO DEMANDA (DESDE INTERFAZ)
+// ==========================================================================
+
+async function checkForUpdateAndShowResult() {
+    console.log('[sw-update] Comprobando actualizaciones bajo demanda...');
+    
+    if (!('serviceWorker' in navigator)) {
+        if (typeof window.showAlert === 'function') {
+            window.showAlert('Tu navegador no soporta Service Worker.', 'Aviso');
+        } else {
+            alert('Tu navegador no soporta Service Worker.');
+        }
+        return;
+    }
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        // Forzar la comprobación
+        await registration.update();
+        
+        // Esperar un momento para que el SW pueda responder
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Verificar si hay un worker en espera
+        if (registration.waiting) {
+            console.log('[sw-update] Nueva versión encontrada (waiting).');
+            swUpdatePending = true;
+            showUpdateModal();
+            return;
+        }
+        
+        // También podemos verificar si hay un nuevo worker instalado pero no activo aún
+        // (a veces el update() no lo deja en waiting inmediatamente)
+        // Forzamos un segundo check
+        await registration.update();
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        if (registration.waiting) {
+            console.log('[sw-update] Nueva versión encontrada (segundo intento).');
+            swUpdatePending = true;
+            showUpdateModal();
+            return;
+        }
+        
+        // Si no hay waiting, podemos consultar si hay una actualización en el registro
+        // (algunos navegadores pueden tener un installing)
+        if (registration.installing) {
+            console.log('[sw-update] Worker instalando, esperando...');
+            // Esperar a que termine de instalar
+            await new Promise(resolve => {
+                const checkInstalling = () => {
+                    if (registration.installing) {
+                        setTimeout(checkInstalling, 200);
+                    } else {
+                        resolve();
+                    }
+                };
+                checkInstalling();
+            });
+            // Volver a comprobar
+            if (registration.waiting) {
+                swUpdatePending = true;
+                showUpdateModal();
+                return;
+            }
+        }
+        
+        // Si llegamos aquí, no hay actualización
+        if (typeof window.showAlert === 'function') {
+            window.showAlert('✅ La aplicación ya está actualizada a la última versión.', 'Actualizado');
+        } else {
+            alert('La aplicación ya está actualizada.');
+        }
+        
+    } catch (error) {
+        console.error('[sw-update] Error al comprobar actualizaciones:', error);
+        if (typeof window.showAlert === 'function') {
+            window.showAlert('Error al comprobar actualizaciones: ' + error.message, 'Error');
+        } else {
+            alert('Error al comprobar actualizaciones.');
+        }
+    }
+}
+
+// ==========================================================================
 // MODAL DE ACTUALIZACIÓN
 // ==========================================================================
 
@@ -93,6 +219,9 @@ function showUpdateModal() {
     overlay.style.backdropFilter = 'blur(6px)';
     overlay.style.webkitBackdropFilter = 'blur(6px)';
 
+    // Usar la versión obtenida dinámicamente
+    const versionDisplay = swVersionLoaded ? swCurrentVersion : '...cargando...';
+
     overlay.innerHTML = `
         <div class="modal-container" style="max-width: 340px; width: 90%;">
             <div class="modal-header">
@@ -109,7 +238,7 @@ function showUpdateModal() {
                 </p>
                 <div style="margin-top:8px; padding:10px 12px; background:#f3f4f6; border-radius:8px; font-size:12px; color:#6b7280; text-align:center;">
                     <i class="fa-solid fa-cloud-arrow-up"></i> 
-                    Versión actual: <span id="sw-current-version">v.0.81</span>
+                    Versión actual: <span id="sw-current-version">${versionDisplay}</span>
                 </div>
             </div>
             <div class="modal-footer" style="padding:12px 20px 20px; display:flex; flex-direction:column; gap:8px; border-top:1px solid #f3f4f6;">
@@ -142,7 +271,6 @@ function showUpdateModal() {
     document.getElementById('sw-later-btn').addEventListener('click', function() {
         closeUpdateModal();
         console.log('[sw-update] Actualización pospuesta');
-        // Mostrar un pequeño toast o notificación (opcional)
     });
 
     // Cerrar al hacer clic fuera
@@ -280,5 +408,7 @@ window.performExportAndUpdate = performExportAndUpdate;
 window.forceSWUpdate = forceSWUpdate;
 window.showUpdateModal = showUpdateModal;
 window.closeUpdateModal = closeUpdateModal;
+window.checkForUpdateAndShowResult = checkForUpdateAndShowResult;
+window.fetchSWVersion = fetchSWVersion;
 
 console.log('[sw-update] Módulo cargado correctamente');

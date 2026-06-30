@@ -1,5 +1,5 @@
 // today-dashboard.js - Calendario y entrenamiento libre para la pantalla "Hoy"
-// MODIFICADO: Se añade botón de opciones con opción "Salir" que usa el modal personalizado.
+// MODIFICADO: Se añade botón de opciones con opción "Salir" y "Buscar actualizaciones".
 
 // ==========================================================================
 // VARIABLES GLOBALES
@@ -235,6 +235,22 @@ async function handleSalirApp() {
 }
 
 // ==========================================================================
+// MANEJAR BÚSQUEDA DE ACTUALIZACIONES
+// ==========================================================================
+
+async function handleRefreshApp() {
+    console.log('[today-dashboard] Buscando actualizaciones...');
+    if (typeof window.checkForUpdateAndShowResult === 'function') {
+        await window.checkForUpdateAndShowResult();
+    } else {
+        console.warn('[today-dashboard] checkForUpdateAndShowResult no disponible');
+        if (typeof window.showAlert === 'function') {
+            window.showAlert('La función de búsqueda de actualizaciones no está disponible.', 'Aviso');
+        }
+    }
+}
+
+// ==========================================================================
 // RENDERIZAR DASHBOARD DE "HOY"
 // ==========================================================================
 
@@ -265,7 +281,11 @@ function renderTodayDashboard() {
                     <button class="btn-today-options" style="background: none; border: none; color: #9ca3af; font-size: 20px; padding: 8px 10px; cursor: pointer; border-radius: 50%; transition: background 0.15s ease, color 0.15s ease;">
                         <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>
-                    <div class="today-options-menu hidden" style="position: absolute; top: 45px; right: 0; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 14px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); width: 160px; z-index: 200; display: flex; flex-direction: column; padding: 6px;">
+                    <div class="today-options-menu hidden" style="position: absolute; top: 45px; right: 0; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 14px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); width: 180px; z-index: 200; display: flex; flex-direction: column; padding: 6px;">
+                        <button class="today-menu-item" data-action="refresh" style="background: none; border: none; padding: 10px 12px; text-align: left; font-size: 14px; font-weight: 600; color: #374151; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; width: 100%;">
+                            <i class="fa-solid fa-rotate" style="color: #4b5563;"></i> Buscar actualizaciones
+                        </button>
+                        <div style="height: 1px; background: #f3f4f6; margin: 4px 6px;"></div>
                         <button class="today-menu-item" data-action="salir" style="background: none; border: none; padding: 10px 12px; text-align: left; font-size: 14px; font-weight: 600; color: #ef4444; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; width: 100%;">
                             <i class="fa-solid fa-right-from-bracket" style="color: #ef4444;"></i> Salir
                         </button>
@@ -282,6 +302,12 @@ function renderTodayDashboard() {
         });
         document.addEventListener('click', () => {
             menu.classList.add('hidden');
+        });
+        const refreshBtn = header.querySelector('.today-menu-item[data-action="refresh"]');
+        refreshBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.add('hidden');
+            handleRefreshApp();
         });
         const salirBtn = header.querySelector('.today-menu-item[data-action="salir"]');
         salirBtn.addEventListener('click', (e) => {
@@ -481,4 +507,5 @@ window.iniciarEntrenamientoLibreToday = iniciarEntrenamientoLibreToday;
 window.irAlHistorialDesdeCalendario = irAlHistorialDesdeCalendario;
 window.initTodayDashboard = initTodayDashboard;
 window.handleSalirApp = handleSalirApp;
+window.handleRefreshApp = handleRefreshApp;
 window.todayCalendarDate = todayCalendarDate;
