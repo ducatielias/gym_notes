@@ -6,8 +6,6 @@
  * Al cancelar la salida, se reconstruye la trampa con otro pushState.
  * 
  * Compatible con Samsung Internet y Chrome Android.
- * 
- * AHORA: Confirmación de salida en TODAS las pantallas (no solo entrenamiento).
  */
 
 // ==========================================================================
@@ -16,7 +14,7 @@
 
 let backHandlerInitialized = false;
 let esBloqueoActivo = false; // true mientras el entrenamiento esté activo
-let currentTab = 'today'; // Pestaña actual (se actualiza en switchTab)
+let currentTab = 'today';
 
 // ==========================================================================
 // INICIALIZACIÓN
@@ -41,11 +39,9 @@ function alAbrirEntrenamiento() {
     console.log('[back-handler] Entrenamiento abierto, estado pushState.');
 }
 
-function cerrarEntrenamiento() {
-    const workoutModal = document.getElementById('active-workout');
-    if (workoutModal) workoutModal.style.display = 'none';
+function liberarBloqueoEntrenamiento() {
     esBloqueoActivo = false;
-    console.log('[back-handler] Entrenamiento cerrado.');
+    console.log('[back-handler] Bloqueo de entrenamiento liberado.');
 }
 
 // ==========================================================================
@@ -82,8 +78,14 @@ function handlePopState(event) {
         ).then((confirmado) => {
             if (confirmado) {
                 console.log('[back-handler] Usuario confirmó salida del entrenamiento.');
-                esBloqueoActivo = false;
-                cerrarEntrenamiento();
+                // Llamar a la función de cierre del entrenamiento (definida en workout.js)
+                if (typeof window.cerrarEntrenamiento === 'function') {
+                    window.cerrarEntrenamiento();
+                } else {
+                    // Fallback: cerrar manualmente
+                    if (workoutModal) workoutModal.style.display = 'none';
+                    liberarBloqueoEntrenamiento();
+                }
             } else {
                 console.log('[back-handler] Usuario canceló. Reconstruyendo trampa...');
                 setTimeout(() => {
@@ -107,29 +109,21 @@ function handlePopState(event) {
     // CASO 3: Sin estado (raíz)
     console.log('[back-handler] Estado raíz detectado.');
 
-    // 3a: Si hay pantalla interna visible, cerrarla y mantener la app
     if (hayPantallaInternaVisible()) {
         console.log('[back-handler] Pantalla interna visible. Cerrando...');
-        // Cerrar la interna y volver a la pestaña actual
         window.switchTab(currentTab, { noPushState: true });
-        // Restaurar el estado de la pestaña actual para que la siguiente pulsación de atrás
-        // vuelva a mostrar la confirmación (si no hay más historial) o navegue.
         history.pushState({ tab: currentTab }, '', '#' + currentTab);
         return;
     }
 
-    // 3b: No hay interna, mostrar confirmación de salida de la app
     console.log('[back-handler] Mostrando confirmación de salida de la app.');
     window.showConfirm(
         '¿Estás seguro de que quieres salir de Gym Notes?',
         'Salir de la app'
     ).then((confirmado) => {
         if (confirmado) {
-            // El usuario confirma: permitir salida nativa (no hacer nada)
             console.log('[back-handler] Usuario confirmó salir de la app.');
-            // Eliminar el listener para evitar conflictos
             window.removeEventListener('popstate', handlePopState);
-            // Si el navegador no cierra, forzar recarga (fallback)
             setTimeout(() => {
                 if (window.history.length > 1) {
                     window.history.back();
@@ -138,7 +132,6 @@ function handlePopState(event) {
                 }
             }, 100);
         } else {
-            // Usuario cancela: restaurar el estado de la pestaña actual
             console.log('[back-handler] Usuario canceló salida. Restaurando estado.');
             history.pushState({ tab: currentTab }, '', '#' + currentTab);
         }
@@ -146,7 +139,7 @@ function handlePopState(event) {
 }
 
 // ==========================================================================
-// FUNCIÓN PARA NAVEGAR ENTRE PESTAÑAS (DESDE LA UI)
+// FUNCIÓN PARA NAVEGAR ENTRE PESTAÑAS
 // ==========================================================================
 
 function navigateToTab(tabName) {
@@ -160,15 +153,11 @@ function navigateToTab(tabName) {
         const state = { tab: tabName };
         history.pushState(state, '', '#' + tabName);
         window.switchTab(tabName, { noPushState: true });
-        currentTab = tabName; // Actualizar pestaña actual
+        currentTab = tabName;
     } else {
         window.switchTab(tabName, { noPushState: true });
     }
 }
-
-// ==========================================================================
-// ACTUALIZAR PESTAÑA ACTUAL (LLAMAR DESDE switchTab)
-// ==========================================================================
 
 function setCurrentTab(tabName) {
     if (tabName) currentTab = tabName;
@@ -180,7 +169,7 @@ function setCurrentTab(tabName) {
 
 window.initBackHandler = initBackHandler;
 window.alAbrirEntrenamiento = alAbrirEntrenamiento;
-window.cerrarEntrenamiento = cerrarEntrenamiento;
+window.liberarBloqueoEntrenamiento = liberarBloqueoEntrenamiento;
 window.navigateToTab = navigateToTab;
 window.setCurrentTab = setCurrentTab;
 
