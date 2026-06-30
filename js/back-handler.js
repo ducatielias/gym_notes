@@ -2,14 +2,10 @@
  * MÓDULO: back-handler.js
  * Controla el comportamiento del botón de retroceso físico/gestual en teléfonos
  * 
- * Esta funcionalidad previene que el usuario salga accidentalmente de la aplicación
- * al presionar el botón de retroceso en dispositivos móviles.
+ * MODIFICADO: Ahora muestra un modal de confirmación antes de permitir salir de la app.
+ * Si el usuario confirma, se permite la navegación hacia atrás; si cancela, se queda.
  * 
- * VERSIÓN MEJORADA: Anulación completa del retroceso, incluso en iOS (gestos de deslizamiento)
- * y en Android (botón físico). Mantiene al usuario siempre dentro de la aplicación.
- * 
- * TÉCNICA: "History Trap" - Mantiene siempre un estado en el historial para que
- * el retroceso no tenga efecto.
+ * TÉCNICA: "History Trap" + confirmación antes de salir.
  */
 
 // ==========================================================================
@@ -19,13 +15,14 @@
 let backHandlerInitialized = false;
 let backHandlerActive = true;
 let backHandlerLastState = null;
+let backHandlerConfirming = false; // Evita múltiples modales simultáneos
 
 // ==========================================================================
 // FUNCIÓN PRINCIPAL: INICIALIZAR EL CONTROL DE RETROCESO
 // ==========================================================================
 
 function initBackHandler() {
-    console.log('[back-handler] Inicializando control de retroceso (versión mejorada)...');
+    console.log('[back-handler] Inicializando control de retroceso con confirmación...');
     
     // Evitar inicializar múltiples veces
     if (backHandlerInitialized) {
@@ -103,6 +100,12 @@ function handleBackEvent(event) {
     event.preventDefault();
     event.stopPropagation();
     
+    // Si ya estamos mostrando un modal, no hacer nada
+    if (backHandlerConfirming) {
+        console.log('[back-handler] Ya hay un modal de confirmación activo.');
+        return;
+    }
+    
     // Obtener el estado actual
     const state = event.state;
     
@@ -110,50 +113,98 @@ function handleBackEvent(event) {
     // lo reemplazamos con nuestro estado para mantener el control
     if (!state || state.app !== 'gym-notes' || !state.preventBack) {
         console.log('[back-handler] Estado no controlado, restaurando control...');
-        const newState = {
-            app: 'gym-notes',
-            timestamp: Date.now(),
-            preventBack: true,
-            isRestoredState: true
-        };
-        history.replaceState(newState, '', location.href);
-        // Pushear otro estado para mantener la trampa
-        const trapState = {
-            app: 'gym-notes',
-            timestamp: Date.now(),
-            preventBack: true,
-            isTrapState: true
-        };
-        history.pushState(trapState, '', location.href);
-        backHandlerLastState = trapState;
+        restaurarControl();
         return;
     }
     
-    // Si estamos en un estado controlado, simplemente lo reemplazamos
-    // por un nuevo estado para que el retroceso no tenga efecto
-    console.log('[back-handler] Retroceso desactivado - permaneciendo en la app');
-    
-    // Crear un nuevo estado para reemplazar el actual
+    // Mostrar modal de confirmación para salir de la app
+    backHandlerConfirming = true;
+    window.showConfirm(
+        '¿Estás seguro de que quieres salir de Gym Notes?',
+        'Salir de la app'
+    ).then((confirmado) => {
+        backHandlerConfirming = false;
+        if (confirmado) {
+            // El usuario quiere salir: permitir la navegación hacia atrás
+            console.log('[back-handler] Usuario confirmó salir. Permitiendo navegación.');
+            permitirSalida();
+        } else {
+            // El usuario cancela: restaurar el control
+            console.log('[back-handler] Usuario canceló. Restaurando control.');
+            restaurarControl();
+        }
+    });
+}
+
+// ==========================================================================
+// FUNCIÓN PARA RESTAURAR EL CONTROL (después de cancelar)
+// ==========================================================================
+
+function restaurarControl() {
+    // Reemplazar el estado actual con uno controlado
     const newState = {
         app: 'gym-notes',
         timestamp: Date.now(),
         preventBack: true,
-        isReplacementState: true
+        isRestoredState: true
     };
-    
-    // IMPORTANTE: Primero reemplazamos el estado actual con uno nuevo
-    // y luego pusheamos otro estado para mantener la trampa
     history.replaceState(newState, '', location.href);
     
-    // Añadir un estado extra para que siempre haya un estado previo
-    const extraState = {
+    // Pushear otro estado trampa para mantener el control
+    const trapState = {
         app: 'gym-notes',
         timestamp: Date.now(),
         preventBack: true,
-        isExtraState: true
+        isTrapState: true
     };
-    history.pushState(extraState, '', location.href);
-    backHandlerLastState = extraState;
+    history.pushState(trapState, '', location.href);
+    backHandlerLastState = trapState;
+    console.log('[back-handler] Control restaurado.');
+}
+
+// ==========================================================================
+// FUNCIÓN PARA PERMITIR LA SALIDA (confirmado por el usuario)
+// ==========================================================================
+
+function permitirSalida() {
+    console.log('[back-handler] Permitiendo salida de la app...');
+    
+    // Remover los listeners para que no interfieran
+    window.removeEventListener('popstate', handleBackEvent);
+    document.removeEventListener('touchstart', handleTouchStart);
+    document.removeEventListener('touchmove', handleTouchMove);
+    
+    backHandlerInitialized = false;
+    
+    // Intentar ir hacia atrás en el historial
+    // Si hay historial previo, irá a la página anterior
+    // Si no, no hará nada (la app se quedará)
+    try {
+        if (window.history.length > 1) {
+            // Ir atrás una página
+            window.history.back();
+        } else {
+            // No hay historial previo, mostrar un mensaje o simplemente no hacer nada
+            console.log('[back-handler] No hay historial previo. No se puede salir.');
+            // Podríamos mostrar un mensaje, pero mejor no molestar.
+            // En PWA, el retroceso cerraría la app, pero no podemos controlarlo.
+            // Dejamos que el navegador maneje la situación.
+            // Re-inicializamos el control por si el usuario quiere quedarse.
+            setTimeout(() => {
+                if (!backHandlerInitialized) {
+                    initBackHandler();
+                }
+            }, 100);
+        }
+    } catch (e) {
+        console.warn('[back-handler] Error al intentar salir:', e);
+        // Re-inicializar el control
+        setTimeout(() => {
+            if (!backHandlerInitialized) {
+                initBackHandler();
+            }
+        }, 100);
+    }
 }
 
 // ==========================================================================
@@ -187,31 +238,26 @@ function handleTouchMove(event) {
         // Esto es un gesto de retroceso en iOS
         isSwipingBack = true;
         event.preventDefault();
-        console.log('[back-handler] Gesto de retroceso en iOS detectado y bloqueado');
+        console.log('[back-handler] Gesto de retroceso en iOS detectado.');
         
-        // Forzar un popstate para mantener el control
-        if (window.history && window.history.state) {
-            const state = history.state;
-            if (state && state.app === 'gym-notes') {
-                // Ya estamos en un estado controlado, no hacer nada
+        // Si ya estamos mostrando un modal, no hacer nada
+        if (backHandlerConfirming) return;
+        
+        // Mostrar el mismo modal de confirmación
+        backHandlerConfirming = true;
+        window.showConfirm(
+            '¿Estás seguro de que quieres salir de Gym Notes?',
+            'Salir de la app'
+        ).then((confirmado) => {
+            backHandlerConfirming = false;
+            if (confirmado) {
+                console.log('[back-handler] Usuario confirmó salir (iOS swipe).');
+                permitirSalida();
             } else {
-                // Restaurar el control
-                const newState = {
-                    app: 'gym-notes',
-                    timestamp: Date.now(),
-                    preventBack: true,
-                    isRestoredState: true
-                };
-                history.replaceState(newState, '', location.href);
-                const trapState = {
-                    app: 'gym-notes',
-                    timestamp: Date.now(),
-                    preventBack: true,
-                    isTrapState: true
-                };
-                history.pushState(trapState, '', location.href);
+                console.log('[back-handler] Usuario canceló (iOS swipe).');
+                restaurarControl();
             }
-        }
+        });
     }
 }
 
@@ -236,39 +282,6 @@ function resetBackHandler() {
 }
 
 // ==========================================================================
-// FUNCIÓN PARA PERMITIR SALIR DE LA APP (SOLO EN CASOS EXTREMOS)
-// ==========================================================================
-
-function allowBackNavigation() {
-    console.log('[back-handler] ⚠️ Permitir navegación hacia atrás (salir de la app)');
-    
-    // Remover el listener de popstate
-    window.removeEventListener('popstate', handleBackEvent);
-    document.removeEventListener('touchstart', handleTouchStart);
-    document.removeEventListener('touchmove', handleTouchMove);
-    
-    backHandlerInitialized = false;
-    
-    // Restaurar el comportamiento nativo del historial
-    // Esto permitirá que el usuario salga de la app si presiona retroceso
-    // después de que se haya removido la trampa
-    
-    // Limpiar el historial de estados de la app
-    try {
-        // Ir al estado anterior real (si existe)
-        if (window.history.length > 1) {
-            window.history.go(-1);
-        } else {
-            // Si no hay historial, simplemente recargar
-            window.location.reload();
-        }
-    } catch (e) {
-        console.warn('[back-handler] Error al intentar salir:', e);
-        window.location.href = 'about:blank';
-    }
-}
-
-// ==========================================================================
 // FUNCIÓN PARA OBTENER EL ESTADO ACTUAL DEL CONTROL
 // ==========================================================================
 
@@ -287,7 +300,6 @@ function getBackHandlerStatus() {
 
 window.initBackHandler = initBackHandler;
 window.resetBackHandler = resetBackHandler;
-window.allowBackNavigation = allowBackNavigation;
 window.getBackHandlerStatus = getBackHandlerStatus;
 
 // ==========================================================================
@@ -297,7 +309,6 @@ window.getBackHandlerStatus = getBackHandlerStatus;
 // Inicializar el control de retroceso cuando el DOM esté listo
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-        // Pequeño retraso para asegurar que todo esté listo
         setTimeout(initBackHandler, 100);
     });
 } else {
@@ -308,20 +319,5 @@ if (document.readyState === 'loading') {
 if (document.readyState === 'complete') {
     setTimeout(initBackHandler, 200);
 }
-
-console.log('[back-handler] Módulo cargado correctamente');
-
-// ==========================================================================
-// SOLUCIÓN ADICIONAL: Prevenir el retroceso en Android WebView
-// ==========================================================================
-
-// Para Android WebView, también podemos interceptar el evento 'beforeunload'
-// aunque no es tan efectivo como el popstate, pero ayuda en algunos casos.
-window.addEventListener('beforeunload', function(event) {
-    // Si la app está activa y el usuario intenta salir, mostrar un mensaje
-    // (opcional, puede resultar molesto)
-    // event.preventDefault();
-    // event.returnValue = '';
-});
 
 console.log('[back-handler] Módulo cargado correctamente');
