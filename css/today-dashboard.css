@@ -9,7 +9,8 @@
 
 #screen-today {
     background-color: var(--background-color, #fafafa);
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 20px));
+    /*padding-bottom: calc(80px + env(safe-area-inset-bottom, 20px));*/
+    
 }
 
 #today-dashboard-content {
@@ -20,7 +21,7 @@
 }
 
 #screen-today .screen-header {
-    padding: 13px 20px 11px 20px !important;
+    padding: 0px 0px 0px 0px !important;
 }
 
 /* ==========================================================================
