@@ -10,6 +10,7 @@
  * - Forzar la actualización cuando el usuario lo decida
  * - Obtener la versión actual desde sw.js dinámicamente
  * - Comprobar actualizaciones bajo demanda (desde la interfaz)
+ * - Ignorar una versión específica (guardar en localStorage)
  */
 
 // ==========================================================================
@@ -95,6 +96,12 @@ function handleSWMessage(event) {
     if (event.data && event.data.action === 'updateAvailable') {
         console.log('[sw-update] ¡Nueva versión disponible!');
         swUpdatePending = true;
+        // Verificar si esta versión ya fue ignorada
+        const ignoredVersion = localStorage.getItem('sw_ignored_version');
+        if (ignoredVersion === swCurrentVersion) {
+            console.log('[sw-update] Versión ignorada por el usuario, no se muestra el modal.');
+            return;
+        }
         showUpdateModal();
     }
 }
@@ -138,6 +145,14 @@ async function checkForUpdateAndShowResult() {
         // Verificar si hay un worker en espera
         if (registration.waiting) {
             console.log('[sw-update] Nueva versión encontrada (waiting).');
+            // Verificar si fue ignorada
+            const ignoredVersion = localStorage.getItem('sw_ignored_version');
+            if (ignoredVersion === swCurrentVersion) {
+                if (typeof window.showAlert === 'function') {
+                    window.showAlert('Hay una actualización disponible, pero la has ignorado. Para instalarla, ve a "Actualizar app" de nuevo.', 'Aviso');
+                }
+                return;
+            }
             swUpdatePending = true;
             showUpdateModal();
             return;
@@ -151,6 +166,13 @@ async function checkForUpdateAndShowResult() {
         
         if (registration.waiting) {
             console.log('[sw-update] Nueva versión encontrada (segundo intento).');
+            const ignoredVersion = localStorage.getItem('sw_ignored_version');
+            if (ignoredVersion === swCurrentVersion) {
+                if (typeof window.showAlert === 'function') {
+                    window.showAlert('Hay una actualización disponible, pero la has ignorado. Para instalarla, ve a "Actualizar app" de nuevo.', 'Aviso');
+                }
+                return;
+            }
             swUpdatePending = true;
             showUpdateModal();
             return;
@@ -173,6 +195,13 @@ async function checkForUpdateAndShowResult() {
             });
             // Volver a comprobar
             if (registration.waiting) {
+                const ignoredVersion = localStorage.getItem('sw_ignored_version');
+                if (ignoredVersion === swCurrentVersion) {
+                    if (typeof window.showAlert === 'function') {
+                        window.showAlert('Hay una actualización disponible, pero la has ignorado. Para instalarla, ve a "Actualizar app" de nuevo.', 'Aviso');
+                    }
+                    return;
+                }
                 swUpdatePending = true;
                 showUpdateModal();
                 return;
@@ -249,7 +278,7 @@ function showUpdateModal() {
                     <i class="fa-solid fa-file-export"></i> Exportar y actualizar
                 </button>
                 <button id="sw-later-btn" class="modal-btn modal-btn-secondary" style="width:100%; padding:12px; border:none; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; background:transparent; color:#9ca3af;">
-                    Más tarde
+                    Ignorar esta versión
                 </button>
             </div>
         </div>
@@ -269,8 +298,17 @@ function showUpdateModal() {
     });
 
     document.getElementById('sw-later-btn').addEventListener('click', function() {
+        // Guardar la versión ignorada en localStorage
+        if (swCurrentVersion && swCurrentVersion !== 'desconocida') {
+            localStorage.setItem('sw_ignored_version', swCurrentVersion);
+            console.log('[sw-update] Versión ignorada:', swCurrentVersion);
+        }
         closeUpdateModal();
-        console.log('[sw-update] Actualización pospuesta');
+        console.log('[sw-update] Actualización ignorada (versión guardada)');
+        // Mostrar un mensaje informativo
+        if (typeof window.showAlert === 'function') {
+            window.showAlert('Has ignorado esta actualización. No se te volverá a preguntar por esta versión.', 'Ignorada');
+        }
     });
 
     // Cerrar al hacer clic fuera
@@ -295,6 +333,9 @@ function closeUpdateModal() {
 
 function performUpdate() {
     console.log('[sw-update] Ejecutando actualización...');
+    
+    // Limpiar la versión ignorada al actualizar
+    localStorage.removeItem('sw_ignored_version');
     
     if (typeof window.showAlert === 'function') {
         window.showAlert('🔄 Actualizando la aplicación...\nLa página se recargará automáticamente.', 'Actualizando');
@@ -327,6 +368,9 @@ function performUpdate() {
 
 function performExportAndUpdate() {
     console.log('[sw-update] Exportando datos y actualizando...');
+    
+    // Limpiar la versión ignorada
+    localStorage.removeItem('sw_ignored_version');
     
     // Abrir el modal de exportación de datos
     if (typeof window.openExportDataModal === 'function') {
