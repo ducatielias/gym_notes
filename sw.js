@@ -5,9 +5,10 @@
  * CORREGIDO: Rutas relativas para funcionar en cualquier subdirectorio
  * CORREGIDO: Cacheo robusto con fallback a index.html
  * CORREGIDO: Stale-While-Revalidate optimizado
+ * MODIFICADO: Soporte para mensaje "getVersion" que devuelve CACHE_VERSION
  */
 
-const CACHE_VERSION = 'gym-notes-v0-88';
+const CACHE_VERSION = 'gym-notes-v0-89';
 const CACHE_NAME = CACHE_VERSION;
 
 // ============================================================
@@ -204,12 +205,34 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ============================================================
-// MANEJO DE MENSAJES
+// MANEJO DE MENSAJES (incluyendo solicitud de versión)
 // ============================================================
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.action === 'skipWaiting') {
+  const data = event.data;
+  
+  // Mensaje para saltar la espera (actualización)
+  if (data && data.action === 'skipWaiting') {
     console.log('[SW] Saltando espera...');
     self.skipWaiting();
+    return;
+  }
+  
+  // Mensaje para obtener la versión de la caché
+  if (data && data.action === 'getVersion') {
+    console.log('[SW] Recibida solicitud de versión. Enviando:', CACHE_VERSION);
+    // Responder al puerto de mensaje si existe
+    if (event.ports && event.ports.length > 0) {
+      event.ports[0].postMessage({ version: CACHE_VERSION });
+      console.log('[SW] Versión enviada por puerto.');
+    } else {
+      // Si no hay puerto, responder al cliente que envió el mensaje
+      event.source.postMessage({ 
+        action: 'versionResponse', 
+        version: CACHE_VERSION 
+      });
+      console.log('[SW] Versión enviada por source.');
+    }
+    return;
   }
 });
 

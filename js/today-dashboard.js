@@ -2,6 +2,7 @@
 // MODIFICADO: Menú de tres puntos: se elimina "Salir" y se añade "Actualizar app".
 // MODIFICADO: Header unificado con el resto de la app (misma estructura, padding y clases).
 // MODIFICADO: Menú de opciones con estilos y posición correcta.
+// MODIFICADO: Añadida opción "Versión" que obtiene el número de versión directamente del Service Worker.
 
 // ==========================================================================
 // VARIABLES GLOBALES
@@ -258,11 +259,13 @@ function renderTodayDashboard() {
                         <button class="menu-item" onclick="handleTodayActualizarApp(); closeTodayOptionsMenu();">
                             <i class="fa-solid fa-rotate"></i> Actualizar app
                         </button>
+                        <button class="menu-item" onclick="mostrarVersion(); closeTodayOptionsMenu();">
+                            <i class="fa-solid fa-tag"></i> Versión
+                        </button>
                     </div>
                 </div>
             </div>
         `;
-        // Asignar eventos (ya están en el onclick)
     }
 
     // Ocultar el empty state si existe
@@ -349,6 +352,72 @@ function handleTodayActualizarApp() {
         window.forzarActualizacion();
     } else {
         location.reload();
+    }
+}
+
+// ==========================================================================
+// MOSTRAR VERSIÓN DE LA APLICACIÓN (obtenida del Service Worker)
+// ==========================================================================
+
+function mostrarVersion() {
+    console.log('[today-dashboard] Solicitando versión...');
+    
+    // Intentar obtener la versión desde el Service Worker activo
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+            if (registration.active) {
+                console.log('[today-dashboard] Service Worker activo encontrado.');
+                const messageChannel = new MessageChannel();
+                
+                // Esperar respuesta del SW
+                messageChannel.port1.onmessage = function(event) {
+                    console.log('[today-dashboard] Respuesta del SW:', event.data);
+                    const version = event.data.version || 'desconocida';
+                    window.showAlert(`Versión de la aplicación: ${version}`, 'Información');
+                };
+                
+                // Enviar mensaje pidiendo la versión
+                registration.active.postMessage(
+                    { action: 'getVersion' },
+                    [messageChannel.port2]
+                );
+                
+                // Timeout por si no responde
+                setTimeout(() => {
+                    console.warn('[today-dashboard] Timeout esperando respuesta del SW.');
+                    messageChannel.port1.close();
+                    // Fallback a fetchSWVersion
+                    fallbackVersion();
+                }, 3000);
+            } else {
+                console.warn('[today-dashboard] Service Worker registrado pero no activo.');
+                fallbackVersion();
+            }
+        }).catch(error => {
+            console.error('[today-dashboard] Error al acceder a serviceWorker.ready:', error);
+            fallbackVersion();
+        });
+    } else {
+        console.warn('[today-dashboard] Service Worker no soportado.');
+        fallbackVersion();
+    }
+}
+
+function fallbackVersion() {
+    console.log('[today-dashboard] Usando fallback para obtener versión.');
+    // Intentar usar fetchSWVersion desde sw-update.js
+    if (typeof window.fetchSWVersion === 'function') {
+        window.fetchSWVersion().then(() => {
+            const version = window.swCurrentVersion || 'desconocida';
+            console.log('[today-dashboard] Versión obtenida por fetch:', version);
+            window.showAlert(`Versión de la aplicación: ${version}`, 'Información');
+        }).catch(error => {
+            console.error('[today-dashboard] Error en fetchSWVersion:', error);
+            window.showAlert('No se pudo obtener la versión.', 'Error');
+        });
+    } else {
+        console.warn('[today-dashboard] fetchSWVersion no disponible.');
+        window.showAlert('No se pudo obtener la versión.', 'Error');
     }
 }
 
@@ -494,3 +563,4 @@ window.todayCalendarDate = todayCalendarDate;
 window.toggleTodayOptionsMenu = toggleTodayOptionsMenu;
 window.closeTodayOptionsMenu = closeTodayOptionsMenu;
 window.handleTodayActualizarApp = handleTodayActualizarApp;
+window.mostrarVersion = mostrarVersion;
