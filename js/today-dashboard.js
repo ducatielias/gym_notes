@@ -3,6 +3,7 @@
 // MODIFICADO: Header unificado con el resto de la app (misma estructura, padding y clases).
 // MODIFICADO: Menú de opciones con estilos y posición correcta.
 // MODIFICADO: Añadida opción "Versión" que obtiene el número de versión directamente del Service Worker.
+// MODIFICADO: Formateo de la versión para mostrar v0.88 en lugar de v0-88.
 
 // ==========================================================================
 // VARIABLES GLOBALES
@@ -362,18 +363,41 @@ function handleTodayActualizarApp() {
 function mostrarVersion() {
     console.log('[today-dashboard] Solicitando versión...');
     
+    // Función para formatear la versión: reemplazar guiones por puntos
+    function formatearVersion(version) {
+        if (!version) return 'desconocida';
+        // Eliminar prefijo "gym-notes-v" si existe, quedando solo "v0-88"
+        let v = version;
+        if (v.startsWith('gym-notes-v')) {
+            v = v.replace('gym-notes-', '');
+        }
+        // Reemplazar guiones por puntos: v0-88 -> v0.88
+        v = v.replace(/-/g, '.');
+        // Asegurar que comienza con 'v' (si no tiene)
+        if (!v.startsWith('v')) {
+            v = 'v' + v;
+        }
+        return v;
+    }
+
     // Intentar obtener la versión desde el Service Worker activo
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then(registration => {
             if (registration.active) {
                 console.log('[today-dashboard] Service Worker activo encontrado.');
                 const messageChannel = new MessageChannel();
+                let timeoutId = null;
                 
                 // Esperar respuesta del SW
                 messageChannel.port1.onmessage = function(event) {
                     console.log('[today-dashboard] Respuesta del SW:', event.data);
-                    const version = event.data.version || 'desconocida';
-                    window.showAlert(`Versión de la aplicación: ${version}`, 'Información');
+                    if (timeoutId) {
+                        clearTimeout(timeoutId);
+                        timeoutId = null;
+                    }
+                    const rawVersion = event.data.version || 'desconocida';
+                    const versionFormateada = formatearVersion(rawVersion);
+                    window.showAlert(`Versión de la aplicación: ${versionFormateada}`, 'Información');
                 };
                 
                 // Enviar mensaje pidiendo la versión
@@ -382,35 +406,36 @@ function mostrarVersion() {
                     [messageChannel.port2]
                 );
                 
-                // Timeout por si no responde
-                setTimeout(() => {
+                // Timeout por si no responde (solo para mostrar error, pero sin sobrescribir después)
+                timeoutId = setTimeout(() => {
                     console.warn('[today-dashboard] Timeout esperando respuesta del SW.');
                     messageChannel.port1.close();
                     // Fallback a fetchSWVersion
-                    fallbackVersion();
+                    fallbackVersion(formatearVersion);
                 }, 3000);
             } else {
                 console.warn('[today-dashboard] Service Worker registrado pero no activo.');
-                fallbackVersion();
+                fallbackVersion(formatearVersion);
             }
         }).catch(error => {
             console.error('[today-dashboard] Error al acceder a serviceWorker.ready:', error);
-            fallbackVersion();
+            fallbackVersion(formatearVersion);
         });
     } else {
         console.warn('[today-dashboard] Service Worker no soportado.');
-        fallbackVersion();
+        fallbackVersion(formatearVersion);
     }
 }
 
-function fallbackVersion() {
+function fallbackVersion(formatearVersionFn) {
     console.log('[today-dashboard] Usando fallback para obtener versión.');
     // Intentar usar fetchSWVersion desde sw-update.js
     if (typeof window.fetchSWVersion === 'function') {
         window.fetchSWVersion().then(() => {
-            const version = window.swCurrentVersion || 'desconocida';
-            console.log('[today-dashboard] Versión obtenida por fetch:', version);
-            window.showAlert(`Versión de la aplicación: ${version}`, 'Información');
+            const rawVersion = window.swCurrentVersion || 'desconocida';
+            const versionFormateada = formatearVersionFn(rawVersion);
+            console.log('[today-dashboard] Versión obtenida por fetch:', versionFormateada);
+            window.showAlert(`Versión de la aplicación: ${versionFormateada}`, 'Información');
         }).catch(error => {
             console.error('[today-dashboard] Error en fetchSWVersion:', error);
             window.showAlert('No se pudo obtener la versión.', 'Error');
