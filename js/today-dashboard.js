@@ -4,6 +4,7 @@
 // MODIFICADO: Menú de opciones con estilos y posición correcta.
 // MODIFICADO: Añadida opción "Versión" que obtiene el número de versión directamente del Service Worker.
 // MODIFICADO: Formateo de la versión para mostrar v0.88 en lugar de v0-88.
+// MODIFICADO: Al pulsar "Actualizar app" ahora usa checkForUpdateAndShowResult() para comprobar si hay actualización.
 
 // ==========================================================================
 // VARIABLES GLOBALES
@@ -347,11 +348,16 @@ document.addEventListener('click', function() {
     }
 });
 
+// ==========================================================================
+// MANEJADOR DE "ACTUALIZAR APP" (MODIFICADO PARA USAR checkForUpdateAndShowResult)
+// ==========================================================================
+
 function handleTodayActualizarApp() {
-    // Forzar recarga de la aplicación
-    if (typeof window.forzarActualizacion === 'function') {
-        window.forzarActualizacion();
+    // Usar la función de comprobación de actualizaciones del módulo sw-update.js
+    if (typeof window.checkForUpdateAndShowResult === 'function') {
+        window.checkForUpdateAndShowResult();
     } else {
+        // Fallback: recargar la página si la función no está disponible
         location.reload();
     }
 }
