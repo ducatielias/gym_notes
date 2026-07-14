@@ -166,20 +166,31 @@ function renderExercises() {
     } else {
         let html = `<div class="exercises-grid">`;
         filtered.forEach((ex, index) => {
-            const imgSrc = ex.img || getExercisePlaceholder(ex.nombre);
-            const nombreEscapado = ex.nombre.replace(/'/g, "\\'");
-            const hasVideo = ex.video && ex.video.trim() !== '';
+            const placeholderImage = getExercisePlaceholder(ex.nombre);
+            const imageUrl = GymNotesSafe.getSafeImageUrl(ex.img);
+            const videoUrl = GymNotesSafe.getSafeExternalUrl(ex.video);
+            const imgSrc = imageUrl || placeholderImage;
+            const exerciseIdAttribute = GymNotesSafe.escapeText(ex.id);
+            const exerciseIdHandler = GymNotesSafe.escapeInlineHandlerArgument(ex.id);
+            const imageSrcAttribute = GymNotesSafe.escapeText(imgSrc);
+            const imageSrcHandler = GymNotesSafe.escapeInlineHandlerArgument(imgSrc);
+            const placeholderHandler = GymNotesSafe.escapeInlineHandlerArgument(placeholderImage);
+            const exerciseName = GymNotesSafe.escapeText(ex.nombre);
+            const exerciseNameHandler = GymNotesSafe.escapeInlineHandlerArgument(ex.nombre);
+            const exerciseGroup = GymNotesSafe.escapeText(ex.grupo || 'General');
+            const videoUrlHandler = GymNotesSafe.escapeInlineHandlerArgument(videoUrl);
+            const hasVideo = Boolean(videoUrl);
             
             // IMPORTANTE: Procesar las notas correctamente con linkifyExerciseHTML
             const notasProcesadas = ex.notas ? linkifyExerciseHTML(ex.notas) : 'Sin notas adicionales.';
             
             html += `
-                <div class="card-exercise" id="exercise-card-${ex.id}">
-                    <div class="card-exercise-header" onclick="toggleExerciseCard('${ex.id}')">
-                        <img class="card-exercise-thumb" src="${imgSrc}" onclick="event.stopPropagation(); openExerciseLightbox('${imgSrc}')" onerror="this.src='${getExercisePlaceholder(ex.nombre)}'" alt="${ex.nombre}">
+                <div class="card-exercise" id="exercise-card-${exerciseIdAttribute}">
+                    <div class="card-exercise-header" onclick="toggleExerciseCard('${exerciseIdHandler}')">
+                        <img class="card-exercise-thumb" src="${imageSrcAttribute}" onclick="event.stopPropagation(); openExerciseLightbox('${imageSrcHandler}')" onerror="this.src='${placeholderHandler}'" alt="${exerciseName}">
                         <div class="card-exercise-info">
-                            <div class="card-exercise-group">${ex.grupo || 'General'}</div>
-                            <div class="card-exercise-name">${ex.nombre}</div>
+                            <div class="card-exercise-group">${exerciseGroup}</div>
+                            <div class="card-exercise-name">${exerciseName}</div>
                         </div>
                         <i class="fa-solid fa-chevron-down card-exercise-chevron"></i>
                     </div>
@@ -187,22 +198,22 @@ function renderExercises() {
                         <div class="card-exercise-inner">
                             <!-- PRIMERO: BOTONES DE ACCIÓN -->
                             <div class="card-exercise-actions">
-                                <button class="btn-exercise-action btn-exercise-action-video" onclick="event.stopPropagation(); openExerciseVideo('${ex.video || ''}')" ${!hasVideo ? 'disabled' : ''} data-tooltip="Vídeo">
+                                <button class="btn-exercise-action btn-exercise-action-video" onclick="event.stopPropagation(); openExerciseVideo('${videoUrlHandler}')" ${!hasVideo ? 'disabled' : ''} data-tooltip="Vídeo">
                                     <i class="fa-solid fa-play"></i>
                                 </button>
-                                <button class="btn-exercise-action btn-exercise-action-share" onclick="event.stopPropagation(); shareExercise('${ex.id}')" data-tooltip="Compartir">
+                                <button class="btn-exercise-action btn-exercise-action-share" onclick="event.stopPropagation(); shareExercise('${exerciseIdHandler}')" data-tooltip="Compartir">
                                     <i class="fa-solid fa-share-nodes"></i>
                                 </button>
-                                <button class="btn-exercise-action btn-exercise-action-history" onclick="event.stopPropagation(); showExerciseHistory('${nombreEscapado}')" data-tooltip="Historial">
+                                <button class="btn-exercise-action btn-exercise-action-history" onclick="event.stopPropagation(); showExerciseHistory('${exerciseNameHandler}')" data-tooltip="Historial">
                                     <i class="fa-solid fa-clock-rotate-left"></i>
                                 </button>
-                                <button class="btn-exercise-action btn-exercise-action-web" onclick="event.stopPropagation(); searchExerciseOnWeb('${nombreEscapado}')" data-tooltip="Buscar en web">
+                                <button class="btn-exercise-action btn-exercise-action-web" onclick="event.stopPropagation(); searchExerciseOnWeb('${exerciseNameHandler}')" data-tooltip="Buscar en web">
                                     <i class="fa-solid fa-globe"></i>
                                 </button>
-                                <button class="btn-exercise-action btn-exercise-action-edit" onclick="event.stopPropagation(); openExerciseModal('${ex.id}')" data-tooltip="Editar">
+                                <button class="btn-exercise-action btn-exercise-action-edit" onclick="event.stopPropagation(); openExerciseModal('${exerciseIdHandler}')" data-tooltip="Editar">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
-                                <button class="btn-exercise-action btn-exercise-action-delete" onclick="event.stopPropagation(); deleteExercise('${ex.id}')" data-tooltip="Eliminar">
+                                <button class="btn-exercise-action btn-exercise-action-delete" onclick="event.stopPropagation(); deleteExercise('${exerciseIdHandler}')" data-tooltip="Eliminar">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </div>
@@ -230,7 +241,8 @@ function buildFilterOptions(selected) {
     let options = `<option value="Todos" ${selected === 'Todos' ? 'selected' : ''}>Todos los grupos (${exercises.length})</option>`;
     groups.forEach(g => {
         const count = groupCount[g] || 0;
-        options += `<option value="${g}" ${selected === g ? 'selected' : ''}>${g} (${count})</option>`;
+        const safeGroup = GymNotesSafe.escapeText(g);
+        options += `<option value="${safeGroup}" ${selected === g ? 'selected' : ''}>${safeGroup} (${count})</option>`;
     });
     return options;
 }
@@ -319,34 +331,31 @@ function getExercisePlaceholder(text) {
 
 function linkifyExerciseHTML(html) {
     if (!html) return 'Sin notas adicionales.';
-    
-    // Convertir saltos de línea a <br>
-    let text = html.replace(/\n/g, '<br>');
-    
-    // Convertir URLs en enlaces clicables
-    const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-    text = text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
-    
-    return text;
+
+    return GymNotesSafe.sanitizeRichHtml(String(html).replace(/\n/g, '<br>'), { linkify: true });
 }
 
 function openExerciseLightbox(src) {
+    const safeSource = GymNotesSafe.getSafeImageUrl(src);
+    if (!safeSource) return;
+
     if (typeof window.openLightbox === 'function') {
-        window.openLightbox(src);
+        window.openLightbox(safeSource);
     } else {
-        window.open(src, '_blank');
+        window.open(safeSource, '_blank');
     }
 }
 
 function openExerciseVideo(url) {
-    if (!url || url.trim() === '') {
+    const safeUrl = GymNotesSafe.getSafeExternalUrl(url);
+    if (!safeUrl) {
         window.showAlert('Este ejercicio no tiene vídeo asociado.', 'Sin vídeo');
         return;
     }
     if (typeof window.verVideo === 'function') {
-        window.verVideo(url);
+        window.verVideo(safeUrl);
     } else {
-        window.open(url, '_blank');
+        window.open(safeUrl, '_blank');
     }
 }
 

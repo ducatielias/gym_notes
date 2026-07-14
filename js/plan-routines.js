@@ -65,39 +65,44 @@ function renderRoutineList() {
         </header>
         
         <div id="routines-list" class="cards-grid">
-            ${appData.routines.map((routine, index) => `
-                <div class="card card-routine" onclick="openRoutine('${routine.id}')">
+            ${appData.routines.map((routine, index) => {
+                const routineIdAttribute = GymNotesSafe.escapeText(routine.id);
+                const routineIdHandler = GymNotesSafe.escapeInlineHandlerArgument(routine.id);
+                const routineName = GymNotesSafe.escapeText(routine.name);
+                return `
+                <div class="card card-routine" onclick="openRoutine('${routineIdHandler}')">
                     <div class="card-content">
-                        <h3>${routine.name}</h3>
+                        <h3>${routineName}</h3>
                         <p>${routine.sessions.length} sesiones creadas</p>
                     </div>
                     
-                    <button class="btn-routine-options" onclick="toggleRoutineMenu(event, '${routine.id}')">
+                    <button class="btn-routine-options" onclick="toggleRoutineMenu(event, '${routineIdHandler}')">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </button>
 
-                    <div class="routine-menu-dropdown hidden" id="menu-routine-${routine.id}" onclick="event.stopPropagation()">
-                        <button class="routine-menu-item" onclick="moveRoutineOrder('${routine.id}', -1)">
+                    <div class="routine-menu-dropdown hidden" id="menu-routine-${routineIdAttribute}" onclick="event.stopPropagation()">
+                        <button class="routine-menu-item" onclick="moveRoutineOrder('${routineIdHandler}', -1)">
                             <i class="fa-solid fa-arrow-up"></i> Mover arriba
                         </button>
-                        <button class="routine-menu-item" onclick="moveRoutineOrder('${routine.id}', 1)">
+                        <button class="routine-menu-item" onclick="moveRoutineOrder('${routineIdHandler}', 1)">
                             <i class="fa-solid fa-arrow-down"></i> Mover abajo
                         </button>
                         
                         <div class="routine-menu-divider"></div>
                         
-                        <button class="routine-menu-item" onclick="renameRoutine('${routine.id}')">
+                        <button class="routine-menu-item" onclick="renameRoutine('${routineIdHandler}')">
                             <i class="fa-solid fa-pen"></i> Editar nombre
                         </button>
-                        <button class="routine-menu-item" onclick="copyWholeRoutine('${routine.id}')">
+                        <button class="routine-menu-item" onclick="copyWholeRoutine('${routineIdHandler}')">
                             <i class="fa-solid fa-clone"></i> Copiar rutina
                         </button>
-                        <button class="routine-menu-item menu-delete" onclick="deleteRoutine('${routine.id}')">
+                        <button class="routine-menu-item menu-delete" onclick="deleteRoutine('${routineIdHandler}')">
                             <i class="fa-solid fa-trash-can"></i> Eliminar rutina
                         </button>
                     </div>
                 </div>
-            `).join('')}
+            `;
+            }).join('')}
         </div>
 
         ${appData.routines.length === 0 ? `
@@ -169,7 +174,7 @@ function abrirExportarRutinas() {
         rutinasHtml += `
             <div style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-bottom:1px solid #f3f4f6; cursor:pointer;" onclick="toggleRoutineCheckboxExport('routine-export-check-${index}')">
                 <input type="checkbox" id="routine-export-check-${index}" checked style="width:18px; height:18px; accent-color: var(--accent-color, #ccff00); cursor:pointer;">
-                <label for="routine-export-check-${index}" style="cursor:pointer; flex:1; font-size:14px; font-weight:500; color:#1f2937;">${routine.name}</label>
+                <label for="routine-export-check-${index}" style="cursor:pointer; flex:1; font-size:14px; font-weight:500; color:#1f2937;">${GymNotesSafe.escapeText(routine.name)}</label>
                 <span style="font-size:11px; color:#9ca3af;">${routine.sessions.length} sesiones</span>
             </div>
         `;
@@ -358,7 +363,7 @@ function mostrarModalImportacionRutinas(routinesToImport, rutinasDuplicadas) {
         rutinasHtml += `
             <div style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-bottom:1px solid #f3f4f6; cursor:pointer;" onclick="toggleRoutineCheckboxImport('routine-import-check-${index}')">
                 <input type="checkbox" id="routine-import-check-${index}" ${nombreExiste ? '' : 'checked'} style="width:18px; height:18px; accent-color: var(--accent-color, #ccff00); cursor:pointer;">
-                <label for="routine-import-check-${index}" style="cursor:pointer; flex:1; font-size:14px; font-weight:500; color:#1f2937;">${nombre}</label>
+                <label for="routine-import-check-${index}" style="cursor:pointer; flex:1; font-size:14px; font-weight:500; color:#1f2937;">${GymNotesSafe.escapeText(nombre)}</label>
                 <span style="font-size:11px; color:#9ca3af;">${sesionesCount} sesiones</span>
                 ${nombreExiste ? `<span style="font-size:10px; color:#ef4444; background:#fef2f2; padding:2px 8px; border-radius:10px;">ya existe</span>` : ''}
             </div>
@@ -592,17 +597,16 @@ async function renameRoutine(routineId) {
     if (!newName || newName.trim() === "") return;
 
     const newNameTrimmed = newName.trim();
-    routine.name = newNameTrimmed;
-    saveData();
-    
     // ACTUALIZAR EL HISTORIAL: Cambiar el nombre de la rutina en todos los registros del historial
+    let historyDB = null;
+    let previousHistory = null;
+    let actualizados = 0;
     try {
-        // Obtener el historial actual
-        let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
-        let actualizados = 0;
+        historyDB = getHistory();
+        previousHistory = [...historyDB];
         
         // Recorrer y actualizar los registros que coincidan con el nombre antiguo
-        historyDB = historyDB.map(record => {
+        const updatedHistory = historyDB.map(record => {
             if (record.nombre_rutina === oldName) {
                 actualizados++;
                 return { ...record, nombre_rutina: newNameTrimmed };
@@ -610,21 +614,48 @@ async function renameRoutine(routineId) {
             return record;
         });
         
-        // Guardar el historial actualizado
-        localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
-        
-        // Actualizar la variable global si existe
-        if (window.historyDB !== undefined) {
-            window.historyDB = historyDB;
-        }
-        
-        console.log(`[renameRoutine] Historial actualizado: ${actualizados} registros modificados de "${oldName}" a "${newNameTrimmed}"`);
-        
-        if (actualizados > 0 && typeof window.showAlert === 'function') {
-            await window.showAlert(`Rutina renombrada correctamente.\n${actualizados} registro(s) del historial actualizados.`, "Completado");
+        if (actualizados > 0) {
+            historyDB.splice(0, historyDB.length, ...updatedHistory);
+            const historyPersistenceResult = saveHistory();
+            if (!historyPersistenceResult.ok) {
+                historyDB.splice(0, historyDB.length, ...previousHistory);
+                console.error('[renameRoutine] Error actualizando el historial:', historyPersistenceResult);
+                if (typeof window.showAlert === 'function') {
+                    await window.showAlert('No se pudo actualizar el historial. La rutina no se ha renombrado.', 'Error al guardar');
+                }
+                return historyPersistenceResult;
+            }
+
+            if (window.historyDB !== undefined) {
+                window.historyDB = historyDB;
+            }
         }
     } catch (error) {
+        if (historyDB && previousHistory) {
+            historyDB.splice(0, historyDB.length, ...previousHistory);
+        }
         console.error('[renameRoutine] Error actualizando el historial:', error);
+        if (typeof window.showAlert === 'function') {
+            await window.showAlert('No se pudo actualizar el historial. La rutina no se ha renombrado.', 'Error al guardar');
+        }
+        return { ok: false, status: 'persistence-error', error: error instanceof Error ? error.message : String(error) };
+    }
+
+    routine.name = newNameTrimmed;
+    const routinePersistenceResult = saveData();
+    if (!routinePersistenceResult.ok) {
+        routine.name = oldName;
+        console.error('[renameRoutine] Error guardando la rutina:', routinePersistenceResult);
+        if (typeof window.showAlert === 'function') {
+            await window.showAlert('No se pudo guardar el nuevo nombre de la rutina. El historial se actualizó.', 'Error al guardar');
+        }
+        return routinePersistenceResult;
+    }
+
+    console.log(`[renameRoutine] Historial actualizado: ${actualizados} registros modificados de "${oldName}" a "${newNameTrimmed}"`);
+    
+    if (actualizados > 0 && typeof window.showAlert === 'function') {
+        await window.showAlert(`Rutina renombrada correctamente.\n${actualizados} registro(s) del historial actualizados.`, "Completado");
     }
     
     renderRoutineList();

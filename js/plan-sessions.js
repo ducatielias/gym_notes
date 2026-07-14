@@ -27,6 +27,8 @@ function openRoutine(id) {
     const planUI = document.getElementById('plan-container');
     if (!planUI) return;
 
+    const routineName = GymNotesSafe.escapeText(routine.name);
+
     planUI.innerHTML = `
         <header class="screen-header">
             <div class="header-nav-row">
@@ -55,40 +57,43 @@ function openRoutine(id) {
                     </div>
                 </div>
             </div>
-            <h2 class="routine-detail-title">${routine.name}</h2>
+            <h2 class="routine-detail-title">${routineName}</h2>
         </header>
 
         <div id="sessions-list" class="cards-grid">
             ${routine.sessions.map((session, index) => {
                 const resultado = calcularEstadoSesion(session, routine.name);
+                const sessionIdAttribute = GymNotesSafe.escapeText(session.id);
+                const sessionIdHandler = GymNotesSafe.escapeInlineHandlerArgument(session.id);
+                const sessionTitle = GymNotesSafe.escapeText(session.title);
                 return `
-                    <div class="card card-session" onclick="openSessionEditor('${session.id}')">
+                    <div class="card card-session" onclick="openSessionEditor('${sessionIdHandler}')">
                         <div class="card-content">
-                            <h3>${session.title}</h3>
+                            <h3>${sessionTitle}</h3>
                             <p style="color: ${!resultado.realizada ? '#ef4444' : 'var(--text-muted)'};">${resultado.texto}</p>
                         </div>
                         
-                        <button class="btn-session-options" onclick="toggleSessionMenu(event, '${session.id}')">
+                        <button class="btn-session-options" onclick="toggleSessionMenu(event, '${sessionIdHandler}')">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
 
-                        <div class="session-menu-dropdown hidden" id="menu-${session.id}" onclick="event.stopPropagation()">
-                            <button class="session-menu-item" onclick="moveSessionOrder('${session.id}', -1)">
+                        <div class="session-menu-dropdown hidden" id="menu-${sessionIdAttribute}" onclick="event.stopPropagation()">
+                            <button class="session-menu-item" onclick="moveSessionOrder('${sessionIdHandler}', -1)">
                                 <i class="fa-solid fa-arrow-up"></i> Mover arriba
                             </button>
-                            <button class="session-menu-item" onclick="moveSessionOrder('${session.id}', 1)">
+                            <button class="session-menu-item" onclick="moveSessionOrder('${sessionIdHandler}', 1)">
                                 <i class="fa-solid fa-arrow-down"></i> Mover abajo
                             </button>
                             
                             <div class="routine-menu-divider"></div>
                             
-                            <button class="session-menu-item" onclick="copySessionToRoutine('${session.id}')">
+                            <button class="session-menu-item" onclick="copySessionToRoutine('${sessionIdHandler}')">
                                 <i class="fa-solid fa-clone"></i> Copiar sesión
                             </button>
-                            <button class="session-menu-item" onclick="moveSessionToRoutine('${session.id}')">
+                            <button class="session-menu-item" onclick="moveSessionToRoutine('${sessionIdHandler}')">
                                 <i class="fa-solid fa-right-from-bracket"></i> Mover sesión
                             </button>
-                            <button class="session-menu-item menu-delete" onclick="deleteSession('${session.id}')">
+                            <button class="session-menu-item menu-delete" onclick="deleteSession('${sessionIdHandler}')">
                                 <i class="fa-solid fa-trash-can"></i> Eliminar sesión
                             </button>
                         </div>
@@ -113,14 +118,8 @@ function openRoutine(id) {
 // ==========================================================================
 
 function calcularEstadoSesion(session, routineName) {
-    // Obtener el historial desde localStorage
-    let historyDB = [];
-    try {
-        historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
-    } catch (e) {
-        console.warn('[calcularEstadoSesion] Error al leer historial:', e);
-        historyDB = [];
-    }
+    // Obtener el historial validado desde el estado central
+    const historyDB = getHistory();
     
     // Buscar en el historial si existe un registro con este nombre de sesión y rutina
     const registroHistorial = historyDB.find(h => 
@@ -232,7 +231,7 @@ function abrirExportarSesiones() {
         sesionesHtml += `
             <div style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-bottom:1px solid #f3f4f6; cursor:pointer;" onclick="toggleSessionCheckbox('session-check-${index}')">
                 <input type="checkbox" id="session-check-${index}" checked style="width:18px; height:18px; accent-color: var(--accent-color, #ccff00); cursor:pointer;">
-                <label for="session-check-${index}" style="cursor:pointer; flex:1; font-size:14px; font-weight:500; color:#1f2937;">${session.title}</label>
+                <label for="session-check-${index}" style="cursor:pointer; flex:1; font-size:14px; font-weight:500; color:#1f2937;">${GymNotesSafe.escapeText(session.title)}</label>
                 <span style="font-size:11px; color: ${isSinRealizar ? '#ef4444' : '#9ca3af'};">${resultado.texto}</span>
             </div>
         `;
@@ -419,7 +418,7 @@ function mostrarModalImportacionSesiones(sessionsToImport, nombreRutina) {
         sesionesHtml += `
             <div style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-bottom:1px solid #f3f4f6; cursor:pointer;" onclick="toggleSessionCheckboxImport('session-import-check-${index}')">
                 <input type="checkbox" id="session-import-check-${index}" checked style="width:18px; height:18px; accent-color: var(--accent-color, #ccff00); cursor:pointer;">
-                <label for="session-import-check-${index}" style="cursor:pointer; flex:1; font-size:14px; font-weight:500; color:#1f2937;">${titulo}</label>
+                <label for="session-import-check-${index}" style="cursor:pointer; flex:1; font-size:14px; font-weight:500; color:#1f2937;">${GymNotesSafe.escapeText(titulo)}</label>
                 ${session.lastModified ? `<span style="font-size:11px; color:#9ca3af;">${new Date(session.lastModified).toLocaleDateString('es-ES')}</span>` : ''}
             </div>
         `;
@@ -432,7 +431,7 @@ function mostrarModalImportacionSesiones(sessionsToImport, nombreRutina) {
                 <h3 style="margin:0; font-size:18px; font-weight:700;">Importar sesiones</h3>
             </div>
             <div class="modal-body" style="flex:1; overflow-y:auto; padding: 16px 20px;">
-                <p style="font-size:14px; color:#6b7280; margin-bottom:4px;">Archivo: <strong>${nombreRutina || 'Sin nombre'}</strong></p>
+                <p style="font-size:14px; color:#6b7280; margin-bottom:4px;">Archivo: <strong>${GymNotesSafe.escapeText(nombreRutina || 'Sin nombre')}</strong></p>
                 <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">Selecciona las sesiones que deseas importar:</p>
                 <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
                     <button onclick="seleccionarTodasSesionesImport(true)" style="padding:6px 14px; border:1px solid #e5e7eb; border-radius:8px; background:white; font-size:12px; font-weight:600; cursor:pointer; color:#4b5563;">

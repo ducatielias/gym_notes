@@ -100,10 +100,18 @@ function mostrarVisorEjercicioCompleto(exercise) {
         return;
     }
     
-    const hasVideo = exercise.video && exercise.video.trim() !== '';
-    const imgSrc = exercise.img || getExerciseViewerPlaceholder(exercise.nombre);
+    const imageUrl = GymNotesSafe.getSafeImageUrl(exercise.img);
+    const videoUrl = GymNotesSafe.getSafeExternalUrl(exercise.video);
+    const hasVideo = Boolean(videoUrl);
+    const imgSrc = imageUrl || getExerciseViewerPlaceholder(exercise.nombre);
     const notas = exercise.notas || 'Sin notas adicionales.';
-    const nombreEscapado = exercise.nombre.replace(/'/g, "\\'");
+    const exerciseName = GymNotesSafe.escapeText(exercise.nombre);
+    const exerciseNameHandler = GymNotesSafe.escapeInlineHandlerArgument(exercise.nombre);
+    const exerciseGroup = GymNotesSafe.escapeText(exercise.grupo || 'General');
+    const imageSrcAttribute = GymNotesSafe.escapeText(imgSrc);
+    const lightboxSourceHandler = GymNotesSafe.escapeInlineHandlerArgument(imgSrc);
+    const placeholderHandler = GymNotesSafe.escapeInlineHandlerArgument(getExerciseViewerPlaceholder(exercise.nombre));
+    const videoUrlHandler = GymNotesSafe.escapeInlineHandlerArgument(videoUrl);
     
     container.innerHTML = `
         <div class="exercise-viewer-full-container">
@@ -113,26 +121,26 @@ function mostrarVisorEjercicioCompleto(exercise) {
                     <button class="btn-exercise-viewer-close" onclick="closeExerciseViewerFull()" title="Volver">
                         <i class="fa-solid fa-chevron-left"></i>
                     </button>
-                    <span class="exercise-viewer-full-badge">${exercise.grupo || 'General'}</span>
+                    <span class="exercise-viewer-full-badge">${exerciseGroup}</span>
                 </div>
                 <div class="exercise-viewer-full-title-row">
-                    <h2 class="exercise-viewer-full-title">${exercise.nombre}</h2>
+                    <h2 class="exercise-viewer-full-title">${exerciseName}</h2>
                 </div>
             </div>
             
             <!-- CONTENIDO SCROLLABLE -->
             <div class="exercise-viewer-full-body">
-                <div class="exercise-viewer-full-image-container" onclick="openExerciseLightbox('${imgSrc}', '${exercise.nombre}')">
-                    <img src="${imgSrc}" 
+                <div class="exercise-viewer-full-image-container" onclick="openExerciseLightbox('${lightboxSourceHandler}', '${exerciseNameHandler}')">
+                    <img src="${imageSrcAttribute}" 
                          class="exercise-viewer-full-image" 
-                         onerror="this.src='${getExerciseViewerPlaceholder(exercise.nombre)}'"
-                         alt="${exercise.nombre}">
+                         onerror="this.src='${placeholderHandler}'"
+                         alt="${exerciseName}">
                 </div>
                 
                 <div class="exercise-viewer-full-info">
                     <div class="exercise-viewer-full-group">
                         <span class="exercise-viewer-full-label">Grupo muscular:</span>
-                        <span class="exercise-viewer-full-value">${exercise.grupo || 'General'}</span>
+                        <span class="exercise-viewer-full-value">${exerciseGroup}</span>
                     </div>
                     
                     <div class="exercise-viewer-full-notes">
@@ -144,10 +152,10 @@ function mostrarVisorEjercicioCompleto(exercise) {
             
             <!-- FOOTER FIJO CON 2 BOTONES -->
             <div class="exercise-viewer-full-footer">
-                <button class="exercise-viewer-full-btn exercise-viewer-full-btn-video" onclick="openExerciseViewerVideo('${exercise.video || ''}')" ${!hasVideo ? 'disabled' : ''}>
+                <button class="exercise-viewer-full-btn exercise-viewer-full-btn-video" onclick="openExerciseViewerVideo('${videoUrlHandler}')" ${!hasVideo ? 'disabled' : ''}>
                     <i class="fa-solid fa-play"></i> Vídeo
                 </button>
-                <button class="exercise-viewer-full-btn exercise-viewer-full-btn-web" onclick="searchExerciseOnViewerWeb('${nombreEscapado}')">
+                <button class="exercise-viewer-full-btn exercise-viewer-full-btn-web" onclick="searchExerciseOnViewerWeb('${exerciseNameHandler}')">
                     <i class="fa-solid fa-globe"></i> Buscar en web
                 </button>
             </div>
@@ -255,14 +263,15 @@ function closeExerciseViewer() {
 // ==========================================================================
 
 function openExerciseViewerVideo(url) {
-    if (!url || url.trim() === '') {
+    const safeUrl = GymNotesSafe.getSafeExternalUrl(url);
+    if (!safeUrl) {
         window.showAlert('Este ejercicio no tiene vídeo asociado.', 'Sin vídeo');
         return;
     }
     if (typeof window.verVideo === 'function') {
-        window.verVideo(url);
+        window.verVideo(safeUrl);
     } else {
-        window.open(url, '_blank');
+        window.open(safeUrl, '_blank');
     }
 }
 
@@ -277,6 +286,11 @@ function searchExerciseOnViewerWeb(nombre) {
 
 function openExerciseLightbox(src, nombre) {
     console.log('[exercise-viewer] Abriendo lightbox para:', src);
+    const safeSource = GymNotesSafe.getSafeLightboxImageUrl(src);
+    if (!safeSource) return;
+    const safeName = GymNotesSafe.escapeText(nombre || 'Ejercicio');
+    const safeSourceAttribute = GymNotesSafe.escapeText(safeSource);
+    const placeholderHandler = GymNotesSafe.escapeInlineHandlerArgument(getExerciseViewerPlaceholder('Imagen no disponible'));
     
     // Si ya hay un lightbox activo, cerrarlo primero
     if (lightboxActive) {
@@ -296,8 +310,8 @@ function openExerciseLightbox(src, nombre) {
         <button class="lightbox-close-btn" onclick="closeExerciseLightbox()" aria-label="Cerrar imagen">
             <i class="fa-solid fa-xmark"></i>
         </button>
-        <img class="lightbox-image" src="${src}" alt="${nombre || 'Imagen del ejercicio'}" onerror="this.src='${getExerciseViewerPlaceholder('Imagen no disponible')}'">
-        <div class="lightbox-caption">${nombre || 'Ejercicio'}</div>
+        <img class="lightbox-image" src="${safeSourceAttribute}" alt="${safeName}" onerror="this.src='${placeholderHandler}'">
+        <div class="lightbox-caption">${safeName}</div>
     `;
     
     // Añadir al body
@@ -351,16 +365,16 @@ function closeExerciseLightbox() {
 
 function linkifyExerciseViewerHTML(html) {
     if (!html) return 'Sin notas adicionales.';
-    const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-    return html.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+    return GymNotesSafe.sanitizeRichHtml(String(html).replace(/\n/g, '<br>'), { linkify: true });
 }
 
 function getExerciseViewerPlaceholder(text) {
-    return 'data:image/svg+xml,' + encodeURIComponent(`
+    const safeText = GymNotesSafe.escapeText(String(text ?? '').substring(0, 30));
+    return GymNotesSafe.createInternalSvgPlaceholder(`
         <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
             <rect width="200" height="200" fill="#f3f4f6"/>
             <text x="100" y="100" font-family="Arial" font-size="64" text-anchor="middle" dy=".3em" fill="#9ca3af">💪</text>
-            <text x="100" y="140" font-family="Arial" font-size="14" text-anchor="middle" fill="#9ca3af">${text.substring(0, 30)}</text>
+            <text x="100" y="140" font-family="Arial" font-size="14" text-anchor="middle" fill="#9ca3af">${safeText}</text>
         </svg>
     `);
 }

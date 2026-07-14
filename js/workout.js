@@ -121,11 +121,6 @@ window.finalizarEntrenamiento = async function() {
     
     if (!await window.showConfirm('¿Terminar entrenamiento y guardar las anotaciones?', 'Finalizar entrenamiento')) return;
     
-    detenerTotalTimer();
-    window.pausarDescanso();
-    window.pausarTimer();
-    detenerIntervalo();
-    
     let contenidoEditado = obtenerContenidoEditado();
     const duracionMinutos = Math.floor(aw_totalSeconds / 60);
     
@@ -140,21 +135,39 @@ window.finalizarEntrenamiento = async function() {
         timestamp_fin: new Date().toISOString()
     };
     
+    let historyDB = null;
+    let previousHistory = null;
     try {
-        if (typeof window.addHistoryRecord === 'function') {
-            window.addHistoryRecord(historyRecord);
-        } else {
-            let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
-            historyDB.unshift(historyRecord);
-            localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
-            if (window.historyDB !== undefined) window.historyDB = historyDB;
-        }
-    } catch (error) {
-        console.error('[workout.js] Error guardando historial:', error);
-        let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
+        historyDB = getHistory();
+        previousHistory = [...historyDB];
         historyDB.unshift(historyRecord);
-        localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
+
+        const persistenceResult = saveHistory();
+        if (!persistenceResult.ok) {
+            historyDB.splice(0, historyDB.length, ...previousHistory);
+            console.error('[workout.js] Error guardando historial:', persistenceResult);
+            if (typeof window.showAlert === 'function') {
+                await window.showAlert('No se pudo guardar el entrenamiento. Inténtalo de nuevo.', 'Error al guardar');
+            }
+            return persistenceResult;
+        }
+
+        if (window.historyDB !== undefined) window.historyDB = historyDB;
+    } catch (error) {
+        if (historyDB && previousHistory) {
+            historyDB.splice(0, historyDB.length, ...previousHistory);
+        }
+        console.error('[workout.js] Error guardando historial:', error);
+        if (typeof window.showAlert === 'function') {
+            await window.showAlert('No se pudo guardar el entrenamiento. Inténtalo de nuevo.', 'Error al guardar');
+        }
+        return { ok: false, status: 'persistence-error', error: error instanceof Error ? error.message : String(error) };
     }
+    
+    detenerTotalTimer();
+    window.pausarDescanso();
+    window.pausarTimer();
+    detenerIntervalo();
     
     // Cerrar el modal
     const modal = document.getElementById('active-workout');
@@ -280,15 +293,21 @@ function renderExercisesListEntrenamiento(lista) {
     }
 
     listContainer.innerHTML = lista.map(ejercicio => {
-        const imgSrc = ejercicio.img || getPlaceholderImage(ejercicio.nombre);
+        const placeholderImage = getPlaceholderImage(ejercicio.nombre);
+        const imgSrc = GymNotesSafe.getSafeImageUrl(ejercicio.img) || placeholderImage;
+        const exerciseName = GymNotesSafe.escapeText(ejercicio.nombre);
+        const exerciseNameHandler = GymNotesSafe.escapeInlineHandlerArgument(ejercicio.nombre);
+        const exerciseIdHandler = GymNotesSafe.escapeInlineHandlerArgument(ejercicio.id);
+        const imageSrcAttribute = GymNotesSafe.escapeText(imgSrc);
+        const placeholderHandler = GymNotesSafe.escapeInlineHandlerArgument(placeholderImage);
         return `
-            <li class="exercise-item" onclick="insertarEjercicioEnEntrenamiento('${ejercicio.nombre.replace(/'/g, "\\'")}', '${ejercicio.id.replace(/'/g, "\\'")}')">
+            <li class="exercise-item" onclick="insertarEjercicioEnEntrenamiento('${exerciseNameHandler}', '${exerciseIdHandler}')">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <img src="${imgSrc}" 
+                    <img src="${imageSrcAttribute}" 
                          style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover; background: #f3f4f6; flex-shrink: 0;" 
-                         onerror="this.src='${getPlaceholderImage(ejercicio.nombre)}'"
-                         alt="${ejercicio.nombre}">
-                    <span>${ejercicio.nombre}</span>
+                         onerror="this.src='${placeholderHandler}'"
+                         alt="${exerciseName}">
+                    <span>${exerciseName}</span>
                 </div>
             </li>
         `;

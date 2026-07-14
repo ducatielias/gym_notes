@@ -32,7 +32,7 @@ function inicializarEditorEntrenamiento() {
     
     // Cargar el contenido original (copia)
     if (aw_currentWorkout && aw_currentWorkout.sessionContent) {
-        aw_quillInstance.clipboard.dangerouslyPasteHTML(aw_currentWorkout.sessionContent);
+        aw_quillInstance.clipboard.dangerouslyPasteHTML(GymNotesSafe.sanitizeRichHtml(aw_currentWorkout.sessionContent));
     }
     
     // Habilitar edición

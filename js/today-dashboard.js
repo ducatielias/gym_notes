@@ -26,7 +26,7 @@ function formatLocalDate(date) {
 
 function getHistoryDB() {
     try {
-        return JSON.parse(localStorage.getItem('sharkHistory')) || [];
+        return getHistory();
     } catch (e) {
         return [];
     }

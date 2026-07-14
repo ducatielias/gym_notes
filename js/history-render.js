@@ -125,7 +125,7 @@ function renderHistory() {
             
             <div class="history-search-wrapper" id="historySearchWrapper">
                 <i class="fa-solid fa-search icon-search"></i>
-                <input type="text" id="historySearchInput" placeholder="Buscar por nombre de sesión..." autocomplete="off" oninput="onHistorySearch()" value="${historySearchTerm}">
+                <input type="text" id="historySearchInput" placeholder="Buscar por nombre de sesión..." autocomplete="off" oninput="onHistorySearch()" value="${GymNotesSafe.escapeText(historySearchTerm)}">
                 <button class="clear-input-btn" onclick="clearHistorySearch()">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -171,17 +171,21 @@ function renderHistory() {
             const duracion = item.duracion_minutos || 0;
             const duracionTexto = duracion < 60 ? `${duracion} min` : `${Math.floor(duracion / 60)}h ${duracion % 60}min`;
             const tieneContenido = item.contenido_editado && item.contenido_editado.trim() !== '';
+            const historyIdAttribute = GymNotesSafe.escapeText(item.id);
+            const historyIdHandler = GymNotesSafe.escapeInlineHandlerArgument(item.id);
+            const sessionName = GymNotesSafe.escapeText(item.nombre_sesion || 'Sesión sin título');
+            const routineName = GymNotesSafe.escapeText(item.nombre_rutina || 'Sin rutina');
             
             html += `
-                <div class="card-history" id="history-card-${item.id}">
-                    <div class="card-history-header" onclick="toggleHistoryCard('${item.id}')">
+                <div class="card-history" id="history-card-${historyIdAttribute}">
+                    <div class="card-history-header" onclick="toggleHistoryCard('${historyIdHandler}')">
                         <div class="card-history-icon">
                             <i class="fa-solid fa-dumbbell"></i>
                         </div>
                         <div class="card-history-info">
                             <div class="card-history-date">${fechaFormateada} · ${horaFormateada}</div>
-                            <div class="card-history-title">${item.nombre_sesion || 'Sesión sin título'}</div>
-                            <div class="card-history-subtitle">${item.nombre_rutina || 'Sin rutina'}</div>
+                            <div class="card-history-title">${sessionName}</div>
+                            <div class="card-history-subtitle">${routineName}</div>
                         </div>
                         <div class="card-history-duration">⏱ ${duracionTexto}</div>
                         <i class="fa-solid fa-chevron-down card-history-chevron"></i>
@@ -190,13 +194,13 @@ function renderHistory() {
                         <div class="card-history-inner">
                             <div class="card-history-content">${tieneContenido ? linkifyHistoryHTML(item.contenido_editado) : '<em>Sin anotaciones</em>'}</div>
                             <div class="card-history-actions">
-                                <button class="btn-history-action btn-history-action-view" onclick="event.stopPropagation(); viewHistoryDetail('${item.id}')">
+                                <button class="btn-history-action btn-history-action-view" onclick="event.stopPropagation(); viewHistoryDetail('${historyIdHandler}')">
                                     <i class="fa-solid fa-eye"></i> Ver
                                 </button>
-                                <button class="btn-history-action btn-history-action-share" onclick="event.stopPropagation(); shareHistoryItem('${item.id}')">
+                                <button class="btn-history-action btn-history-action-share" onclick="event.stopPropagation(); shareHistoryItem('${historyIdHandler}')">
                                     <i class="fa-solid fa-share-nodes"></i> Compartir
                                 </button>
-                                <button class="btn-history-action btn-history-action-delete" onclick="event.stopPropagation(); deleteHistoryItem('${item.id}')">
+                                <button class="btn-history-action btn-history-action-delete" onclick="event.stopPropagation(); deleteHistoryItem('${historyIdHandler}')">
                                     <i class="fa-solid fa-trash-can"></i> Eliminar
                                 </button>
                             </div>
@@ -232,15 +236,16 @@ function buildRoutineFilterOptions(selected) {
     let options = '';
     routines.forEach(r => {
         const label = r === 'todos' ? 'Todas las rutinas' : r;
-        options += `<option value="${r}" ${selected === r ? 'selected' : ''}>${label}</option>`;
+        const safeValue = GymNotesSafe.escapeText(r);
+        const safeLabel = GymNotesSafe.escapeText(label);
+        options += `<option value="${safeValue}" ${selected === r ? 'selected' : ''}>${safeLabel}</option>`;
     });
     return options;
 }
 
 function linkifyHistoryHTML(html) {
     if (!html) return 'Sin anotaciones.';
-    const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A0-9+&@#\/%=~_|])/ig;
-    return html.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+    return GymNotesSafe.sanitizeRichHtml(String(html).replace(/\n/g, '<br>'), { linkify: true });
 }
 
 // ==========================================================================

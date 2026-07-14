@@ -55,7 +55,7 @@ function openSessionEditor(sessionId, forceEditMode = false) {
 
                 <div class="editor-title-row">
                     <span class="session-label-prefix">Sesión:</span>
-                    <textarea id="sessionTitleInput" class="session-input-field" placeholder="Nombre de la sesión (ej: Pecho y Tríceps)" autocomplete="off" readonly>${session.title}</textarea>
+                    <textarea id="sessionTitleInput" class="session-input-field" placeholder="Nombre de la sesión (ej: Pecho y Tríceps)" autocomplete="off" readonly>${GymNotesSafe.escapeText(session.title)}</textarea>
                 </div>
 
                 ${forceEditMode ? `
@@ -188,34 +188,37 @@ function saveCurrentSession() {
     if (!window.editingSession || !window.quillInstance) return;
     
     const oldTitle = window.editingSession.title;
+    const previousSessionState = {
+        title: window.editingSession.title,
+        content: window.editingSession.content,
+        lastModified: window.editingSession.lastModified
+    };
     const inputTitulo = document.getElementById('sessionTitleInput');
     let newTitle = oldTitle;
     
     if (inputTitulo && inputTitulo.value.trim() !== "") {
         newTitle = inputTitulo.value.trim();
-        window.editingSession.title = newTitle;
     } else {
-        window.editingSession.title = "Sesión sin título";
         newTitle = "Sesión sin título";
     }
     
-    window.editingSession.content = window.quillInstance.getSemanticHTML();
-    window.editingSession.lastModified = Date.now();
-
-    // Persistimos en LocalStorage de inmediato
-    saveData();
+    const newContent = window.quillInstance.getSemanticHTML();
+    const newLastModified = Date.now();
     
     // ACTUALIZAR EL HISTORIAL: Si el título de la sesión cambió, actualizar los registros del historial
+    let actualizados = 0;
     if (oldTitle !== newTitle) {
+        let historyDB = null;
+        let previousHistory = null;
         try {
-            let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
-            let actualizados = 0;
+            historyDB = getHistory();
+            previousHistory = [...historyDB];
             
             // Buscar la rutina actual para obtener su nombre
             const routine = appData.routines.find(r => r.id === currentRoutineId);
             const routineName = routine ? routine.name : '';
             
-            historyDB = historyDB.map(record => {
+            const updatedHistory = historyDB.map(record => {
                 // Coincidir por nombre_sesion y nombre_rutina para mayor precisión
                 if (record.nombre_sesion === oldTitle && record.nombre_rutina === routineName) {
                     actualizados++;
@@ -223,17 +226,44 @@ function saveCurrentSession() {
                 }
                 return record;
             });
-            
-            localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
-            
-            if (window.historyDB !== undefined) {
-                window.historyDB = historyDB;
+
+            if (actualizados > 0) {
+                historyDB.splice(0, historyDB.length, ...updatedHistory);
+                const historyPersistenceResult = saveHistory();
+                if (!historyPersistenceResult.ok) {
+                    historyDB.splice(0, historyDB.length, ...previousHistory);
+                    console.error('[saveCurrentSession] Error actualizando el historial:', historyPersistenceResult);
+                    return historyPersistenceResult;
+                }
+
+                if (window.historyDB !== undefined) {
+                    window.historyDB = historyDB;
+                }
             }
-            
-            console.log(`[saveCurrentSession] Historial actualizado: ${actualizados} registros modificados de "${oldTitle}" a "${newTitle}"`);
         } catch (error) {
+            if (historyDB && previousHistory) {
+                historyDB.splice(0, historyDB.length, ...previousHistory);
+            }
             console.error('[saveCurrentSession] Error actualizando el historial:', error);
+            return { ok: false, status: 'persistence-error', error: error instanceof Error ? error.message : String(error) };
         }
+    }
+
+    window.editingSession.title = newTitle;
+    window.editingSession.content = newContent;
+    window.editingSession.lastModified = newLastModified;
+
+    const sessionPersistenceResult = saveData();
+    if (!sessionPersistenceResult.ok) {
+        window.editingSession.title = previousSessionState.title;
+        window.editingSession.content = previousSessionState.content;
+        window.editingSession.lastModified = previousSessionState.lastModified;
+        console.error('[saveCurrentSession] Error guardando la sesión:', sessionPersistenceResult);
+        return sessionPersistenceResult;
+    }
+
+    if (oldTitle !== newTitle) {
+        console.log(`[saveCurrentSession] Historial actualizado: ${actualizados} registros modificados de "${oldTitle}" a "${newTitle}"`);
     }
     
     // Aseguramos el cierre de cualquier menú colapsable que estuviera abierto

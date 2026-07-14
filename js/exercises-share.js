@@ -69,7 +69,7 @@ window.showExerciseShareDialog = function(exercise) {
                     <h3>Compartir ejercicio</h3>
                 </div>
                 <div class="modal-body">
-                    <p style="font-weight: 600; margin-bottom: 16px;">"${exercise.nombre}"</p>
+                    <p style="font-weight: 600; margin-bottom: 16px;">"${GymNotesSafe.escapeText(exercise.nombre)}"</p>
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <button id="share-file-btn" class="modal-btn modal-btn-primary" style="width: 100%; text-align: center;">
                             <i class="fa-solid fa-file-export"></i> Guardar archivo

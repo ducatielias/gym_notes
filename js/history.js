@@ -245,6 +245,9 @@ function viewHistoryDetail(id) {
     
     const contenidoEditado = item.contenido_editado || 'Sin anotaciones';
     const contenidoOriginal = item.contenido_original || 'Sin contenido original';
+    const itemIdHandler = GymNotesSafe.escapeInlineHandlerArgument(item.id);
+    const sessionName = GymNotesSafe.escapeText(item.nombre_sesion || 'Sesión sin título');
+    const routineName = GymNotesSafe.escapeText(item.nombre_rutina || 'Sin rutina');
 
     container.innerHTML = `
         <div class="history-detail-container">
@@ -253,20 +256,20 @@ function viewHistoryDetail(id) {
                     <button class="btn-history-detail-close" onclick="closeHistoryDetail()" title="Volver">
                         <i class="fa-solid fa-chevron-left"></i>
                     </button>
-                    <button class="btn-history-detail-edit" onclick="openHistoryEditFromDetail('${item.id}')" title="Editar">
+                    <button class="btn-history-detail-edit" onclick="openHistoryEditFromDetail('${itemIdHandler}')" title="Editar">
                         <i class="fa-solid fa-pen"></i> Editar
                     </button>
                 </div>
 
                 <div class="history-detail-title-row">
                     <span class="history-detail-prefix">Entrenamiento</span>
-                    <div class="history-detail-title">${item.nombre_sesion || 'Sesión sin título'}</div>
+                    <div class="history-detail-title">${sessionName}</div>
                     <div class="history-detail-meta">
                         <i class="fa-regular fa-calendar"></i> ${fechaFormateada} · ${horaFormateada}
                         &nbsp;·&nbsp;
                         <i class="fa-regular fa-clock"></i> ${duracionTexto}
                         &nbsp;·&nbsp;
-                        <i class="fa-solid fa-dumbbell"></i> ${item.nombre_rutina || 'Sin rutina'}
+                        <i class="fa-solid fa-dumbbell"></i> ${routineName}
                     </div>
                 </div>
             </div>

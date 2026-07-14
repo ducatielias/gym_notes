@@ -232,12 +232,12 @@ function showRoutineSelector(routines, currentRoutineId, actionType = 'copy') {
             if (actionType === 'move' && routine.id === currentRoutineId) {
                 routineBtn.classList.add('disabled');
                 routineBtn.innerHTML = `
-                    <span>${escapeHtml(routine.name)}</span>
+                    <span>${GymNotesSafe.escapeText(routine.name)}</span>
                     <span class="modal-routine-current-badge">(actual)</span>
                 `;
                 routineBtn.disabled = true;
             } else {
-                routineBtn.innerHTML = `<span>${escapeHtml(routine.name)}</span>`;
+                routineBtn.innerHTML = `<span>${GymNotesSafe.escapeText(routine.name)}</span>`;
                 routineBtn.onclick = () => {
                     confirmModal(routine);
                 };

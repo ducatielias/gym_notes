@@ -297,16 +297,25 @@ function renderConfigTipo() {
 
 function renderConfigEjercicios(exercises) {
     const exercisesHtml = exercises.length > 0 
-        ? exercises.map(ex => `
-            <div class="ia-exercise-item" data-id="${ex.id}">
-                <input type="checkbox" class="ia-exercise-check" data-id="${ex.id}">
-                <img class="exercise-thumb" src="${ex.img || getExercisePlaceholder(ex.nombre)}" onerror="this.src='${getExercisePlaceholder(ex.nombre)}'" alt="${ex.nombre}">
+        ? exercises.map(ex => {
+            const placeholderImage = getExercisePlaceholder(ex.nombre);
+            const imageUrl = GymNotesSafe.getSafeImageUrl(ex.img) || placeholderImage;
+            const exerciseId = GymNotesSafe.escapeText(ex.id);
+            const exerciseName = GymNotesSafe.escapeText(ex.nombre);
+            const exerciseGroup = GymNotesSafe.escapeText(ex.grupo || 'General');
+            const imageSource = GymNotesSafe.escapeText(imageUrl);
+            const placeholderHandler = GymNotesSafe.escapeInlineHandlerArgument(placeholderImage);
+            return `
+            <div class="ia-exercise-item" data-id="${exerciseId}">
+                <input type="checkbox" class="ia-exercise-check" data-id="${exerciseId}">
+                <img class="exercise-thumb" src="${imageSource}" onerror="this.src='${placeholderHandler}'" alt="${exerciseName}">
                 <div class="exercise-info">
-                    <span class="exercise-name">${ex.nombre}</span>
-                    <span class="exercise-group-badge">${ex.grupo || 'General'}</span>
+                    <span class="exercise-name">${exerciseName}</span>
+                    <span class="exercise-group-badge">${exerciseGroup}</span>
                 </div>
             </div>
-        `).join('')
+        `;
+        }).join('')
         : '<p style="font-size:13px; color:#9ca3af; padding:8px 0;">No hay ejercicios guardados. Ve a "Ejercicios" para crear algunos.</p>';
 
     return `
@@ -471,7 +480,7 @@ function seleccionarTodosEjerciciosIA(seleccionar) {
 }
 
 function getExercisePlaceholder(text) {
-    return 'data:image/svg+xml,' + encodeURIComponent(`
+    return GymNotesSafe.createInternalSvgPlaceholder(`
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
             <rect width="28" height="28" fill="#f3f4f6" rx="6"/>
             <text x="14" y="18" font-family="Arial" font-size="12" text-anchor="middle" fill="#9ca3af">💪</text>
@@ -816,7 +825,7 @@ function renderPromptScreen(container) {
             <div class="ia-section">
                 <div style="margin-bottom:12px;">
                     <div class="ia-section-title">📋 Prompt generado</div>
-                    <textarea id="iaPromptTextarea" class="ia-prompt-textarea" readonly>${escapeHtml(prompt)}</textarea>
+                    <textarea id="iaPromptTextarea" class="ia-prompt-textarea" readonly>${GymNotesSafe.escapeText(prompt)}</textarea>
                     <button onclick="copiarPrompt()" style="margin-top:8px; padding:8px 16px; background:var(--accent-color, #ccff00); color:var(--primary-color, #000000); border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px;">
                         <i class="fa-solid fa-copy"></i> Copiar prompt
                     </button>
@@ -899,10 +908,10 @@ function convertirEjerciciosAHTML(ejercicios) {
     
     let html = '';
     ejercicios.forEach(ej => {
-        let nombre = ej.nombre || 'Ejercicio';
-        let series = ej.series || '';
-        let repeticiones = ej.repeticiones || '';
-        let notas = ej.notas || '';
+        let nombre = GymNotesSafe.escapeText(ej.nombre || 'Ejercicio');
+        let series = GymNotesSafe.escapeText(ej.series || '');
+        let repeticiones = GymNotesSafe.escapeText(ej.repeticiones || '');
+        let notas = GymNotesSafe.escapeText(ej.notas || '');
         
         let info = '';
         if (series && repeticiones) {
@@ -1083,7 +1092,7 @@ function renderPreviewScreen(container) {
         <div class="ia-container">
             <div class="ia-section">
                 <div class="ia-section-title">📄 Vista previa</div>
-                <div class="ia-preview-content">${previewText}</div>
+                <div class="ia-preview-content">${GymNotesSafe.textToHtml(previewText)}</div>
 
                 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
                     <span class="ia-preview-badge">${isRoutine ? '📋 Rutina' : '📝 Sesión'}</span>
@@ -1505,5 +1514,5 @@ window.iaSelectedExercises = iaSelectedExercises;
 window.iaSelectedMaterials = iaSelectedMaterials;
 window.iaSelectedTipos = iaSelectedTipos;
 window.iaStep = iaStep;
-window._iaPromptParams = _iaPromptParams;
+window._iaPromptParams = null;
 window._iaGeneratedPrompt = _iaGeneratedPrompt;

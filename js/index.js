@@ -112,12 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
         history.replaceState(state, '', '#' + initialTab);
     }
 
-    // Configurar listeners de scroll para el botón flotante
-    const scrollableScreens = document.querySelectorAll('.screen');
-    scrollableScreens.forEach(screen => {
-        screen.addEventListener('scroll', handleScreenScrollDetection);
-    });
-
     // Inicializar módulos si están visibles
     const exercisesScreen = document.getElementById('screen-exercises');
     if (exercisesScreen && !exercisesScreen.classList.contains('hidden')) {
@@ -133,5 +127,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100);
     }
 });
-
-// ... resto de funciones (handleScreenScrollDetection, scrollToTopCurrentScreen) igual ...

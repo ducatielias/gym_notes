@@ -53,6 +53,8 @@ function renderHistoryEdit(container, item) {
     const horaStr = fecha.toTimeString().split(' ')[0].substring(0, 5);
     
     const contenido = item.contenido_editado || item.contenido_original || '';
+    const sessionName = GymNotesSafe.escapeText(item.nombre_sesion || 'Sesión sin título');
+    const routineName = GymNotesSafe.escapeText(item.nombre_rutina || 'Sin rutina');
     
     container.innerHTML = `
         <div class="history-detail-container">
@@ -68,9 +70,9 @@ function renderHistoryEdit(container, item) {
 
                 <div class="history-detail-title-row">
                     <span class="history-detail-prefix">Editando entrenamiento</span>
-                    <div class="history-detail-title" style="font-size:18px;">${item.nombre_sesion || 'Sesión sin título'}</div>
+                    <div class="history-detail-title" style="font-size:18px;">${sessionName}</div>
                     <div class="history-detail-meta" style="font-size:13px; color:#9ca3af;">
-                        <i class="fa-solid fa-dumbbell"></i> ${item.nombre_rutina || 'Sin rutina'}
+                        <i class="fa-solid fa-dumbbell"></i> ${routineName}
                     </div>
                 </div>
             </div>
@@ -139,7 +141,7 @@ function renderHistoryEdit(container, item) {
         
         // Cargar el contenido existente
         if (contenido) {
-            historyEditQuillInstance.clipboard.dangerouslyPasteHTML(contenido);
+            historyEditQuillInstance.clipboard.dangerouslyPasteHTML(GymNotesSafe.sanitizeRichHtml(contenido));
         }
         
         // Habilitar edición
@@ -213,15 +215,18 @@ function saveHistoryEdit() {
         timestamp_fin: newFecha.toISOString()
     };
     
-    // Guardar en localStorage
+    // Actualizar el estado central del historial
     try {
-        let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
+        const historyDB = getHistory();
         const index = historyDB.findIndex(h => h.id === historyEditingId);
         
         if (index === -1) {
             window.showAlert('Registro no encontrado en la base de datos.', 'Error');
             return;
         }
+
+        // Conserva el estado anterior si el servicio no puede persistir el cambio.
+        const previousHistory = [...historyDB];
         
         // Reemplazar el registro
         historyDB[index] = updatedItem;
@@ -229,8 +234,13 @@ function saveHistoryEdit() {
         // Reordenar por fecha (más reciente primero)
         historyDB.sort((a, b) => b.fecha - a.fecha);
         
-        // Guardar en localStorage
-        localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
+        const persistenceResult = saveHistory();
+        if (!persistenceResult.ok) {
+            historyDB.splice(0, historyDB.length, ...previousHistory);
+            console.error('[history-edit] Error al guardar:', persistenceResult);
+            window.showAlert('Error al guardar los cambios: ' + (persistenceResult.error || persistenceResult.status), 'Error');
+            return persistenceResult;
+        }
         
         // Actualizar variable global
         if (window.historyDB !== undefined) {

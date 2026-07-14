@@ -7,7 +7,80 @@
 // ESTADO GLOBAL
 // ==========================================================================
 
-let exercisesData = JSON.parse(localStorage.getItem('sharkExercises')) || { exercises: [] };
+const EXERCISES_STORAGE_KEY = 'sharkExercises';
+
+function createDefaultExercisesData() {
+    return { exercises: [] };
+}
+
+/**
+ * Valida solo la estructura necesaria para conservar ejercicios antiguos sin
+ * exigir metadatos opcionales que pueden no existir en datos ya guardados.
+ */
+function validateExercisesDataStructure(value) {
+    const rootValidation = GymNotesStorage.validateStructure(value, {
+        type: 'object',
+        requiredKeys: ['exercises']
+    });
+    if (!rootValidation.valid) {
+        return { ...rootValidation, location: 'root' };
+    }
+
+    const exercisesValidation = GymNotesStorage.validateStructure(value.exercises, { type: 'array' });
+    if (!exercisesValidation.valid) {
+        return { ...exercisesValidation, location: 'exercises' };
+    }
+
+    for (let index = 0; index < value.exercises.length; index += 1) {
+        const exerciseValidation = GymNotesStorage.validateStructure(value.exercises[index], { type: 'object' });
+        if (!exerciseValidation.valid) {
+            return {
+                valid: false,
+                status: GymNotesStorage.STATUS.INVALID_ITEM,
+                location: `exercises[${index}]`,
+                validation: exerciseValidation
+            };
+        }
+    }
+
+    return { valid: true, status: GymNotesStorage.STATUS.VALID };
+}
+
+function loadExercisesData() {
+    const readResult = GymNotesStorage.readJson(EXERCISES_STORAGE_KEY);
+
+    if (readResult.status === GymNotesStorage.STATUS.MISSING) {
+        return { data: createDefaultExercisesData(), issue: null, persistenceBlocked: false };
+    }
+
+    if (!readResult.ok) {
+        return { data: createDefaultExercisesData(), issue: readResult, persistenceBlocked: true };
+    }
+
+    const validation = validateExercisesDataStructure(readResult.value);
+    if (!validation.valid) {
+        return {
+            data: createDefaultExercisesData(),
+            issue: { status: validation.status, location: validation.location, validation },
+            persistenceBlocked: true
+        };
+    }
+
+    return { data: readResult.value, issue: null, persistenceBlocked: false };
+}
+
+const exercisesDataLoad = loadExercisesData();
+let exercisesData = exercisesDataLoad.data;
+let exercisesDataStorageIssue = exercisesDataLoad.issue;
+let exercisesDataPersistenceBlocked = exercisesDataLoad.persistenceBlocked;
+
+if (exercisesDataStorageIssue) {
+    console.warn('[exercises-state] sharkExercises no se ha cargado. Se usara un estado temporal sin sobrescribir el valor almacenado.', {
+        status: exercisesDataStorageIssue.status,
+        location: exercisesDataStorageIssue.location
+    });
+}
+
 let exercisesFilter = 'Todos';
 let exercisesSearchTerm = '';
 let currentExerciseId = null;
@@ -26,7 +99,36 @@ const DEFAULT_EXERCISE_GROUPS = [
 // ==========================================================================
 
 function saveExercises() {
-    localStorage.setItem('sharkExercises', JSON.stringify(exercisesData));
+    if (exercisesDataPersistenceBlocked) {
+        return {
+            ok: false,
+            status: 'persistence-blocked',
+            key: EXERCISES_STORAGE_KEY,
+            cause: exercisesDataStorageIssue
+        };
+    }
+
+    const validation = validateExercisesDataStructure(exercisesData);
+    if (!validation.valid) {
+        const result = {
+            ok: false,
+            status: validation.status,
+            key: EXERCISES_STORAGE_KEY,
+            validation
+        };
+        console.error('[exercises-state] No se ha guardado sharkExercises porque su estructura no es valida.', result);
+        return result;
+    }
+
+    const writeResult = GymNotesStorage.writeJson(EXERCISES_STORAGE_KEY, exercisesData, {
+        schema: { type: 'object', requiredKeys: ['exercises'] }
+    });
+
+    if (!writeResult.ok) {
+        console.error('[exercises-state] Error al guardar sharkExercises.', writeResult);
+    }
+
+    return writeResult;
 }
 
 function getExercises() {
@@ -35,7 +137,7 @@ function getExercises() {
 
 function setExercises(exercises) {
     exercisesData.exercises = exercises;
-    saveExercises();
+    return saveExercises();
 }
 
 function getExerciseGroups() {

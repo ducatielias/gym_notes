@@ -29,7 +29,7 @@ function initEditorInstance(initialContent) {
 
     // Inyectar el contenido semántico o HTML almacenado previamente
     if (initialContent) {
-        window.quillInstance.clipboard.dangerouslyPasteHTML(initialContent);
+        window.quillInstance.clipboard.dangerouslyPasteHTML(GymNotesSafe.sanitizeRichHtml(initialContent));
     }
     
     // Asegurar que el listener global está configurado
@@ -126,18 +126,22 @@ function renderExercisesList(lista) {
 
     // Obtener la URL de la imagen o usar un placeholder
     listContainer.innerHTML = lista.map(ejercicio => {
-        const imgSrc = ejercicio.img || getPlaceholderImage(ejercicio.nombre);
-        const nombreEscapado = ejercicio.nombre.replace(/'/g, "\\'");
-        const idEscapado = ejercicio.id.replace(/'/g, "\\'");
+        const placeholderImage = getPlaceholderImage(ejercicio.nombre);
+        const imgSrc = GymNotesSafe.getSafeImageUrl(ejercicio.img) || placeholderImage;
+        const exerciseName = GymNotesSafe.escapeText(ejercicio.nombre);
+        const exerciseNameHandler = GymNotesSafe.escapeInlineHandlerArgument(ejercicio.nombre);
+        const exerciseIdHandler = GymNotesSafe.escapeInlineHandlerArgument(ejercicio.id);
+        const imageSrcAttribute = GymNotesSafe.escapeText(imgSrc);
+        const placeholderHandler = GymNotesSafe.escapeInlineHandlerArgument(placeholderImage);
         
         return `
-            <li class="exercise-item" onclick="insertarEjercicioEnTexto('${nombreEscapado}', '${idEscapado}')">
+            <li class="exercise-item" onclick="insertarEjercicioEnTexto('${exerciseNameHandler}', '${exerciseIdHandler}')">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <img src="${imgSrc}" 
+                    <img src="${imageSrcAttribute}" 
                          style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover; background: #f3f4f6; flex-shrink: 0;" 
-                         onerror="this.src='${getPlaceholderImage(ejercicio.nombre)}'"
-                         alt="${ejercicio.nombre}">
-                    <span>${ejercicio.nombre}</span>
+                         onerror="this.src='${placeholderHandler}'"
+                         alt="${exerciseName}">
+                    <span>${exerciseName}</span>
                 </div>
             </li>
         `;

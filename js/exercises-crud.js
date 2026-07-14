@@ -33,6 +33,12 @@ function openExerciseModal(id = null) {
         }
     }
 
+    const exerciseName = GymNotesSafe.escapeText(exercise?.nombre ?? '');
+    const exerciseId = GymNotesSafe.escapeText(exercise?.id ?? '');
+    const exerciseNotes = GymNotesSafe.escapeText(exercise?.notas ?? '');
+    const exerciseImage = GymNotesSafe.escapeText(exercise?.img ?? '');
+    const exerciseVideo = GymNotesSafe.escapeText(exercise?.video ?? '');
+
     container.innerHTML = `
         <div class="exercise-editor-container">
             <div class="exercise-editor-sticky-header">
@@ -47,16 +53,19 @@ function openExerciseModal(id = null) {
 
                 <div class="exercise-editor-title-row">
                     <span class="exercise-editor-prefix">Ejercicio:</span>
-                    <input type="text" id="ex-editor-nombre" class="exercise-editor-title-input" placeholder="Nombre del ejercicio (ej: Press de Banca)" value="${exercise ? exercise.nombre : ''}" autocomplete="off">
+                    <input type="text" id="ex-editor-nombre" class="exercise-editor-title-input" placeholder="Nombre del ejercicio (ej: Press de Banca)" value="${exerciseName}" autocomplete="off">
                 </div>
             </div>
 
             <div class="exercise-editor-body">
-                <input type="hidden" id="ex-editor-id" value="${exercise ? exercise.id : ''}">
+                <input type="hidden" id="ex-editor-id" value="${exerciseId}">
                 
                 <label for="ex-editor-grupo">Grupo muscular</label>
                 <select id="ex-editor-grupo">
-                    ${groups.map(g => `<option value="${g}" ${exercise && exercise.grupo === g ? 'selected' : ''}>${g}</option>`).join('')}
+                    ${groups.map(g => {
+                        const safeGroup = GymNotesSafe.escapeText(g);
+                        return `<option value="${safeGroup}" ${exercise && exercise.grupo === g ? 'selected' : ''}>${safeGroup}</option>`;
+                    }).join('')}
                 </select>
                 
                 <button type="button" class="exercise-muscles-toggle" onclick="toggleExerciseMuscles()">
@@ -67,13 +76,13 @@ function openExerciseModal(id = null) {
                 </div>
                 
                 <label for="ex-editor-notas">Notas / Técnica</label>
-                <textarea id="ex-editor-notas" placeholder="Notas, técnica, series recomendadas...">${exercise ? exercise.notas || '' : ''}</textarea>
+                <textarea id="ex-editor-notas" placeholder="Notas, técnica, series recomendadas...">${exerciseNotes}</textarea>
                 
                 <label for="ex-editor-img">URL de imagen (opcional)</label>
-                <input type="url" id="ex-editor-img" placeholder="https://ejemplo.com/imagen.jpg" value="${exercise ? exercise.img || '' : ''}" autocomplete="off">
+                <input type="url" id="ex-editor-img" placeholder="https://ejemplo.com/imagen.jpg" value="${exerciseImage}" autocomplete="off">
                 
                 <label for="ex-editor-video">URL de vídeo (opcional)</label>
-                <input type="url" id="ex-editor-video" placeholder="https://youtube.com/watch?v=..." value="${exercise ? exercise.video || '' : ''}" autocomplete="off">
+                <input type="url" id="ex-editor-video" placeholder="https://youtube.com/watch?v=..." value="${exerciseVideo}" autocomplete="off">
             </div>
         </div>
     `;
@@ -190,26 +199,32 @@ function saveExerciseFromEditor() {
         notas: notasTextarea.value.trim() || ''
     };
 
-    let exercises = getExercises();
+    const exercises = getExercises();
+    const nextExercises = [...exercises];
     const existingIndex = exercises.findIndex(ex => ex.id === id);
     
     // DETECTAR SI EL NOMBRE CAMBIÓ
     const nombreCambio = oldNombre !== null && oldNombre !== nombre && oldNombre !== '';
     
     if (existingIndex >= 0) {
-        exercises[existingIndex] = exercise;
+        nextExercises[existingIndex] = exercise;
     } else {
-        exercises.push(exercise);
+        nextExercises.push(exercise);
     }
-
-    setExercises(exercises);
     
     // ============================================================
     // ACTUALIZAR EL NOMBRE EN SESIONES Y HISTORIAL SI CAMBIÓ
     // ============================================================
     if (nombreCambio) {
         console.log(`[exercises-crud] Renombrando ejercicio de "${oldNombre}" a "${nombre}"`);
-        actualizarNombreEnSesionesYHistorial(oldNombre, nombre);
+        const nextExercisesData = { ...exercisesData, exercises: nextExercises };
+        const persistenceResult = actualizarNombreEnSesionesYHistorial(oldNombre, nombre, nextExercisesData);
+        if (!persistenceResult.ok) {
+            console.error('[exercises-crud] No se ha guardado el renombrado del ejercicio:', persistenceResult);
+            return persistenceResult;
+        }
+    } else {
+        setExercises(nextExercises);
     }
     
     closeExerciseModal();
@@ -221,110 +236,188 @@ function saveExerciseFromEditor() {
 // ACTUALIZAR NOMBRE DEL EJERCICIO EN SESIONES E HISTORIAL
 // ==========================================================================
 
-function actualizarNombreEnSesionesYHistorial(oldNombre, newNombre) {
+function createRenameValidationFailure(key, validation) {
+    return {
+        ok: false,
+        status: GymNotesStorage.STATUS.VALIDATION_FAILED,
+        key,
+        validation,
+        storageState: 'unchanged'
+    };
+}
+
+/**
+ * Prepara las referencias afectadas sin mutar los estados actuales y las
+ * persiste juntas mediante una transacción compensable de localStorage.
+ */
+function actualizarNombreEnSesionesYHistorial(oldNombre, newNombre, nextExercisesData = null) {
     let cambiosRealizados = 0;
     let cambiosHistorial = 0;
-    
-    // ------------------------------------------------------------
-    // 1. ACTUALIZAR EN SESIONES DE RUTINAS
-    // ------------------------------------------------------------
-    if (typeof window.appData !== 'undefined' && window.appData.routines) {
-        const routines = window.appData.routines;
-        
-        routines.forEach(routine => {
-            routine.sessions.forEach(session => {
-                if (session.content && session.content.includes(oldNombre)) {
-                    // Reemplazar el nombre en el contenido HTML
-                    const oldContent = session.content;
-                    // Escapar caracteres especiales para regex
-                    const escapedOldNombre = oldNombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    // Reemplazar el nombre (preservando el formato HTML)
-                    const newContent = oldContent.replace(
-                        new RegExp(escapedOldNombre, 'g'), 
-                        newNombre
-                    );
-                    if (newContent !== oldContent) {
-                        session.content = newContent;
-                        session.lastModified = Date.now();
-                        cambiosRealizados++;
-                        console.log(`[exercises-crud] Actualizado en sesión: "${session.title}"`);
-                    }
-                }
-            });
-        });
-        
-        // Guardar los cambios en appData
-        if (cambiosRealizados > 0 && typeof window.saveData === 'function') {
-            window.saveData();
-            console.log(`[exercises-crud] ${cambiosRealizados} sesiones actualizadas`);
-        }
-    } else {
-        console.warn('[exercises-crud] window.appData no disponible para actualizar sesiones');
+    let nextAppData = appData;
+    let currentHistory = null;
+    let nextHistory = null;
+    const escapedOldNombre = oldNombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const exerciseNamePattern = new RegExp(escapedOldNombre, 'g');
+    const blockedState = [
+        { key: 'sharkExercises', blocked: exercisesDataPersistenceBlocked, cause: exercisesDataStorageIssue },
+        { key: 'sharkAppData', blocked: appDataPersistenceBlocked, cause: appDataStorageIssue },
+        { key: 'sharkHistory', blocked: historyDataPersistenceBlocked, cause: historyDataStorageIssue }
+    ].find(state => state.blocked);
+
+    if (blockedState) {
+        return {
+            ok: false,
+            status: 'persistence-blocked',
+            key: blockedState.key,
+            cause: blockedState.cause,
+            storageState: 'unchanged'
+        };
     }
-    
-    // ------------------------------------------------------------
-    // 2. ACTUALIZAR EN HISTORIAL
-    // ------------------------------------------------------------
+
     try {
-        let historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
-        let historialActualizado = false;
-        
-        historyDB = historyDB.map(record => {
-            let modificado = false;
-            let newRecord = { ...record };
-            
-            // Actualizar en contenido_editado
-            if (record.contenido_editado && record.contenido_editado.includes(oldNombre)) {
-                const escapedOldNombre = oldNombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                newRecord.contenido_editado = record.contenido_editado.replace(
-                    new RegExp(escapedOldNombre, 'g'),
-                    newNombre
-                );
-                modificado = true;
-                cambiosHistorial++;
+        if (typeof window.appData !== 'undefined' && Array.isArray(appData.routines)) {
+            const nextRoutines = appData.routines.map(routine => {
+                let routineChanged = false;
+                const nextSessions = routine.sessions.map(session => {
+                    if (!session.content || !session.content.includes(oldNombre)) {
+                        return session;
+                    }
+
+                    const newContent = session.content.replace(exerciseNamePattern, newNombre);
+                    if (newContent === session.content) {
+                        return session;
+                    }
+
+                    routineChanged = true;
+                    cambiosRealizados++;
+                    return { ...session, content: newContent, lastModified: Date.now() };
+                });
+
+                return routineChanged ? { ...routine, sessions: nextSessions } : routine;
+            });
+
+            if (cambiosRealizados > 0) {
+                nextAppData = { ...appData, routines: nextRoutines };
             }
-            
-            // Actualizar en contenido_original
-            if (record.contenido_original && record.contenido_original.includes(oldNombre)) {
-                const escapedOldNombre = oldNombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                newRecord.contenido_original = record.contenido_original.replace(
-                    new RegExp(escapedOldNombre, 'g'),
-                    newNombre
-                );
-                modificado = true;
-                cambiosHistorial++;
-            }
-            
-            return modificado ? newRecord : record;
-        });
-        
-        if (cambiosHistorial > 0) {
-            localStorage.setItem('sharkHistory', JSON.stringify(historyDB));
-            // Actualizar la variable global si existe
-            if (typeof window.historyDB !== 'undefined') {
-                window.historyDB = historyDB;
-            }
-            console.log(`[exercises-crud] ${cambiosHistorial} registros de historial actualizados`);
+        } else {
+            console.warn('[exercises-crud] window.appData no disponible para actualizar sesiones');
         }
+
+        currentHistory = getHistory();
+        nextHistory = currentHistory.map(record => {
+            let modified = false;
+            let nextRecord = record;
+
+            if (record.contenido_editado && record.contenido_editado.includes(oldNombre)) {
+                nextRecord = { ...nextRecord, contenido_editado: record.contenido_editado.replace(exerciseNamePattern, newNombre) };
+                modified = true;
+                cambiosHistorial++;
+            }
+
+            if (record.contenido_original && record.contenido_original.includes(oldNombre)) {
+                nextRecord = { ...nextRecord, contenido_original: record.contenido_original.replace(exerciseNamePattern, newNombre) };
+                modified = true;
+                cambiosHistorial++;
+            }
+
+            return modified ? nextRecord : record;
+        });
     } catch (error) {
-        console.error('[exercises-crud] Error actualizando historial:', error);
+        console.error('[exercises-crud] No se ha preparado el renombrado del ejercicio:', error);
+        return {
+            ok: false,
+            status: GymNotesStorage.STATUS.INVALID_OPERATION,
+            error: error instanceof Error ? error.message : String(error),
+            storageState: 'unchanged'
+        };
     }
-    
-    // ------------------------------------------------------------
-    // 3. NOTIFICAR AL USUARIO
-    // ------------------------------------------------------------
+
+    const changes = [];
+    if (nextExercisesData) {
+        const exercisesValidation = validateExercisesDataStructure(nextExercisesData);
+        if (!exercisesValidation.valid) {
+            return createRenameValidationFailure('sharkExercises', exercisesValidation);
+        }
+        changes.push({
+            key: 'sharkExercises',
+            value: nextExercisesData,
+            schema: { type: 'object', requiredKeys: ['exercises'] }
+        });
+    }
+
+    if (cambiosRealizados > 0) {
+        const appDataValidation = validateAppDataStructure(nextAppData);
+        if (!appDataValidation.valid) {
+            return createRenameValidationFailure('sharkAppData', appDataValidation);
+        }
+        changes.push({
+            key: 'sharkAppData',
+            value: nextAppData,
+            schema: { type: 'object', requiredKeys: ['routines'] }
+        });
+    }
+
+    if (cambiosHistorial > 0) {
+        const historyValidation = validateHistoryDataStructure(nextHistory);
+        if (!historyValidation.valid) {
+            return createRenameValidationFailure('sharkHistory', historyValidation);
+        }
+        changes.push({ key: 'sharkHistory', value: nextHistory, schema: { type: 'array' } });
+    }
+
+    if (changes.length === 0) {
+        return {
+            ok: true,
+            status: GymNotesStorage.STATUS.APPLIED,
+            writtenKeys: [],
+            restoredKeys: [],
+            storageState: 'unchanged',
+            cambiosRealizados,
+            cambiosHistorial
+        };
+    }
+
+    const preparedChanges = GymNotesStorage.prepareJsonChanges(changes);
+    if (!preparedChanges.ok) {
+        console.error('[exercises-crud] No se ha preparado el renombrado del ejercicio:', preparedChanges);
+        return preparedChanges;
+    }
+
+    const persistenceResult = GymNotesStorage.applyPreparedChanges(preparedChanges);
+    if (!persistenceResult.ok) {
+        console.error('[exercises-crud] No se ha guardado el renombrado del ejercicio:', persistenceResult);
+        return persistenceResult;
+    }
+
+    // Actualizar memoria solo tras una persistencia coordinada correcta.
+    if (nextExercisesData) {
+        exercisesData.exercises = nextExercisesData.exercises;
+    }
+    if (cambiosRealizados > 0) {
+        appData.routines = nextAppData.routines;
+        window.appData = appData;
+        console.log(`[exercises-crud] ${cambiosRealizados} sesiones actualizadas`);
+    }
+    if (cambiosHistorial > 0) {
+        currentHistory.splice(0, currentHistory.length, ...nextHistory);
+        if (typeof window.historyDB !== 'undefined') {
+            window.historyDB = currentHistory;
+        }
+        console.log(`[exercises-crud] ${cambiosHistorial} registros de historial actualizados`);
+    }
+
     const totalCambios = cambiosRealizados + cambiosHistorial;
     if (totalCambios > 0) {
         console.log(`[exercises-crud] Total de cambios realizados: ${totalCambios}`);
-        // Mostrar notificación después del alert principal
         setTimeout(() => {
             let mensaje = `Nombre del ejercicio actualizado en:\n`;
             if (cambiosRealizados > 0) mensaje += `• ${cambiosRealizados} sesión(es)\n`;
             if (cambiosHistorial > 0) mensaje += `• ${cambiosHistorial} registro(s) del historial\n`;
-            if (totalCambios === 0) mensaje = 'No se encontraron referencias a este ejercicio en sesiones o historial.';
             window.showAlert(mensaje, 'Actualización completada');
         }, 300);
     }
+
+    return { ...persistenceResult, cambiosRealizados, cambiosHistorial };
 }
 
 // ==========================================================================
@@ -371,8 +464,8 @@ function updateExerciseMusclesEditor(notas) {
         <div class="muscles-grid">
             ${groups.map(g => `
                 <label class="muscle-check">
-                    <input type="checkbox" value="${g}" ${selectedMuscles.includes(g) ? 'checked' : ''}>
-                    <span class="muscle-label">${g}</span>
+                    <input type="checkbox" value="${GymNotesSafe.escapeText(g)}" ${selectedMuscles.includes(g) ? 'checked' : ''}>
+                    <span class="muscle-label">${GymNotesSafe.escapeText(g)}</span>
                 </label>
             `).join('')}
         </div>
