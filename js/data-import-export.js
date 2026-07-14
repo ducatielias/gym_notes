@@ -36,41 +36,66 @@ function getDataTimestamp() {
 // FUNCIÓN: OBTENER DATOS ACTUALES DE LA APP
 // ==========================================================================
 
-function getCurrentAppData() {
-    const data = {
-        rutinas: [],
-        historial: [],
-        ejercicios: []
-    };
-    
-    // Obtener rutinas
-    if (typeof window.appData !== 'undefined' && window.appData.routines) {
-        data.rutinas = JSON.parse(JSON.stringify(window.appData.routines));
-    }
-    
-    // Obtener historial
+function cloneDataSnapshot(value, key) {
     try {
-        const historyDB = JSON.parse(localStorage.getItem('sharkHistory')) || [];
-        data.historial = JSON.parse(JSON.stringify(historyDB));
-    } catch (e) {
-        console.warn('[data-import-export] Error al obtener historial:', e);
-        data.historial = [];
+        return { ok: true, value: JSON.parse(JSON.stringify(value)) };
+    } catch (error) {
+        return {
+            ok: false,
+            status: GymNotesStorage.STATUS.SERIALIZATION_FAILED,
+            key,
+            error: error instanceof Error ? error.message : String(error),
+            storageState: 'unchanged'
+        };
     }
-    
-    // Obtener ejercicios
-    if (typeof window.getExercises === 'function') {
-        data.ejercicios = JSON.parse(JSON.stringify(window.getExercises()));
-    } else {
-        try {
-            const exercisesData = JSON.parse(localStorage.getItem('sharkExercises')) || { exercises: [] };
-            data.ejercicios = JSON.parse(JSON.stringify(exercisesData.exercises || []));
-        } catch (e) {
-            console.warn('[data-import-export] Error al obtener ejercicios:', e);
-            data.ejercicios = [];
+}
+
+function createPersistenceBlockedResult(key, cause) {
+    return {
+        ok: false,
+        status: 'persistence-blocked',
+        key,
+        cause,
+        storageState: 'unchanged'
+    };
+}
+
+function getCurrentAppData() {
+    if (appDataPersistenceBlocked) {
+        return createPersistenceBlockedResult(APP_DATA_STORAGE_KEY, appDataStorageIssue);
+    }
+
+    if (exercisesDataPersistenceBlocked) {
+        return createPersistenceBlockedResult(EXERCISES_STORAGE_KEY, exercisesDataStorageIssue);
+    }
+
+    const currentHistory = getHistory();
+    if (historyDataPersistenceBlocked) {
+        return createPersistenceBlockedResult(HISTORY_STORAGE_KEY, historyDataStorageIssue);
+    }
+
+    const routinesSnapshot = cloneDataSnapshot(appData.routines, APP_DATA_STORAGE_KEY);
+    const historySnapshot = cloneDataSnapshot(currentHistory, HISTORY_STORAGE_KEY);
+    const exercisesSnapshot = cloneDataSnapshot(getExercises(), EXERCISES_STORAGE_KEY);
+    const failedSnapshot = [routinesSnapshot, historySnapshot, exercisesSnapshot].find(snapshot => !snapshot.ok);
+
+    if (failedSnapshot) {
+        return failedSnapshot;
+    }
+
+    return {
+        ok: true,
+        data: {
+            rutinas: routinesSnapshot.value,
+            historial: historySnapshot.value,
+            ejercicios: exercisesSnapshot.value
         }
-    }
-    
-    return data;
+    };
+}
+
+function showDataAccessError(result, action) {
+    console.error(`[data-import-export] No se pudo ${action}.`, result);
+    window.showAlert(`No se pudo ${action} porque uno de los datos almacenados no es válido.`, 'Error');
 }
 
 // ==========================================================================
@@ -80,7 +105,13 @@ function getCurrentAppData() {
 function openExportDataModal() {
     console.log('[data-import-export] Abriendo modal de exportación...');
     
-    const data = getCurrentAppData();
+    const currentDataResult = getCurrentAppData();
+    if (!currentDataResult.ok) {
+        showDataAccessError(currentDataResult, 'preparar la exportación');
+        return;
+    }
+
+    const data = currentDataResult.data;
     const totalRutinas = data.rutinas.length;
     const totalHistorial = data.historial.length;
     const totalEjercicios = data.ejercicios.length;
@@ -175,7 +206,13 @@ function exportData() {
         return;
     }
     
-    const allData = getCurrentAppData();
+    const currentDataResult = getCurrentAppData();
+    if (!currentDataResult.ok) {
+        showDataAccessError(currentDataResult, 'exportar los datos');
+        return;
+    }
+
+    const allData = currentDataResult.data;
     const exportData = {};
     
     if (exportRutinas) exportData.rutinas = allData.rutinas;
@@ -244,14 +281,14 @@ function processImportFile(file) {
             const data = JSON.parse(e.target.result);
             
             // Validar el formato del archivo
-            if (!data.datos || typeof data.datos !== 'object') {
+            if (!data || typeof data !== 'object' || Array.isArray(data) || !data.datos || typeof data.datos !== 'object' || Array.isArray(data.datos)) {
                 throw new Error('El archivo no tiene el formato esperado. Falta la propiedad "datos".');
             }
             
             // Verificar que al menos hay un tipo de dato
-            const hasRutinas = data.datos.rutinas && Array.isArray(data.datos.rutinas) && data.datos.rutinas.length > 0;
-            const hasHistorial = data.datos.historial && Array.isArray(data.datos.historial) && data.datos.historial.length > 0;
-            const hasEjercicios = data.datos.ejercicios && Array.isArray(data.datos.ejercicios) && data.datos.ejercicios.length > 0;
+            const hasRutinas = Array.isArray(data.datos.rutinas) && data.datos.rutinas.length > 0;
+            const hasHistorial = Array.isArray(data.datos.historial) && data.datos.historial.length > 0;
+            const hasEjercicios = Array.isArray(data.datos.ejercicios) && data.datos.ejercicios.length > 0;
             
             if (!hasRutinas && !hasHistorial && !hasEjercicios) {
                 throw new Error('El archivo no contiene datos válidos (rutinas, historial o ejercicios).');
@@ -261,11 +298,13 @@ function processImportFile(file) {
             showImportSelectionModal(data.datos, data.fecha_exportacion || '');
             
         } catch (error) {
+            importFileData = null;
             console.error('[data-import-export] Error al leer el archivo:', error);
             window.showAlert('Error al leer el archivo: ' + error.message, 'Error');
         }
     };
     reader.onerror = function() {
+        importFileData = null;
         window.showAlert('Error al leer el archivo.', 'Error');
     };
     reader.readAsText(file);
@@ -274,9 +313,9 @@ function processImportFile(file) {
 function showImportSelectionModal(data, fechaExportacion) {
     console.log('[data-import-export] Mostrando selector de importación...');
     
-    const totalRutinas = data.rutinas ? data.rutinas.length : 0;
-    const totalHistorial = data.historial ? data.historial.length : 0;
-    const totalEjercicios = data.ejercicios ? data.ejercicios.length : 0;
+    const totalRutinas = Array.isArray(data.rutinas) ? data.rutinas.length : 0;
+    const totalHistorial = Array.isArray(data.historial) ? data.historial.length : 0;
+    const totalEjercicios = Array.isArray(data.ejercicios) ? data.ejercicios.length : 0;
     
     // Crear el modal de importación
     const overlay = document.createElement('div');
@@ -353,6 +392,164 @@ function cerrarImportDataModal() {
     // No limpiamos importFileData aquí para que pueda usarse después si el usuario confirma
 }
 
+function createImportValidationFailure(key, validation) {
+    return {
+        ok: false,
+        status: GymNotesStorage.STATUS.VALIDATION_FAILED,
+        key,
+        validation,
+        storageState: 'unchanged'
+    };
+}
+
+function prepareGlobalImport(importRutinas, importHistorial, importEjercicios) {
+    if (!importRutinas && !importHistorial && !importEjercicios) {
+        return {
+            ok: false,
+            status: GymNotesStorage.STATUS.INVALID_OPERATION,
+            error: 'No se ha seleccionado ningún conjunto de datos para importar.',
+            storageState: 'unchanged'
+        };
+    }
+
+    if (!importFileData || typeof importFileData !== 'object' || Array.isArray(importFileData)) {
+        return {
+            ok: false,
+            status: GymNotesStorage.STATUS.INVALID_OPERATION,
+            error: 'No hay un paquete de importación válido preparado.',
+            storageState: 'unchanged'
+        };
+    }
+
+    const changes = [];
+    const importedTypes = [];
+    let nextAppData;
+    let nextExercisesData;
+    let nextHistory;
+    let currentHistory;
+
+    if (importRutinas) {
+        if (appDataPersistenceBlocked) {
+            return createPersistenceBlockedResult(APP_DATA_STORAGE_KEY, appDataStorageIssue);
+        }
+
+        if (!Array.isArray(importFileData.rutinas)) {
+            return createImportValidationFailure(APP_DATA_STORAGE_KEY, { location: 'rutinas', expected: 'array' });
+        }
+
+        const routinesSnapshot = cloneDataSnapshot(importFileData.rutinas, APP_DATA_STORAGE_KEY);
+        if (!routinesSnapshot.ok) return routinesSnapshot;
+
+        nextAppData = { ...appData, routines: routinesSnapshot.value };
+        const appDataValidation = validateAppDataStructure(nextAppData);
+        if (!appDataValidation.valid) {
+            return createImportValidationFailure(APP_DATA_STORAGE_KEY, appDataValidation);
+        }
+
+        changes.push({
+            key: APP_DATA_STORAGE_KEY,
+            value: nextAppData,
+            schema: { type: 'object', requiredKeys: ['routines'] }
+        });
+        importedTypes.push('rutinas');
+    }
+
+    if (importEjercicios) {
+        if (exercisesDataPersistenceBlocked) {
+            return createPersistenceBlockedResult(EXERCISES_STORAGE_KEY, exercisesDataStorageIssue);
+        }
+
+        if (!Array.isArray(importFileData.ejercicios)) {
+            return createImportValidationFailure(EXERCISES_STORAGE_KEY, { location: 'ejercicios', expected: 'array' });
+        }
+
+        const exercisesSnapshot = cloneDataSnapshot(importFileData.ejercicios, EXERCISES_STORAGE_KEY);
+        if (!exercisesSnapshot.ok) return exercisesSnapshot;
+
+        nextExercisesData = { ...exercisesData, exercises: exercisesSnapshot.value };
+        const exercisesValidation = validateExercisesDataStructure(nextExercisesData);
+        if (!exercisesValidation.valid) {
+            return createImportValidationFailure(EXERCISES_STORAGE_KEY, exercisesValidation);
+        }
+
+        changes.push({
+            key: EXERCISES_STORAGE_KEY,
+            value: nextExercisesData,
+            schema: { type: 'object', requiredKeys: ['exercises'] }
+        });
+        importedTypes.push('ejercicios');
+    }
+
+    if (importHistorial) {
+        currentHistory = getHistory();
+        if (historyDataPersistenceBlocked) {
+            return createPersistenceBlockedResult(HISTORY_STORAGE_KEY, historyDataStorageIssue);
+        }
+
+        if (!Array.isArray(importFileData.historial)) {
+            return createImportValidationFailure(HISTORY_STORAGE_KEY, { location: 'historial', expected: 'array' });
+        }
+
+        const historySnapshot = cloneDataSnapshot(importFileData.historial, HISTORY_STORAGE_KEY);
+        if (!historySnapshot.ok) return historySnapshot;
+
+        nextHistory = historySnapshot.value;
+        const historyValidation = validateHistoryDataStructure(nextHistory);
+        if (!historyValidation.valid) {
+            return createImportValidationFailure(HISTORY_STORAGE_KEY, historyValidation);
+        }
+
+        changes.push({
+            key: HISTORY_STORAGE_KEY,
+            value: nextHistory,
+            schema: { type: 'array' }
+        });
+        importedTypes.push('historial');
+    }
+
+    const preparedChanges = GymNotesStorage.prepareJsonChanges(changes);
+    if (!preparedChanges.ok) {
+        return preparedChanges;
+    }
+
+    return {
+        ...preparedChanges,
+        nextAppData,
+        nextExercisesData,
+        nextHistory,
+        currentHistory,
+        importedTypes
+    };
+}
+
+function synchronizeImportedMemory(preparedImport) {
+    if (preparedImport.nextAppData) {
+        appData.routines = preparedImport.nextAppData.routines;
+        window.appData = appData;
+    }
+
+    if (preparedImport.nextExercisesData) {
+        exercisesData.exercises = preparedImport.nextExercisesData.exercises;
+        window.exercisesData = exercisesData;
+    }
+
+    if (preparedImport.nextHistory) {
+        preparedImport.currentHistory.splice(0, preparedImport.currentHistory.length, ...preparedImport.nextHistory);
+        window.historyDB = preparedImport.currentHistory;
+    }
+}
+
+function showImportPersistenceError(result) {
+    console.error('[data-import-export] Error en la importación:', result);
+
+    if (result.status === GymNotesStorage.STATUS.ROLLBACK_FAILED) {
+        window.showAlert('No se pudo confirmar la importación. El almacenamiento puede haber quedado en un estado incompleto.', 'Error');
+        return;
+    }
+
+    window.showAlert('No se pudieron importar los datos seleccionados. No se ha aplicado ningún cambio.', 'Error');
+}
+
 function importData() {
     const importRutinas = document.getElementById('import-rutinas')?.checked || false;
     const importHistorial = document.getElementById('import-historial')?.checked || false;
@@ -374,9 +571,6 @@ function importData() {
     if (importHistorial) tipos.push('historial');
     if (importEjercicios) tipos.push('ejercicios');
     
-    // CERRAR EL MODAL DE SELECCIÓN ANTES DE MOSTRAR LA CONFIRMACIÓN
-    cerrarImportDataModal();
-    
     window.showConfirm(
         `¿Estás seguro de que quieres importar ${tipos.join(', ')}?\n\n⚠️ Los datos existentes serán SOBRESCRITOS. Esta acción no se puede deshacer.`,
         'Confirmar importación'
@@ -384,9 +578,8 @@ function importData() {
         if (confirm) {
             performImport(importRutinas, importHistorial, importEjercicios);
         } else {
-            // Si el usuario cancela, no hacemos nada (el modal ya está cerrado)
             console.log('[data-import-export] Importación cancelada por el usuario.');
-            // Limpiar los datos del archivo
+            cerrarImportDataModal();
             importFileData = null;
         }
     });
@@ -394,95 +587,34 @@ function importData() {
 
 function performImport(importRutinas, importHistorial, importEjercicios) {
     console.log('[data-import-export] Realizando importación...');
-    let importados = [];
-    
-    try {
-        // IMPORTAR RUTINAS
-        if (importRutinas && importFileData.rutinas && Array.isArray(importFileData.rutinas)) {
-            if (typeof window.appData !== 'undefined' && window.appData.routines) {
-                // Reemplazar las rutinas existentes
-                window.appData.routines = JSON.parse(JSON.stringify(importFileData.rutinas));
-                // Guardar en localStorage
-                if (typeof window.saveData === 'function') {
-                    window.saveData();
-                } else {
-                    localStorage.setItem('sharkAppData', JSON.stringify(window.appData));
-                }
-                importados.push('rutinas');
-                console.log('[data-import-export] Rutinas importadas:', importFileData.rutinas.length);
-            } else {
-                console.warn('[data-import-export] appData.routines no disponible');
-            }
-        }
-        
-        // IMPORTAR HISTORIAL
-        if (importHistorial && importFileData.historial && Array.isArray(importFileData.historial)) {
-            try {
-                // Asegurar que cada registro tenga un ID único
-                const historialConIds = importFileData.historial.map(record => {
-                    if (!record.id) {
-                        record.id = 'h-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6);
-                    }
-                    return record;
-                });
-                localStorage.setItem('sharkHistory', JSON.stringify(historialConIds));
-                // Actualizar variable global
-                if (window.historyDB !== undefined) {
-                    window.historyDB = historialConIds;
-                }
-                importados.push('historial');
-                console.log('[data-import-export] Historial importado:', historialConIds.length);
-            } catch (e) {
-                console.error('[data-import-export] Error importando historial:', e);
-            }
-        }
-        
-        // IMPORTAR EJERCICIOS
-        if (importEjercicios && importFileData.ejercicios && Array.isArray(importFileData.ejercicios)) {
-            try {
-                // Asegurar que cada ejercicio tenga un ID único
-                const ejerciciosConIds = importFileData.ejercicios.map(ex => {
-                    if (!ex.id) {
-                        ex.id = 'ex-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6);
-                    }
-                    return ex;
-                });
-                const exercisesData = { exercises: ejerciciosConIds };
-                localStorage.setItem('sharkExercises', JSON.stringify(exercisesData));
-                // Actualizar variable global
-                if (window.exercisesData !== undefined) {
-                    window.exercisesData = exercisesData;
-                }
-                importados.push('ejercicios');
-                console.log('[data-import-export] Ejercicios importados:', ejerciciosConIds.length);
-            } catch (e) {
-                console.error('[data-import-export] Error importando ejercicios:', e);
-            }
-        }
-        
-        // Limpiar los datos del archivo
-        importFileData = null;
-        
-        // Mostrar mensaje de éxito
-        if (importados.length > 0) {
-            window.showAlert(
-                `Importación completada.\nDatos importados: ${importados.join(', ')}.\n\n🔄 Recargando la aplicación para aplicar los cambios...`,
-                'Importación completada'
-            );
-            
-            // Recargar la aplicación para aplicar los cambios
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
-        } else {
-            window.showAlert('No se importó ningún dato.', 'Aviso');
-        }
-        
-    } catch (error) {
-        console.error('[data-import-export] Error en la importación:', error);
-        window.showAlert('Error al importar los datos: ' + error.message, 'Error');
-        importFileData = null;
+    const preparedImport = prepareGlobalImport(importRutinas, importHistorial, importEjercicios);
+    if (!preparedImport.ok) {
+        showImportPersistenceError(preparedImport);
+        return preparedImport;
     }
+
+    const persistenceResult = GymNotesStorage.applyPreparedChanges(preparedImport);
+    if (!persistenceResult.ok) {
+        showImportPersistenceError(persistenceResult);
+        return persistenceResult;
+    }
+
+    // La memoria y la interfaz solo se confirman después de persistir todas
+    // las claves seleccionadas; no se usan setters que escriban de nuevo.
+    synchronizeImportedMemory(preparedImport);
+    cerrarImportDataModal();
+    importFileData = null;
+
+    window.showAlert(
+        `Importación completada.\nDatos importados: ${preparedImport.importedTypes.join(', ')}.\n\n🔄 Recargando la aplicación para aplicar los cambios...`,
+        'Importación completada'
+    );
+
+    setTimeout(() => {
+        location.reload();
+    }, 1500);
+
+    return persistenceResult;
 }
 
 // ==========================================================================

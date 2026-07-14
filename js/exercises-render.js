@@ -320,11 +320,12 @@ function toggleExerciseCard(id) {
 // ==========================================================================
 
 function getExercisePlaceholder(text) {
-    return 'data:image/svg+xml,' + encodeURIComponent(`
+    const safeText = GymNotesSafe.escapeText(String(text ?? '').substring(0, 20));
+    return GymNotesSafe.createInternalSvgPlaceholder(`
         <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
             <rect width="100" height="100" fill="#f3f4f6"/>
             <text x="50" y="50" font-family="Arial" font-size="32" text-anchor="middle" dy=".3em" fill="#9ca3af">💪</text>
-            <text x="50" y="72" font-family="Arial" font-size="10" text-anchor="middle" fill="#9ca3af">${text.substring(0, 20)}</text>
+            <text x="50" y="72" font-family="Arial" font-size="10" text-anchor="middle" fill="#9ca3af">${safeText}</text>
         </svg>
     `);
 }

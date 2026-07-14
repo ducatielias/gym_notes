@@ -1,6 +1,6 @@
 /**
  * Gym Notes - Service Worker (Versión Portable)
- * VERSIÓN: 1.0.1
+ * VERSIÓN: 1.0.4
  * 
  * CORREGIDO: Rutas relativas para funcionar en cualquier subdirectorio
  * CORREGIDO: Cacheo robusto con fallback a index.html
@@ -8,7 +8,7 @@
  * MODIFICADO: Soporte para mensaje "getVersion" que devuelve CACHE_VERSION
  */
 
-const CACHE_VERSION = 'gym-notes-v1-02';
+const CACHE_VERSION = 'gym-notes-v1-03';
 const CACHE_NAME = CACHE_VERSION;
 
 // ============================================================
@@ -35,6 +35,7 @@ const FILES_TO_CACHE = [
   // JS - CORE
   'js/index.js',
   'js/safe-render.js',
+  'js/storage-service.js',
   'js/modal.js',
   'js/ui-helpers.js',
   'js/back-handler.js',
