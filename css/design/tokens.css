@@ -1,0 +1,89 @@
+/*
+ * Tokens visuales base de GymNotes.
+ * Fase 3B: definidos, pero todavía no cargados ni aplicados a la interfaz.
+ */
+
+:root {
+    /* Colores */
+    --gn-color-background: #F6F0E3;
+    --gn-color-surface: #FFFDF8;
+    --gn-color-surface-secondary: #EEE6D6;
+    --gn-color-text: #25241E;
+    --gn-color-text-muted: #6D685E;
+    --gn-color-text-inverse: #FFFDF8;
+    --gn-color-border: #2B2A24;
+    --gn-color-border-muted: #CFC6B6;
+    --gn-color-accent: #B8DF4A;
+    --gn-color-success: #DCECCF;
+    --gn-color-success-text: #315D32;
+    --gn-color-warning: #F6E7B6;
+    --gn-color-warning-text: #76570A;
+    --gn-color-danger: #F3D8D1;
+    --gn-color-danger-text: #8A3028;
+    --gn-color-info: #DCE9F2;
+    --gn-color-info-text: #31536A;
+    --gn-color-disabled: #DDD7CB;
+    --gn-color-disabled-text: #918A7F;
+
+    /* Tipografía */
+    --gn-font-title: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    --gn-font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --gn-font-numeric: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    --gn-font-size-xs: 0.75rem;
+    --gn-font-size-sm: 0.875rem;
+    --gn-font-size-md: 1rem;
+    --gn-font-size-lg: 1.25rem;
+    --gn-font-size-xl: 1.5rem;
+    --gn-font-size-2xl: 2rem;
+    --gn-font-weight-regular: 400;
+    --gn-font-weight-medium: 500;
+    --gn-font-weight-semibold: 600;
+    --gn-font-weight-bold: 700;
+    --gn-line-height-tight: 1.15;
+    --gn-line-height-normal: 1.35;
+    --gn-line-height-relaxed: 1.5;
+
+    /* Espaciado */
+    --gn-space-xs: 0.25rem;
+    --gn-space-sm: 0.5rem;
+    --gn-space-md: 0.75rem;
+    --gn-space-lg: 1rem;
+    --gn-space-xl: 1.5rem;
+    --gn-space-2xl: 2rem;
+    --gn-space-3xl: 3rem;
+
+    /* Radios */
+    --gn-radius-sm: 0.75rem;
+    --gn-radius-md: 1rem;
+    --gn-radius-card: 1.5rem;
+    --gn-radius-modal: 1.75rem;
+    --gn-radius-pill: 999px;
+    --gn-radius-circle: 50%;
+
+    /* Bordes */
+    --gn-border-width-thin: 1px;
+    --gn-border-width: 2px;
+    --gn-border-width-strong: 3px;
+    --gn-border-style: solid;
+
+    /* Sombras */
+    --gn-shadow-none: none;
+    --gn-shadow-menu: 0 4px 10px rgb(43 42 36 / 12%);
+    --gn-shadow-modal: 0 12px 28px rgb(43 42 36 / 20%);
+    --gn-shadow-navigation: 0 4px 12px rgb(43 42 36 / 14%);
+
+    /* Movimiento */
+    --gn-motion-fast: 120ms;
+    --gn-motion-standard: 180ms;
+    --gn-motion-overlay: 240ms;
+    --gn-ease-standard: ease-out;
+
+    /* Capas */
+    --gn-layer-base: 0;
+    --gn-layer-sticky: 100;
+    --gn-layer-navigation: 200;
+    --gn-layer-menu: 300;
+    --gn-layer-modal: 1000;
+    --gn-layer-lightbox: 1100;
+    --gn-layer-update: 1200;
+}

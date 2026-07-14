@@ -1,0 +1,141 @@
+/*
+ * Carcasa del modal común de GymNotes.
+ * Fase 3E: todas las reglas visuales se limitan a #customModal para no
+ * afectar los overlays y modales de otros flujos.
+ */
+
+/* Overlay y capa de diálogo */
+#customModal.modal-overlay {
+    box-sizing: border-box;
+    inset: 0;
+    padding: var(--gn-space-lg);
+    background-color: rgb(37 36 30 / 56%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    z-index: var(--gn-layer-modal);
+    animation: gn-custom-modal-overlay-enter var(--gn-motion-overlay) var(--gn-ease-standard);
+}
+
+#customModal .modal-container {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    inline-size: min(100%, 28rem);
+    max-inline-size: 100%;
+    max-block-size: calc(100vh - var(--gn-space-2xl));
+    max-block-size: calc(100dvh - var(--gn-space-2xl));
+    overflow: hidden;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-modal);
+    background-color: var(--gn-color-surface);
+    box-shadow: var(--gn-shadow-modal);
+    animation: gn-custom-modal-enter var(--gn-motion-overlay) var(--gn-ease-standard);
+}
+
+/* Cabecera */
+#customModal .modal-header {
+    flex: 0 0 auto;
+    gap: var(--gn-space-md);
+    padding: var(--gn-space-xl) var(--gn-space-xl) var(--gn-space-md);
+    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+}
+
+#customModal .modal-icon {
+    flex: 0 0 auto;
+    color: var(--gn-color-text);
+    font-size: var(--gn-font-size-xl);
+    line-height: 1;
+}
+
+#customModal .modal-header h3 {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-lg);
+    font-weight: var(--gn-font-weight-bold);
+    line-height: var(--gn-line-height-tight);
+}
+
+/* Cuerpo desplazable para mensajes y listas largas */
+#customModal .modal-body {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    overflow-y: auto;
+    padding: var(--gn-space-xl);
+    -webkit-overflow-scrolling: touch;
+}
+
+#customModal .modal-body p {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    font-weight: var(--gn-font-weight-regular);
+    line-height: var(--gn-line-height-relaxed);
+    overflow-wrap: anywhere;
+}
+
+/* Pie: conserva el orden y los estilos de los botones ya migrados */
+#customModal .modal-footer {
+    flex: 0 0 auto;
+    gap: var(--gn-space-md);
+    padding: 0 var(--gn-space-xl) var(--gn-space-xl);
+}
+
+@media (max-width: 22.4375rem) {
+    #customModal.modal-overlay {
+        padding: var(--gn-space-md);
+    }
+
+    #customModal .modal-container {
+        max-block-size: calc(100vh - var(--gn-space-xl));
+        max-block-size: calc(100dvh - var(--gn-space-xl));
+    }
+
+    #customModal .modal-header {
+        padding: var(--gn-space-lg) var(--gn-space-lg) var(--gn-space-md);
+    }
+
+    #customModal .modal-body {
+        padding: var(--gn-space-lg);
+    }
+
+    #customModal .modal-footer {
+        flex-direction: column;
+        gap: var(--gn-space-sm);
+        padding: 0 var(--gn-space-lg) var(--gn-space-lg);
+    }
+
+    #customModal .modal-footer > .modal-btn {
+        inline-size: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #customModal.modal-overlay,
+    #customModal .modal-container {
+        animation: none;
+    }
+}
+
+@keyframes gn-custom-modal-overlay-enter {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes gn-custom-modal-enter {
+    from {
+        opacity: 0;
+        transform: translateY(var(--gn-space-sm));
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

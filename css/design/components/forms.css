@@ -1,0 +1,165 @@
+/*
+ * Formularios base del Design System de GymNotes.
+ * Las clases gn-* quedan disponibles para migraciones posteriores. En esta
+ * fase, el puente visual se limita a los controles del modal común.
+ */
+
+/* Estructura reutilizable de campo */
+.gn-field {
+    display: grid;
+    gap: var(--gn-space-sm);
+    min-inline-size: 0;
+}
+
+.gn-label {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+}
+
+.gn-field-help,
+.gn-field-error {
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-normal);
+}
+
+.gn-field-help {
+    color: var(--gn-color-text-muted);
+}
+
+.gn-field-error {
+    color: var(--gn-color-danger-text);
+}
+
+/* Controles reutilizables y migración acotada al modal común */
+.gn-input,
+.gn-textarea,
+.gn-select,
+#customModal .modal-input,
+#customModal textarea,
+#customModal select {
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-inline-size: 0;
+    min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
+    padding: var(--gn-space-sm) var(--gn-space-lg);
+    border: var(--gn-border-width) solid var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface);
+    box-shadow: var(--gn-shadow-none);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    font-weight: var(--gn-font-weight-regular);
+    line-height: var(--gn-line-height-normal);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard),
+        outline-color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+.gn-textarea,
+#customModal textarea {
+    min-block-size: calc(var(--gn-space-3xl) * 2);
+    resize: vertical;
+}
+
+.gn-input::placeholder,
+.gn-textarea::placeholder,
+#customModal .modal-input::placeholder,
+#customModal textarea::placeholder {
+    color: var(--gn-color-text-muted);
+    opacity: 1;
+}
+
+@media (hover: hover) {
+    .gn-input:hover:not(:disabled):not([readonly]):not([aria-disabled="true"]),
+    .gn-textarea:hover:not(:disabled):not([readonly]):not([aria-disabled="true"]),
+    .gn-select:hover:not(:disabled):not([readonly]):not([aria-disabled="true"]),
+    #customModal .modal-input:hover:not(:disabled):not([readonly]):not([aria-disabled="true"]),
+    #customModal textarea:hover:not(:disabled):not([readonly]):not([aria-disabled="true"]),
+    #customModal select:hover:not(:disabled):not([readonly]):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-border);
+    }
+}
+
+.gn-input:focus-visible,
+.gn-textarea:focus-visible,
+.gn-select:focus-visible,
+#customModal .modal-input:focus-visible,
+#customModal textarea:focus-visible,
+#customModal select:focus-visible {
+    border-color: var(--gn-color-border);
+    outline: var(--gn-border-width-strong) solid var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+.gn-input:disabled,
+.gn-textarea:disabled,
+.gn-select:disabled,
+.gn-input[aria-disabled="true"],
+.gn-textarea[aria-disabled="true"],
+.gn-select[aria-disabled="true"],
+#customModal .modal-input:disabled,
+#customModal textarea:disabled,
+#customModal select:disabled,
+#customModal .modal-input[aria-disabled="true"],
+#customModal textarea[aria-disabled="true"],
+#customModal select[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+.gn-input[readonly],
+.gn-textarea[readonly],
+.gn-select[readonly],
+#customModal .modal-input[readonly],
+#customModal textarea[readonly],
+#customModal select[readonly] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text-muted);
+    cursor: default;
+}
+
+.gn-input[aria-invalid="true"],
+.gn-textarea[aria-invalid="true"],
+.gn-select[aria-invalid="true"],
+.gn-field--invalid .gn-input,
+.gn-field--invalid .gn-textarea,
+.gn-field--invalid .gn-select,
+#customModal .modal-input[aria-invalid="true"],
+#customModal textarea[aria-invalid="true"],
+#customModal select[aria-invalid="true"],
+#customModal .gn-field--invalid .modal-input,
+#customModal .gn-field--invalid textarea,
+#customModal .gn-field--invalid select {
+    border-color: var(--gn-color-danger-text);
+}
+
+.gn-field--invalid .gn-label,
+.gn-field--invalid .gn-field-error,
+#customModal .gn-field--invalid .gn-label,
+#customModal .gn-field--invalid .gn-field-error {
+    color: var(--gn-color-danger-text);
+}
+
+.gn-field--disabled {
+    color: var(--gn-color-disabled-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gn-input,
+    .gn-textarea,
+    .gn-select,
+    #customModal .modal-input,
+    #customModal textarea,
+    #customModal select {
+        transition-duration: 0s;
+    }
+}
