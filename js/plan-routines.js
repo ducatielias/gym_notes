@@ -597,68 +597,113 @@ async function renameRoutine(routineId) {
     if (!newName || newName.trim() === "") return;
 
     const newNameTrimmed = newName.trim();
-    // ACTUALIZAR EL HISTORIAL: Cambiar el nombre de la rutina en todos los registros del historial
-    let historyDB = null;
-    let previousHistory = null;
+    let currentHistory;
+    let nextAppData;
+    let nextHistory;
     let actualizados = 0;
+
     try {
-        historyDB = getHistory();
-        previousHistory = [...historyDB];
-        
-        // Recorrer y actualizar los registros que coincidan con el nombre antiguo
-        const updatedHistory = historyDB.map(record => {
+        currentHistory = getHistory();
+
+        if (appDataPersistenceBlocked || historyDataPersistenceBlocked) {
+            return {
+                ok: false,
+                status: 'persistence-blocked',
+                key: appDataPersistenceBlocked ? APP_DATA_STORAGE_KEY : HISTORY_STORAGE_KEY,
+                cause: appDataPersistenceBlocked ? appDataStorageIssue : historyDataStorageIssue,
+                storageState: 'unchanged'
+            };
+        }
+
+        // Se preparan copias independientes para no tocar memoria hasta que la
+        // transacción haya persistido todas las claves de forma compensable.
+        nextAppData = {
+            ...appData,
+            routines: appData.routines.map(item => item.id === routineId
+                ? { ...item, name: newNameTrimmed }
+                : item)
+        };
+
+        nextHistory = currentHistory.map(record => {
             if (record.nombre_rutina === oldName) {
                 actualizados++;
                 return { ...record, nombre_rutina: newNameTrimmed };
             }
             return record;
         });
-        
-        if (actualizados > 0) {
-            historyDB.splice(0, historyDB.length, ...updatedHistory);
-            const historyPersistenceResult = saveHistory();
-            if (!historyPersistenceResult.ok) {
-                historyDB.splice(0, historyDB.length, ...previousHistory);
-                console.error('[renameRoutine] Error actualizando el historial:', historyPersistenceResult);
-                if (typeof window.showAlert === 'function') {
-                    await window.showAlert('No se pudo actualizar el historial. La rutina no se ha renombrado.', 'Error al guardar');
-                }
-                return historyPersistenceResult;
-            }
 
-            if (window.historyDB !== undefined) {
-                window.historyDB = historyDB;
+        const appDataValidation = validateAppDataStructure(nextAppData);
+        if (!appDataValidation.valid) {
+            return {
+                ok: false,
+                status: appDataValidation.status,
+                key: APP_DATA_STORAGE_KEY,
+                validation: appDataValidation,
+                storageState: 'unchanged'
+            };
+        }
+
+        if (actualizados > 0) {
+            const historyValidation = validateHistoryDataStructure(nextHistory);
+            if (!historyValidation.valid) {
+                return {
+                    ok: false,
+                    status: historyValidation.status,
+                    key: HISTORY_STORAGE_KEY,
+                    validation: historyValidation,
+                    storageState: 'unchanged'
+                };
             }
         }
+
+        const changes = [{
+            key: APP_DATA_STORAGE_KEY,
+            value: nextAppData,
+            schema: { type: 'object', requiredKeys: ['routines'] }
+        }];
+
+        if (actualizados > 0) {
+            changes.push({
+                key: HISTORY_STORAGE_KEY,
+                value: nextHistory,
+                schema: { type: 'array' }
+            });
+        }
+
+        const preparedChanges = GymNotesStorage.prepareJsonChanges(changes);
+        if (!preparedChanges.ok) {
+            return preparedChanges;
+        }
+
+        const persistenceResult = GymNotesStorage.applyPreparedChanges(preparedChanges);
+        if (!persistenceResult.ok) {
+            console.error('[renameRoutine] Error persistiendo el renombrado de rutina:', persistenceResult);
+            if (persistenceResult.status === GymNotesStorage.STATUS.ROLLBACK_FAILED && typeof window.showAlert === 'function') {
+                await window.showAlert('No se pudo actualizar el historial. La rutina no se ha renombrado.', 'Error al guardar');
+            }
+            return persistenceResult;
+        }
+
+        appData.routines = nextAppData.routines;
+        window.appData = appData;
+
+        if (actualizados > 0) {
+            currentHistory.splice(0, currentHistory.length, ...nextHistory);
+            window.historyDB = currentHistory;
+        }
+
+        console.log(`[renameRoutine] Historial actualizado: ${actualizados} registros modificados de "${oldName}" a "${newNameTrimmed}"`);
+
+        if (actualizados > 0 && typeof window.showAlert === 'function') {
+            await window.showAlert(`Rutina renombrada correctamente.\n${actualizados} registro(s) del historial actualizados.`, "Completado");
+        }
+
+        renderRoutineList();
+        return persistenceResult;
     } catch (error) {
-        if (historyDB && previousHistory) {
-            historyDB.splice(0, historyDB.length, ...previousHistory);
-        }
-        console.error('[renameRoutine] Error actualizando el historial:', error);
-        if (typeof window.showAlert === 'function') {
-            await window.showAlert('No se pudo actualizar el historial. La rutina no se ha renombrado.', 'Error al guardar');
-        }
+        console.error('[renameRoutine] Error preparando el renombrado de rutina:', error);
         return { ok: false, status: 'persistence-error', error: error instanceof Error ? error.message : String(error) };
     }
-
-    routine.name = newNameTrimmed;
-    const routinePersistenceResult = saveData();
-    if (!routinePersistenceResult.ok) {
-        routine.name = oldName;
-        console.error('[renameRoutine] Error guardando la rutina:', routinePersistenceResult);
-        if (typeof window.showAlert === 'function') {
-            await window.showAlert('No se pudo guardar el nuevo nombre de la rutina. El historial se actualizó.', 'Error al guardar');
-        }
-        return routinePersistenceResult;
-    }
-
-    console.log(`[renameRoutine] Historial actualizado: ${actualizados} registros modificados de "${oldName}" a "${newNameTrimmed}"`);
-    
-    if (actualizados > 0 && typeof window.showAlert === 'function') {
-        await window.showAlert(`Rutina renombrada correctamente.\n${actualizados} registro(s) del historial actualizados.`, "Completado");
-    }
-    
-    renderRoutineList();
 }
 
 async function copyWholeRoutine(routineId) {

@@ -188,11 +188,6 @@ function saveCurrentSession() {
     if (!window.editingSession || !window.quillInstance) return;
     
     const oldTitle = window.editingSession.title;
-    const previousSessionState = {
-        title: window.editingSession.title,
-        content: window.editingSession.content,
-        lastModified: window.editingSession.lastModified
-    };
     const inputTitulo = document.getElementById('sessionTitleInput');
     let newTitle = oldTitle;
     
@@ -204,62 +199,133 @@ function saveCurrentSession() {
     
     const newContent = window.quillInstance.getSemanticHTML();
     const newLastModified = Date.now();
-    
-    // ACTUALIZAR EL HISTORIAL: Si el título de la sesión cambió, actualizar los registros del historial
+    let currentHistory;
+    let nextAppData;
+    let nextHistory;
+    let nextEditingSession;
     let actualizados = 0;
-    if (oldTitle !== newTitle) {
-        let historyDB = null;
-        let previousHistory = null;
-        try {
-            historyDB = getHistory();
-            previousHistory = [...historyDB];
-            
-            // Buscar la rutina actual para obtener su nombre
-            const routine = appData.routines.find(r => r.id === currentRoutineId);
-            const routineName = routine ? routine.name : '';
-            
-            const updatedHistory = historyDB.map(record => {
-                // Coincidir por nombre_sesion y nombre_rutina para mayor precisión
+
+    try {
+        currentHistory = getHistory();
+
+        if (appDataPersistenceBlocked || historyDataPersistenceBlocked) {
+            return {
+                ok: false,
+                status: 'persistence-blocked',
+                key: appDataPersistenceBlocked ? APP_DATA_STORAGE_KEY : HISTORY_STORAGE_KEY,
+                cause: appDataPersistenceBlocked ? appDataStorageIssue : historyDataStorageIssue,
+                storageState: 'unchanged'
+            };
+        }
+
+        const currentRoutine = appData.routines.find(routine => routine.id === currentRoutineId);
+        const routineName = currentRoutine ? currentRoutine.name : '';
+        const sessionBeingEdited = window.editingSession;
+
+        // Mantener los estados originales intactos hasta que las dos claves se
+        // hayan persistido; solo se copian la rutina y la sesión modificadas.
+        nextAppData = {
+            ...appData,
+            routines: appData.routines.map(routine => {
+                if (routine.id !== currentRoutineId) return routine;
+
+                return {
+                    ...routine,
+                    sessions: routine.sessions.map(session => {
+                        if (session !== sessionBeingEdited) return session;
+
+                        nextEditingSession = {
+                            ...session,
+                            title: newTitle,
+                            content: newContent,
+                            lastModified: newLastModified
+                        };
+                        return nextEditingSession;
+                    })
+                };
+            })
+        };
+
+        if (!nextEditingSession) {
+            return {
+                ok: false,
+                status: GymNotesStorage.STATUS.INVALID_OPERATION,
+                error: 'La sesión en edición ya no pertenece a la rutina actual.',
+                storageState: 'unchanged'
+            };
+        }
+
+        if (oldTitle !== newTitle) {
+            nextHistory = currentHistory.map(record => {
+                // Conserva el criterio anterior: título previo y rutina actual.
                 if (record.nombre_sesion === oldTitle && record.nombre_rutina === routineName) {
                     actualizados++;
                     return { ...record, nombre_sesion: newTitle };
                 }
                 return record;
             });
-
-            if (actualizados > 0) {
-                historyDB.splice(0, historyDB.length, ...updatedHistory);
-                const historyPersistenceResult = saveHistory();
-                if (!historyPersistenceResult.ok) {
-                    historyDB.splice(0, historyDB.length, ...previousHistory);
-                    console.error('[saveCurrentSession] Error actualizando el historial:', historyPersistenceResult);
-                    return historyPersistenceResult;
-                }
-
-                if (window.historyDB !== undefined) {
-                    window.historyDB = historyDB;
-                }
-            }
-        } catch (error) {
-            if (historyDB && previousHistory) {
-                historyDB.splice(0, historyDB.length, ...previousHistory);
-            }
-            console.error('[saveCurrentSession] Error actualizando el historial:', error);
-            return { ok: false, status: 'persistence-error', error: error instanceof Error ? error.message : String(error) };
         }
-    }
 
-    window.editingSession.title = newTitle;
-    window.editingSession.content = newContent;
-    window.editingSession.lastModified = newLastModified;
+        const appDataValidation = validateAppDataStructure(nextAppData);
+        if (!appDataValidation.valid) {
+            return {
+                ok: false,
+                status: appDataValidation.status,
+                key: APP_DATA_STORAGE_KEY,
+                validation: appDataValidation,
+                storageState: 'unchanged'
+            };
+        }
 
-    const sessionPersistenceResult = saveData();
-    if (!sessionPersistenceResult.ok) {
-        window.editingSession.title = previousSessionState.title;
-        window.editingSession.content = previousSessionState.content;
-        window.editingSession.lastModified = previousSessionState.lastModified;
-        console.error('[saveCurrentSession] Error guardando la sesión:', sessionPersistenceResult);
-        return sessionPersistenceResult;
+        if (actualizados > 0) {
+            const historyValidation = validateHistoryDataStructure(nextHistory);
+            if (!historyValidation.valid) {
+                return {
+                    ok: false,
+                    status: historyValidation.status,
+                    key: HISTORY_STORAGE_KEY,
+                    validation: historyValidation,
+                    storageState: 'unchanged'
+                };
+            }
+        }
+
+        const changes = [{
+            key: APP_DATA_STORAGE_KEY,
+            value: nextAppData,
+            schema: { type: 'object', requiredKeys: ['routines'] }
+        }];
+
+        if (actualizados > 0) {
+            changes.push({
+                key: HISTORY_STORAGE_KEY,
+                value: nextHistory,
+                schema: { type: 'array' }
+            });
+        }
+
+        const preparedChanges = GymNotesStorage.prepareJsonChanges(changes);
+        if (!preparedChanges.ok) {
+            return preparedChanges;
+        }
+
+        const persistenceResult = GymNotesStorage.applyPreparedChanges(preparedChanges);
+        if (!persistenceResult.ok) {
+            console.error('[saveCurrentSession] Error actualizando el historial:', persistenceResult);
+            return persistenceResult;
+        }
+
+        appData.routines = nextAppData.routines;
+        window.appData = appData;
+        window.editingSession = nextEditingSession;
+
+        if (actualizados > 0) {
+            currentHistory.splice(0, currentHistory.length, ...nextHistory);
+            window.historyDB = currentHistory;
+        }
+    } catch (error) {
+        console.error('[saveCurrentSession] Error actualizando el historial:', error);
+        return { ok: false, status: 'persistence-error', error: error instanceof Error ? error.message : String(error) };
     }
 
     if (oldTitle !== newTitle) {
