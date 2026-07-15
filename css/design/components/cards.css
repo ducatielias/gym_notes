@@ -1,0 +1,168 @@
+/*
+ * Tarjetas base del Design System de GymNotes.
+ * Fase 3F: el puente visual se limita a las tarjetas de Rutinas y Sesiones
+ * para no afectar las demás familias de tarjetas de la aplicación.
+ */
+
+/* Base reutilizable para futuras migraciones */
+.gn-card {
+    box-sizing: border-box;
+    min-inline-size: 0;
+    padding: var(--gn-space-xl);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-card);
+    background-color: var(--gn-color-surface);
+    box-shadow: var(--gn-shadow-none);
+    color: var(--gn-color-text);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        transform var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+.gn-card--interactive {
+    cursor: pointer;
+}
+
+.gn-card--selected {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+.gn-card--disabled {
+    background-color: var(--gn-color-disabled);
+    border-color: var(--gn-color-border-muted);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+.gn-card__header,
+.gn-card__actions {
+    display: flex;
+    align-items: center;
+}
+
+.gn-card__header {
+    justify-content: space-between;
+    gap: var(--gn-space-md);
+}
+
+.gn-card__title {
+    margin: 0;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-md);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    overflow-wrap: anywhere;
+}
+
+.gn-card__meta {
+    margin: var(--gn-space-xs) 0 0;
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-normal);
+}
+
+.gn-card__body {
+    min-inline-size: 0;
+}
+
+.gn-card__actions {
+    flex: 0 0 auto;
+    gap: var(--gn-space-sm);
+}
+
+@media (hover: hover) {
+    .gn-card--interactive:hover:not(.gn-card--disabled) {
+        background-color: var(--gn-color-surface-secondary);
+    }
+}
+
+.gn-card--interactive:active:not(.gn-card--disabled) {
+    transform: translateY(1px);
+}
+
+.gn-card--interactive:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+/* Puente de Rutinas y Sesiones: conserva los menús absolutos como hijos visibles. */
+#routines-list .card-routine,
+#sessions-list .card-session {
+    box-sizing: border-box;
+    position: relative;
+    inline-size: 100%;
+    min-inline-size: 0;
+    gap: var(--gn-space-lg);
+    padding: var(--gn-space-lg) var(--gn-space-xl);
+    overflow: visible;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-card);
+    background-color: var(--gn-color-surface);
+    box-shadow: var(--gn-shadow-none);
+    color: var(--gn-color-text);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#routines-list .card-routine .card-content,
+#sessions-list .card-session .card-content {
+    min-inline-size: 0;
+}
+
+#routines-list .card-routine .card-content h3,
+#sessions-list .card-session .card-content h3 {
+    margin: 0;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-md);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    overflow-wrap: anywhere;
+}
+
+/* El color inline de completada/pendiente se conserva para las sesiones. */
+#routines-list .card-routine .card-content p,
+#sessions-list .card-session .card-content p {
+    margin: var(--gn-space-xs) 0 0;
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-normal);
+    overflow-wrap: anywhere;
+}
+
+@media (hover: hover) {
+    #routines-list .card-routine:hover,
+    #sessions-list .card-session:hover {
+        background-color: var(--gn-color-surface-secondary);
+    }
+}
+
+#routines-list .card-routine:active,
+#sessions-list .card-session:active {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#routines-list .card-routine:focus-visible,
+#sessions-list .card-session:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+@media (max-width: 22.4375rem) {
+    #routines-list .card-routine,
+    #sessions-list .card-session {
+        gap: var(--gn-space-md);
+        padding: var(--gn-space-lg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gn-card,
+    #routines-list .card-routine,
+    #sessions-list .card-session {
+        transition-duration: 0s;
+    }
+}

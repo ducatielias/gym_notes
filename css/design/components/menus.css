@@ -1,0 +1,217 @@
+/*
+ * Menús contextuales base del Design System de GymNotes.
+ * Fase 3G: el puente visual se limita a los desplegables de tarjetas de
+ * Rutinas y Sesiones, sin alterar su posicionamiento ni su capa funcional.
+ */
+
+/* Base reutilizable para futuras migraciones */
+.gn-menu {
+    box-sizing: border-box;
+    padding: var(--gn-space-sm);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface);
+    box-shadow: var(--gn-shadow-menu);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+}
+
+.gn-menu__item {
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: 0;
+    border-radius: var(--gn-radius-sm);
+    background-color: transparent;
+    color: var(--gn-color-text);
+    display: flex;
+    align-items: center;
+    gap: var(--gn-space-md);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    text-align: start;
+    cursor: pointer;
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+.gn-menu__icon {
+    flex: 0 0 var(--gn-space-lg);
+    inline-size: var(--gn-space-lg);
+    color: var(--gn-color-text-muted);
+    text-align: center;
+}
+
+.gn-menu__separator {
+    block-size: var(--gn-border-width-thin);
+    margin: var(--gn-space-xs) var(--gn-space-sm);
+    background-color: var(--gn-color-border-muted);
+}
+
+.gn-menu__item--danger {
+    color: var(--gn-color-danger-text);
+}
+
+.gn-menu__item--danger .gn-menu__icon,
+.gn-menu__item--disabled .gn-menu__icon,
+.gn-menu__item:disabled .gn-menu__icon,
+.gn-menu__item[aria-disabled="true"] .gn-menu__icon {
+    color: currentColor;
+}
+
+.gn-menu__item--disabled,
+.gn-menu__item:disabled,
+.gn-menu__item[aria-disabled="true"] {
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+@media (hover: hover) {
+    .gn-menu__item:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-surface-secondary);
+    }
+
+    .gn-menu__item--danger:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-danger);
+        color: var(--gn-color-danger-text);
+    }
+}
+
+.gn-menu__item:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+.gn-menu__item--danger:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-danger);
+    color: var(--gn-color-danger-text);
+}
+
+.gn-menu__item:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: calc(var(--gn-space-xs) * -1);
+}
+
+/* Puente de los desplegables de tarjetas: conserva position, top, right y z-index heredados. */
+#routines-list .routine-menu-dropdown,
+#sessions-list .session-menu-dropdown {
+    box-sizing: border-box;
+    inline-size: min(12.5rem, calc(100vw - var(--gn-space-2xl)));
+    padding: var(--gn-space-sm);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface);
+    box-shadow: var(--gn-shadow-menu);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+}
+
+#routines-list .routine-menu-dropdown .routine-menu-item,
+#sessions-list .session-menu-dropdown .session-menu-item {
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: 0;
+    border-radius: var(--gn-radius-sm);
+    background-color: transparent;
+    color: var(--gn-color-text);
+    display: flex;
+    align-items: center;
+    gap: var(--gn-space-md);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    text-align: start;
+    cursor: pointer;
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+    overflow-wrap: anywhere;
+}
+
+#routines-list .routine-menu-dropdown .routine-menu-item i,
+#sessions-list .session-menu-dropdown .session-menu-item i {
+    flex: 0 0 var(--gn-space-lg);
+    inline-size: var(--gn-space-lg);
+    color: var(--gn-color-text-muted);
+    font-size: var(--gn-font-size-sm);
+    text-align: center;
+}
+
+#routines-list .routine-menu-dropdown .routine-menu-divider,
+#sessions-list .session-menu-dropdown .routine-menu-divider {
+    block-size: var(--gn-border-width-thin);
+    margin: var(--gn-space-xs) var(--gn-space-sm);
+    background-color: var(--gn-color-border-muted);
+}
+
+#routines-list .routine-menu-dropdown .routine-menu-item.menu-delete,
+#sessions-list .session-menu-dropdown .session-menu-item.menu-delete {
+    color: var(--gn-color-danger-text);
+}
+
+#routines-list .routine-menu-dropdown .routine-menu-item.menu-delete i,
+#sessions-list .session-menu-dropdown .session-menu-item.menu-delete i {
+    color: currentColor;
+}
+
+#routines-list .routine-menu-dropdown .routine-menu-item:disabled,
+#sessions-list .session-menu-dropdown .session-menu-item:disabled,
+#routines-list .routine-menu-dropdown .routine-menu-item[aria-disabled="true"],
+#sessions-list .session-menu-dropdown .session-menu-item[aria-disabled="true"] {
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+#routines-list .routine-menu-dropdown .routine-menu-item:disabled i,
+#sessions-list .session-menu-dropdown .session-menu-item:disabled i,
+#routines-list .routine-menu-dropdown .routine-menu-item[aria-disabled="true"] i,
+#sessions-list .session-menu-dropdown .session-menu-item[aria-disabled="true"] i {
+    color: currentColor;
+}
+
+@media (hover: hover) {
+    #routines-list .routine-menu-dropdown .routine-menu-item:hover:not(:disabled):not([aria-disabled="true"]),
+    #sessions-list .session-menu-dropdown .session-menu-item:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-surface-secondary);
+    }
+
+    #routines-list .routine-menu-dropdown .routine-menu-item.menu-delete:hover:not(:disabled):not([aria-disabled="true"]),
+    #sessions-list .session-menu-dropdown .session-menu-item.menu-delete:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-danger);
+        color: var(--gn-color-danger-text);
+    }
+}
+
+#routines-list .routine-menu-dropdown .routine-menu-item:active:not(:disabled):not([aria-disabled="true"]),
+#sessions-list .session-menu-dropdown .session-menu-item:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#routines-list .routine-menu-dropdown .routine-menu-item.menu-delete:active:not(:disabled):not([aria-disabled="true"]),
+#sessions-list .session-menu-dropdown .session-menu-item.menu-delete:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-danger);
+    color: var(--gn-color-danger-text);
+}
+
+#routines-list .routine-menu-dropdown .routine-menu-item:focus-visible,
+#sessions-list .session-menu-dropdown .session-menu-item:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: calc(var(--gn-space-xs) * -1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #routines-list .routine-menu-dropdown,
+    #sessions-list .session-menu-dropdown,
+    .gn-menu__item,
+    #routines-list .routine-menu-dropdown .routine-menu-item,
+    #sessions-list .session-menu-dropdown .session-menu-item {
+        animation-duration: 0s;
+        transition-duration: 0s;
+    }
+}

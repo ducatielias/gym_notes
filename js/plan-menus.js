@@ -3,27 +3,29 @@
  * Controla los menús contextuales de rutinas y sesiones
  */
 
-// ==========================================================================
+// ===========================================================================
 // MENÚS CONTEXTUALES PARA RUTINAS
-// ==========================================================================
+// ===========================================================================
+
+/**
+ * Cierra todos los menús contextuales de tarjetas de Plan.
+ * La clase .hidden es el único estado de apertura de estos menús.
+ */
+function closePlanCardMenus() {
+    document.querySelectorAll('.session-menu-dropdown, .routine-menu-dropdown')
+        .forEach(menu => menu.classList.add('hidden'));
+}
 
 function toggleRoutineMenu(event, routineId) {
     event.stopPropagation();
-    
-    const routineDropdowns = document.querySelectorAll('.routine-menu-dropdown');
-    routineDropdowns.forEach(menu => {
-        if (menu.id !== `menu-routine-${routineId}`) {
-            menu.classList.add('hidden');
-        }
-    });
-
-    const sessionDropdowns = document.querySelectorAll('.session-menu-dropdown');
-    sessionDropdowns.forEach(menu => menu.classList.add('hidden'));
 
     const targetMenu = document.getElementById(`menu-routine-${routineId}`);
-    if (targetMenu) {
-        targetMenu.classList.toggle('hidden');
-    }
+    if (!targetMenu) return;
+
+    const shouldOpen = targetMenu.classList.contains('hidden');
+    closePlanCardMenus();
+
+    if (shouldOpen) targetMenu.classList.remove('hidden');
 }
 
 // ==========================================================================
@@ -32,27 +34,58 @@ function toggleRoutineMenu(event, routineId) {
 
 function toggleSessionMenu(event, sessionId) {
     event.stopPropagation();
-    
-    const dropdowns = document.querySelectorAll('.session-menu-dropdown');
-    dropdowns.forEach(menu => {
-        if (menu.id !== `menu-${sessionId}`) {
-            menu.classList.add('hidden');
-        }
-    });
-
-    const routineDropdowns = document.querySelectorAll('.routine-menu-dropdown');
-    routineDropdowns.forEach(menu => menu.classList.add('hidden'));
 
     const targetMenu = document.getElementById(`menu-${sessionId}`);
-    if (targetMenu) {
-        targetMenu.classList.toggle('hidden');
-    }
+    if (!targetMenu) return;
+
+    const shouldOpen = targetMenu.classList.contains('hidden');
+    closePlanCardMenus();
+
+    if (shouldOpen) targetMenu.classList.remove('hidden');
 }
 
-// Cerrar menús al hacer clic fuera
+/**
+ * Cierra un menú de tarjeta antes de que un clic exterior alcance la tarjeta
+ * u otra acción situada debajo. Los botones de opciones y el propio menú
+ * conservan su propagación para poder alternar y ejecutar sus acciones.
+ */
+function handlePlanCardMenuOutsideClick(event) {
+    const target = event.target instanceof Element ? event.target : null;
+
+    // Un modal ya abierto no debe participar en el cierre de menús de Plan.
+    if (target?.closest('#customModal')) return;
+
+    const openMenus = document.querySelectorAll(
+        '.session-menu-dropdown:not(.hidden), .routine-menu-dropdown:not(.hidden)'
+    );
+
+    if (openMenus.length === 0) return;
+
+    const clickedInsideMenu = target?.closest('.session-menu-dropdown, .routine-menu-dropdown');
+    const clickedMenuToggle = target?.closest('.btn-session-options, .btn-routine-options');
+
+    if (clickedInsideMenu) {
+        // El camino del evento ya está fijado: ocultar primero permite que el
+        // onclick de la acción continúe y abra su modal sin dejar un menú activo.
+        closePlanCardMenus();
+        return;
+    }
+
+    if (clickedMenuToggle) return;
+
+    closePlanCardMenus();
+
+    // El listener se ejecuta en captura: al detener la propagación aquí, el
+    // elemento exterior no recibe el mismo clic que acaba de cerrar el menú.
+    event.preventDefault();
+    event.stopPropagation();
+}
+
+// El cierre de los menús de tarjetas debe ocurrir antes de sus onclick inline.
+document.addEventListener('click', handlePlanCardMenuOutsideClick, true);
+
+// El menú del editor mantiene su cierre heredado independiente.
 document.addEventListener('click', () => {
-    document.querySelectorAll('.session-menu-dropdown').forEach(m => m.classList.add('hidden'));
-    document.querySelectorAll('.routine-menu-dropdown').forEach(m => m.classList.add('hidden'));
     const editorMenu = document.getElementById('editorOptionsMenu');
     if (editorMenu) {
         editorMenu.classList.add('hidden');
@@ -65,9 +98,7 @@ document.addEventListener('click', () => {
 
 function toggleSessionOptionsMenu(event) {
     event.stopPropagation();
-    
-    document.querySelectorAll('.session-menu-dropdown').forEach(m => m.classList.add('hidden'));
-    document.querySelectorAll('.routine-menu-dropdown').forEach(m => m.classList.add('hidden'));
+    closePlanCardMenus();
     
     const targetMenu = document.getElementById('editorOptionsMenu');
     if (targetMenu) {

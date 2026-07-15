@@ -57,8 +57,11 @@ function openRoutine(id) {
                     </div>
                 </div>
             </div>
-            <h2 class="routine-detail-title">${routineName}</h2>
         </header>
+
+        <div class="plan-sessions-heading">
+            <h2 class="plan-sessions-heading__title">${routineName}</h2>
+        </div>
 
         <div id="sessions-list" class="cards-grid">
             ${routine.sessions.map((session, index) => {

@@ -7,20 +7,21 @@
 
 // Capturar todas las pantallas que tienen scroll independiente
 const allScreens = document.querySelectorAll('.screen');
+const globalScrollTopButton = document.getElementById('globalScrollTopBtn');
 
 // Asignar el escuchador de scroll a cada una de ellas de forma genérica
 allScreens.forEach(screen => {
     screen.addEventListener('scroll', function() {
-        const globalBtn = document.getElementById('globalScrollTopBtn');
-        if (!globalBtn) return;
+        if (!globalScrollTopButton) return;
 
         // Si la pantalla activa actual baja más de 250px, mostramos el botón genérico
-        if (this.scrollTop > 250) {
-            globalBtn.classList.add('visible');
-        } else {
-            globalBtn.classList.remove('visible');
+        const shouldShowScrollTopButton = this.scrollTop > 250;
+        const isScrollTopButtonVisible = globalScrollTopButton.classList.contains('visible');
+
+        if (shouldShowScrollTopButton !== isScrollTopButtonVisible) {
+            globalScrollTopButton.classList.toggle('visible', shouldShowScrollTopButton);
         }
-    });
+    }, { passive: true });
 });
 
 // Función centralizada para devolver el scroll arriba de la pantalla activa

@@ -1,0 +1,134 @@
+/* ===========================================================================
+   COMPONENTE: Navegación inferior
+   Base reutilizable y puente visual limitado a la barra principal existente.
+   =========================================================================== */
+
+.gn-bottom-nav,
+.bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    min-block-size: calc(var(--gn-space-3xl) + var(--gn-space-md));
+    margin: 0;
+    padding: var(--gn-space-sm) var(--gn-space-lg);
+    padding-bottom: calc(var(--gn-space-sm) + env(safe-area-inset-bottom, 0px));
+    border: 0;
+    border-top: var(--gn-border-width-standard) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-card) var(--gn-radius-card) 0 0;
+    background-color: var(--gn-color-surface);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--gn-shadow-none);
+    color: var(--gn-color-text);
+    z-index: var(--gn-layer-sticky);
+    transition:
+        background-color var(--gn-motion-standard) var(--gn-ease-standard),
+        border-color var(--gn-motion-standard) var(--gn-ease-standard);
+}
+
+.gn-bottom-nav__item,
+.bottom-nav .nav-item {
+    appearance: none;
+    box-sizing: border-box;
+    flex: 1 1 0;
+    min-inline-size: 0;
+    min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
+    padding: 0 var(--gn-space-sm);
+    border: var(--gn-border-width-thin) var(--gn-border-style) transparent;
+    border-radius: var(--gn-radius-md);
+    background-color: transparent;
+    color: var(--gn-color-text-muted);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gn-space-xs);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-tight);
+    text-align: center;
+    white-space: nowrap;
+    transition:
+        background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+.gn-bottom-nav__icon,
+.bottom-nav .nav-item > i {
+    flex: 0 0 auto;
+    font-size: calc(var(--gn-font-size-md) + var(--gn-space-xs));
+    line-height: 1;
+}
+
+.gn-bottom-nav__label,
+.bottom-nav .nav-item > span {
+    max-inline-size: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gn-bottom-nav__item--active,
+.bottom-nav .nav-item.active,
+.bottom-nav .nav-item[aria-current="page"] {
+    border-color: var(--gn-color-border);
+    background-color: var(--gn-color-accent);
+    color: var(--gn-color-text);
+    font-weight: var(--gn-font-weight-bold);
+}
+
+.gn-bottom-nav__indicator {
+    inline-size: var(--gn-space-xs);
+    block-size: var(--gn-space-xs);
+    border-radius: var(--gn-radius-circle);
+    background-color: var(--gn-color-accent);
+}
+
+@media (hover: hover) {
+    .gn-bottom-nav__item:hover:not(:disabled):not([aria-disabled="true"]):not(.gn-bottom-nav__item--active),
+    .bottom-nav .nav-item:hover:not(:disabled):not([aria-disabled="true"]):not(.active):not([aria-current="page"]) {
+        border-color: var(--gn-color-border-muted);
+        background-color: var(--gn-color-surface-secondary);
+        color: var(--gn-color-text);
+    }
+}
+
+.gn-bottom-nav__item:active:not(:disabled):not([aria-disabled="true"]),
+.bottom-nav .nav-item:active:not(:disabled):not([aria-disabled="true"]) {
+    border-color: var(--gn-color-border);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+}
+
+.gn-bottom-nav__item:focus-visible,
+.bottom-nav .nav-item:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
+    outline-offset: var(--gn-space-xs);
+}
+
+.gn-bottom-nav__item:disabled,
+.gn-bottom-nav__item[aria-disabled="true"],
+.bottom-nav .nav-item:disabled,
+.bottom-nav .nav-item[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gn-bottom-nav,
+    .bottom-nav,
+    .gn-bottom-nav__item,
+    .bottom-nav .nav-item {
+        transition-duration: 1ms;
+    }
+}
