@@ -1,0 +1,393 @@
+/*
+ * Capa visual del visor de ejercicios y su lightbox asociado.
+ * Las reglas se limitan al visor y al overlay real creado en exercise-viewer.js.
+ */
+
+/* Pantalla, cabecera sticky y navegación local del visor. */
+#screen-exercise-viewer {
+    background-color: var(--gn-color-background);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-container {
+    background-color: var(--gn-color-background);
+    color: var(--gn-color-text);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-header {
+    background-color: var(--gn-color-surface);
+    border-bottom: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border-muted);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-nav-top {
+    min-height: 3.5rem;
+    padding-inline: var(--gn-space-lg);
+    background-color: var(--gn-color-surface);
+    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+}
+
+#screen-exercise-viewer .btn-exercise-viewer-close {
+    appearance: none;
+    display: inline-flex;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-circle);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    cursor: pointer;
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-exercise-viewer .btn-exercise-viewer-close:active {
+    transform: none;
+}
+
+#screen-exercise-viewer .btn-exercise-viewer-close:focus-visible,
+#screen-exercise-viewer .exercise-viewer-full-btn:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+@media (hover: hover) {
+    #screen-exercise-viewer .btn-exercise-viewer-close:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        background-color: var(--gn-color-surface);
+    }
+}
+
+#screen-exercise-viewer .btn-exercise-viewer-close:disabled,
+#screen-exercise-viewer .btn-exercise-viewer-close[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+#screen-exercise-viewer .exercise-viewer-full-badge,
+#screen-exercise-viewer .exercise-viewer-full-value {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    padding-inline: var(--gn-space-sm);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-pill);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-semibold);
+    letter-spacing: 0.03em;
+    line-height: var(--gn-line-height-normal);
+    text-transform: uppercase;
+}
+
+#screen-exercise-viewer .exercise-viewer-full-title-row {
+    gap: var(--gn-space-xs);
+    padding: var(--gn-space-sm) var(--gn-space-lg) var(--gn-space-md);
+    background-color: var(--gn-color-surface);
+    border-bottom: 0;
+}
+
+#screen-exercise-viewer .exercise-viewer-full-title {
+    max-inline-size: 100%;
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xl);
+    font-weight: var(--gn-font-weight-bold);
+    letter-spacing: 0;
+    line-height: var(--gn-line-height-tight);
+}
+
+/* Contenido desplazable, imagen y datos del ejercicio. */
+#screen-exercise-viewer .exercise-viewer-full-body {
+    overflow-x: hidden;
+    padding: var(--gn-space-xl) var(--gn-space-lg);
+    background-color: var(--gn-color-background);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-image-container,
+#screen-exercise-viewer .exercise-viewer-full-info {
+    width: min(100%, 48rem);
+    margin-inline: auto;
+}
+
+#screen-exercise-viewer .exercise-viewer-full-image-container {
+    margin-bottom: var(--gn-space-xl);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-card);
+    background-color: var(--gn-color-surface-secondary);
+    box-shadow: var(--gn-shadow-none);
+    transition: border-color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-image-container:active {
+    transform: none;
+}
+
+#screen-exercise-viewer .exercise-viewer-full-image-container::after {
+    right: var(--gn-space-md);
+    bottom: var(--gn-space-md);
+    padding: var(--gn-space-xs) var(--gn-space-sm);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-pill);
+    background: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+#screen-exercise-viewer .exercise-viewer-full-image {
+    background-color: var(--gn-color-surface-secondary);
+    object-fit: cover;
+}
+
+#screen-exercise-viewer .exercise-viewer-full-info {
+    gap: var(--gn-space-lg);
+    margin-bottom: var(--gn-space-xl);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-group,
+#screen-exercise-viewer .exercise-viewer-full-notes {
+    gap: var(--gn-space-sm);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-label {
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-semibold);
+    letter-spacing: 0.03em;
+    line-height: var(--gn-line-height-normal);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-notes-content {
+    min-height: 0;
+    padding: var(--gn-space-lg);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-card);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    line-height: var(--gn-line-height-relaxed);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-notes-content :is(p, ul, ol) {
+    margin-block: 0 var(--gn-space-md);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-notes-content :is(p, ul, ol):last-child {
+    margin-bottom: 0;
+}
+
+#screen-exercise-viewer .exercise-viewer-full-notes-content :is(ul, ol) {
+    padding-inline-start: var(--gn-space-xl);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-notes-content li + li {
+    margin-top: var(--gn-space-xs);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-notes-content a {
+    color: var(--gn-color-info-text);
+    font-weight: var(--gn-font-weight-semibold);
+    overflow-wrap: anywhere;
+}
+
+/* Pie fijo con las acciones existentes. */
+#screen-exercise-viewer .exercise-viewer-full-footer {
+    gap: var(--gn-space-sm);
+    padding: var(--gn-space-md) var(--gn-space-lg) calc(var(--gn-space-md) + env(safe-area-inset-bottom));
+    background-color: var(--gn-color-surface);
+    border-top: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border-muted);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-btn {
+    min-height: 2.75rem;
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-btn:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: none;
+}
+
+#screen-exercise-viewer .exercise-viewer-full-btn-video {
+    background-color: var(--gn-color-accent);
+}
+
+#screen-exercise-viewer .exercise-viewer-full-btn-web {
+    background-color: var(--gn-color-info);
+    color: var(--gn-color-info-text);
+}
+
+@media (hover: hover) {
+    #screen-exercise-viewer .exercise-viewer-full-btn:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+    }
+}
+
+#screen-exercise-viewer .exercise-viewer-full-btn:disabled,
+#screen-exercise-viewer .exercise-viewer-full-btn[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+/* Lightbox real añadido al body por openExerciseLightbox(). */
+#exerciseLightboxOverlay.exercise-lightbox-overlay {
+    z-index: var(--gn-layer-lightbox);
+    padding: var(--gn-space-lg);
+    background-color: rgb(37 36 30 / 92%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    transition: opacity var(--gn-motion-overlay) var(--gn-ease-standard);
+}
+
+#exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn {
+    top: max(var(--gn-space-lg), env(safe-area-inset-top));
+    right: max(var(--gn-space-lg), env(safe-area-inset-right));
+    width: 2.75rem;
+    height: 2.75rem;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-surface);
+    border-radius: var(--gn-radius-circle);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-size: var(--gn-font-size-lg);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+    z-index: 1;
+}
+
+#exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn:active {
+    transform: none;
+}
+
+#exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+@media (hover: hover) {
+    #exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn:hover {
+        border-color: var(--gn-color-border);
+        background-color: var(--gn-color-surface-secondary);
+    }
+}
+
+#exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-image {
+    max-width: calc(100vw - (var(--gn-space-lg) * 2));
+    max-height: calc(100dvh - (var(--gn-space-3xl) * 2));
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-surface);
+    border-radius: var(--gn-radius-card);
+    background-color: var(--gn-color-surface-secondary);
+    box-shadow: var(--gn-shadow-none);
+    animation-duration: var(--gn-motion-overlay);
+}
+
+#exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-caption {
+    right: var(--gn-space-lg);
+    bottom: max(var(--gn-space-lg), env(safe-area-inset-bottom));
+    left: var(--gn-space-lg);
+    transform: none;
+    max-width: min(36rem, calc(100% - (var(--gn-space-lg) * 2)));
+    margin-inline: auto;
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: var(--gn-border-width-thin) var(--gn-border-style) rgb(255 253 248 / 35%);
+    border-radius: var(--gn-radius-md);
+    background-color: rgb(37 36 30 / 78%);
+    color: var(--gn-color-text-inverse);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-medium);
+    line-height: var(--gn-line-height-normal);
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    z-index: 1;
+}
+
+@media (max-width: 30rem) {
+    #screen-exercise-viewer .exercise-viewer-full-nav-top,
+    #screen-exercise-viewer .exercise-viewer-full-title-row,
+    #screen-exercise-viewer .exercise-viewer-full-body,
+    #screen-exercise-viewer .exercise-viewer-full-footer {
+        padding-inline: var(--gn-space-md);
+    }
+
+    #screen-exercise-viewer .exercise-viewer-full-title {
+        font-size: var(--gn-font-size-lg);
+    }
+
+    #screen-exercise-viewer .exercise-viewer-full-image-container {
+        margin-bottom: var(--gn-space-lg);
+    }
+
+    #screen-exercise-viewer .exercise-viewer-full-notes-content {
+        padding: var(--gn-space-md);
+        border-radius: var(--gn-radius-md);
+        font-size: var(--gn-font-size-sm);
+    }
+
+    #screen-exercise-viewer .exercise-viewer-full-btn {
+        min-width: 0;
+        padding-inline: var(--gn-space-sm);
+        font-size: var(--gn-font-size-xs);
+    }
+}
+
+@media (orientation: landscape) and (max-height: 32rem) {
+    #exerciseLightboxOverlay.exercise-lightbox-overlay {
+        padding-block: var(--gn-space-sm);
+    }
+
+    #exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-image {
+        max-height: calc(100dvh - (var(--gn-space-2xl) * 2));
+    }
+
+    #exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-caption {
+        bottom: var(--gn-space-sm);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #screen-exercise-viewer .btn-exercise-viewer-close,
+    #screen-exercise-viewer .exercise-viewer-full-image-container,
+    #screen-exercise-viewer .exercise-viewer-full-btn,
+    #exerciseLightboxOverlay.exercise-lightbox-overlay,
+    #exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn,
+    #exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-image {
+        transition-duration: 0ms;
+        animation-duration: 0ms;
+    }
+}

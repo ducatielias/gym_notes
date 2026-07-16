@@ -1,0 +1,335 @@
+/*
+ * Capa visual del editor de ejercicios.
+ * Se limita a #screen-exercise-editor para preservar el visor y la lista.
+ */
+
+#screen-exercise-editor {
+    background-color: var(--gn-color-background);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+}
+
+#screen-exercise-editor .exercise-editor-container {
+    background-color: var(--gn-color-background);
+    color: var(--gn-color-text);
+}
+
+/* Cabecera persistente y acciones locales del editor. */
+#screen-exercise-editor .exercise-editor-sticky-header {
+    background-color: var(--gn-color-surface);
+    border-bottom: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border-muted);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-exercise-editor .exercise-editor-nav-top {
+    min-height: 3.5rem;
+    padding-inline: var(--gn-space-lg);
+    background-color: var(--gn-color-surface);
+    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+}
+
+#screen-exercise-editor .btn-exercise-nav-close,
+#screen-exercise-editor .btn-exercise-nav-save {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    cursor: pointer;
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-exercise-editor .btn-exercise-nav-close {
+    width: 2.75rem;
+    min-width: 2.75rem;
+    padding: 0;
+    border-radius: var(--gn-radius-circle);
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#screen-exercise-editor .btn-exercise-nav-save {
+    gap: var(--gn-space-sm);
+    padding-inline: var(--gn-space-lg);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-accent);
+}
+
+@media (hover: hover) {
+    #screen-exercise-editor .btn-exercise-nav-close:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-surface);
+        border-color: var(--gn-color-text);
+    }
+
+    #screen-exercise-editor .btn-exercise-nav-save:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        filter: brightness(0.98);
+    }
+}
+
+#screen-exercise-editor .btn-exercise-nav-close:active:not(:disabled):not([aria-disabled="true"]),
+#screen-exercise-editor .btn-exercise-nav-save:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: none;
+}
+
+#screen-exercise-editor .btn-exercise-nav-close:focus-visible,
+#screen-exercise-editor .btn-exercise-nav-save:focus-visible,
+#screen-exercise-editor .exercise-editor-title-input:focus-visible,
+#screen-exercise-editor .exercise-editor-body > input:not([type="hidden"]):focus-visible,
+#screen-exercise-editor .exercise-editor-body > select:focus-visible,
+#screen-exercise-editor .exercise-editor-body > textarea:focus-visible,
+#screen-exercise-editor .exercise-muscles-toggle:focus-visible,
+#screen-exercise-editor .muscle-check input[type="checkbox"]:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+#screen-exercise-editor .btn-exercise-nav-close:disabled,
+#screen-exercise-editor .btn-exercise-nav-close[aria-disabled="true"],
+#screen-exercise-editor .btn-exercise-nav-save:disabled,
+#screen-exercise-editor .btn-exercise-nav-save[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+/* Nombre del ejercicio dentro del flujo de cabecera. */
+#screen-exercise-editor .exercise-editor-title-row {
+    gap: var(--gn-space-xs);
+    padding: var(--gn-space-sm) var(--gn-space-lg) var(--gn-space-md);
+    background-color: var(--gn-color-surface);
+    border-bottom: 0;
+}
+
+#screen-exercise-editor .exercise-editor-prefix {
+    padding-left: 0;
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-semibold);
+    letter-spacing: 0.04em;
+    line-height: var(--gn-line-height-normal);
+    opacity: 1;
+}
+
+#screen-exercise-editor .exercise-editor-title-input {
+    min-height: 2rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--gn-radius-sm);
+    background-color: transparent;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-md);
+    font-weight: var(--gn-font-weight-bold);
+    letter-spacing: 0;
+    line-height: var(--gn-line-height-tight);
+}
+
+#screen-exercise-editor .exercise-editor-title-input::placeholder {
+    color: var(--gn-color-text-muted);
+    opacity: 1;
+}
+
+#screen-exercise-editor .exercise-editor-title-input:focus-visible {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+/* Cuerpo desplazable y controles generados por el editor. */
+#screen-exercise-editor .exercise-editor-body {
+    padding: var(--gn-space-lg) var(--gn-space-lg) calc(7.5rem + env(safe-area-inset-bottom));
+    background-color: var(--gn-color-background);
+}
+
+#screen-exercise-editor .exercise-editor-body > label {
+    margin: var(--gn-space-lg) 0 var(--gn-space-xs);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+}
+
+#screen-exercise-editor .exercise-editor-body > label:first-of-type {
+    margin-top: 0;
+}
+
+#screen-exercise-editor .exercise-editor-body > input:not([type="hidden"]),
+#screen-exercise-editor .exercise-editor-body > select,
+#screen-exercise-editor .exercise-editor-body > textarea {
+    min-height: 2.75rem;
+    padding: var(--gn-space-sm) var(--gn-space-lg);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    font-weight: var(--gn-font-weight-regular);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-exercise-editor .exercise-editor-body > select {
+    padding-right: 2.75rem;
+    font-weight: var(--gn-font-weight-medium);
+}
+
+#screen-exercise-editor .exercise-editor-body > textarea {
+    min-height: 7.5rem;
+    resize: vertical;
+}
+
+#screen-exercise-editor .exercise-editor-body > input:not([type="hidden"])::placeholder,
+#screen-exercise-editor .exercise-editor-body > textarea::placeholder {
+    color: var(--gn-color-text-muted);
+    opacity: 1;
+}
+
+@media (hover: hover) {
+    #screen-exercise-editor .exercise-editor-body > input:not([type="hidden"]):hover:not(:disabled):not([readonly]):not([aria-disabled="true"]),
+    #screen-exercise-editor .exercise-editor-body > select:hover:not(:disabled):not([aria-disabled="true"]),
+    #screen-exercise-editor .exercise-editor-body > textarea:hover:not(:disabled):not([readonly]):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+    }
+}
+
+#screen-exercise-editor .exercise-editor-body > input:not([type="hidden"]):focus-visible,
+#screen-exercise-editor .exercise-editor-body > select:focus-visible,
+#screen-exercise-editor .exercise-editor-body > textarea:focus-visible {
+    border-color: var(--gn-color-border);
+}
+
+#screen-exercise-editor .exercise-editor-body > input:not([type="hidden"]):disabled,
+#screen-exercise-editor .exercise-editor-body > select:disabled,
+#screen-exercise-editor .exercise-editor-body > textarea:disabled,
+#screen-exercise-editor .exercise-editor-body > input:not([type="hidden"])[aria-disabled="true"],
+#screen-exercise-editor .exercise-editor-body > select[aria-disabled="true"],
+#screen-exercise-editor .exercise-editor-body > textarea[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+#screen-exercise-editor .exercise-editor-body > input:not([type="hidden"])[readonly],
+#screen-exercise-editor .exercise-editor-body > textarea[readonly] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text-muted);
+}
+
+#screen-exercise-editor .exercise-editor-body > input:not([type="hidden"])[aria-invalid="true"],
+#screen-exercise-editor .exercise-editor-body > select[aria-invalid="true"],
+#screen-exercise-editor .exercise-editor-body > textarea[aria-invalid="true"] {
+    border-color: var(--gn-color-danger-text);
+}
+
+/* Selector desplegable de músculos implicados. */
+#screen-exercise-editor .exercise-muscles-toggle {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-top: var(--gn-space-md);
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    text-align: left;
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-exercise-editor .exercise-muscles-toggle.open {
+    border-color: var(--gn-color-border);
+    background-color: var(--gn-color-accent);
+}
+
+#screen-exercise-editor .exercise-muscles-toggle > i {
+    display: none;
+}
+
+@media (hover: hover) {
+    #screen-exercise-editor .exercise-muscles-toggle:hover {
+        border-color: var(--gn-color-border);
+    }
+}
+
+#screen-exercise-editor .exercise-muscles-container {
+    background-color: var(--gn-color-surface-secondary);
+    border-radius: var(--gn-radius-md);
+}
+
+#screen-exercise-editor .exercise-muscles-container.open {
+    border-color: var(--gn-color-border-muted);
+}
+
+#screen-exercise-editor .exercise-muscles-container .muscles-grid {
+    gap: var(--gn-space-sm) var(--gn-space-lg);
+}
+
+#screen-exercise-editor .exercise-muscles-container .muscle-check {
+    min-height: 2rem;
+    gap: var(--gn-space-sm);
+    padding: var(--gn-space-xs) 0;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-normal);
+}
+
+#screen-exercise-editor .exercise-muscles-container .muscle-check input[type="checkbox"] {
+    accent-color: var(--gn-color-accent);
+}
+
+#screen-exercise-editor .exercise-muscles-container .muscle-label {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-normal);
+}
+
+@media (max-width: 22.5rem) {
+    #screen-exercise-editor .exercise-editor-nav-top {
+        padding-inline: var(--gn-space-md);
+    }
+
+    #screen-exercise-editor .exercise-editor-body {
+        padding-inline: var(--gn-space-md);
+    }
+
+    #screen-exercise-editor .btn-exercise-nav-save {
+        padding-inline: var(--gn-space-md);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #screen-exercise-editor .btn-exercise-nav-close,
+    #screen-exercise-editor .btn-exercise-nav-save,
+    #screen-exercise-editor .exercise-editor-body > input:not([type="hidden"]),
+    #screen-exercise-editor .exercise-editor-body > select,
+    #screen-exercise-editor .exercise-editor-body > textarea,
+    #screen-exercise-editor .exercise-muscles-toggle,
+    #screen-exercise-editor .exercise-muscles-toggle i,
+    #screen-exercise-editor .exercise-muscles-container {
+        transition-duration: 0ms;
+    }
+}

@@ -158,7 +158,7 @@
 
 @media (hover: hover) {
     #screen-exercises .card-exercise-header:hover {
-        background: var(--gn-color-surface-secondary);
+        background: var(--gn-color-surface);
     }
 }
 
@@ -200,6 +200,10 @@
 
 #screen-exercises .card-exercise-inner {
     color: var(--gn-color-text);
+}
+
+#screen-exercises .card-exercise-body {
+    background-color: var(--gn-color-surface);
 }
 
 #screen-exercises .card-exercise-notes {
