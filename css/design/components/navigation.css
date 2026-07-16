@@ -18,7 +18,7 @@
     padding: var(--gn-space-sm) var(--gn-space-lg);
     padding-bottom: calc(var(--gn-space-sm) + env(safe-area-inset-bottom, 0px));
     border: 0;
-    border-top: var(--gn-border-width-standard) var(--gn-border-style) var(--gn-color-border);
+    border-top: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-card) var(--gn-radius-card) 0 0;
     background-color: var(--gn-color-surface);
     display: flex;
@@ -26,7 +26,7 @@
     justify-content: space-between;
     box-shadow: var(--gn-shadow-none);
     color: var(--gn-color-text);
-    z-index: var(--gn-layer-sticky);
+    z-index: var(--gn-layer-navigation);
     transition:
         background-color var(--gn-motion-standard) var(--gn-ease-standard),
         border-color var(--gn-motion-standard) var(--gn-ease-standard);

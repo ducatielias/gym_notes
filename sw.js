@@ -1,6 +1,6 @@
 /**
  * Gym Notes - Service Worker (Versión Portable)
- * VERSIÓN: 1.0.4
+ * VERSIÓN: 1.0.5
  * 
  * CORREGIDO: Rutas relativas para funcionar en cualquier subdirectorio
  * CORREGIDO: Cacheo robusto con fallback a index.html
@@ -8,7 +8,7 @@
  * MODIFICADO: Soporte para mensaje "getVersion" que devuelve CACHE_VERSION
  */
 
-const CACHE_VERSION = 'gym-notes-v1-06';
+const CACHE_VERSION = 'gym-notes-v1-07';
 const CACHE_NAME = CACHE_VERSION;
 
 // ============================================================
@@ -31,6 +31,25 @@ const FILES_TO_CACHE = [
   'css/exercise-viewer.css',
   'css/ia-assistant.css',
   'css/today-dashboard.css',
+
+  // Design System
+  'css/design/tokens.css',
+  'css/design/components/buttons.css',
+  'css/design/components/cards.css',
+  'css/design/components/forms.css',
+  'css/design/components/headers.css',
+  'css/design/components/menus.css',
+  'css/design/components/modals.css',
+  'css/design/components/navigation.css',
+  'css/design/pages/active-workout.css',
+  'css/design/pages/exercise-editor.css',
+  'css/design/pages/exercises.css',
+  'css/design/pages/exercise-viewer.css',
+  'css/design/pages/history.css',
+  'css/design/pages/history-detail.css',
+  'css/design/pages/ia-assistant.css',
+  'css/design/pages/today.css',
+  'css/design/pages/workout-timers.css',
   
   // JS - CORE
   'js/index.js',

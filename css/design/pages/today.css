@@ -114,7 +114,7 @@
 @media (hover: hover) {
     #screen-today .btn-today-entrenamiento-libre:hover:not(:disabled):not([aria-disabled="true"]),
     #screen-today .today-empty-state .btn-empty-add:hover:not(:disabled):not([aria-disabled="true"]) {
-        background-color: var(--gn-color-surface-secondary);
+        background-color: var(--gn-color-accent);
     }
 }
 

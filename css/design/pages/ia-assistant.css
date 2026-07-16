@@ -1,0 +1,565 @@
+/*
+ * Capa visual de la estructura compartida del asistente.
+ * Se limita a #screen-ia-assistant y no modifica los flujos internos.
+ */
+
+#screen-ia-assistant {
+    background-color: var(--gn-color-background);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+}
+
+#screen-ia-assistant #ia-assistant-ui {
+    min-width: 0;
+    background-color: var(--gn-color-background);
+}
+
+/* Cabecera existente: conserva sticky, top y z-index de la capa heredada. */
+#screen-ia-assistant .ia-header {
+    box-sizing: border-box;
+    background-color: var(--gn-color-surface);
+    border-bottom: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border-muted);
+    color: var(--gn-color-text);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-ia-assistant .ia-header-top {
+    gap: var(--gn-space-sm);
+}
+
+#screen-ia-assistant .ia-header-top h1 {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xl);
+    font-weight: var(--gn-font-weight-bold);
+    letter-spacing: 0;
+    line-height: var(--gn-line-height-tight);
+}
+
+#screen-ia-assistant .ia-header-top h1 i {
+    color: var(--gn-color-text);
+    font-size: var(--gn-font-size-lg);
+}
+
+#screen-ia-assistant .ia-header p {
+    max-width: 48rem;
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-relaxed);
+}
+
+/* Acción estructural de volver, sin modificar su evento ni su orden. */
+#screen-ia-assistant .btn-ia-back {
+    box-sizing: border-box;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+@media (hover: hover) {
+    #screen-ia-assistant .btn-ia-back:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        background-color: var(--gn-color-surface);
+    }
+}
+
+#screen-ia-assistant .btn-ia-back:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#screen-ia-assistant .btn-ia-back:disabled,
+#screen-ia-assistant .btn-ia-back[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+#screen-ia-assistant .btn-ia-back:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+/* Flujo principal de lectura: ancho controlado y espacio seguro inferior. */
+#screen-ia-assistant .ia-container {
+    box-sizing: border-box;
+    width: min(100%, 48rem);
+    margin-inline: auto;
+    padding: var(--gn-space-xl) var(--gn-space-lg) calc(7.5rem + env(safe-area-inset-bottom));
+    gap: var(--gn-space-xl);
+    background-color: var(--gn-color-background);
+}
+
+/* Carcasa común de las secciones ya renderizadas por el asistente. */
+#screen-ia-assistant .ia-section {
+    box-sizing: border-box;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-card);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-ia-assistant .ia-section-title {
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-semibold);
+    letter-spacing: 0.04em;
+    line-height: var(--gn-line-height-normal);
+}
+
+/* Separador estructural del flujo principal. */
+#screen-ia-assistant .ia-divider {
+    gap: var(--gn-space-md);
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-semibold);
+    letter-spacing: 0.04em;
+    line-height: var(--gn-line-height-normal);
+}
+
+#screen-ia-assistant .ia-divider::before,
+#screen-ia-assistant .ia-divider::after {
+    background-color: var(--gn-color-border-muted);
+}
+
+@media (max-width: 30rem) {
+    #screen-ia-assistant .ia-header-top {
+        align-items: flex-start;
+    }
+
+    #screen-ia-assistant .ia-header-top h1 {
+        font-size: var(--gn-font-size-lg);
+    }
+
+    #screen-ia-assistant .btn-ia-back {
+        min-width: 2.5rem;
+        min-height: 2.5rem;
+        padding-inline: var(--gn-space-sm);
+    }
+
+    #screen-ia-assistant .ia-container {
+        padding-inline: var(--gn-space-md);
+        gap: var(--gn-space-lg);
+    }
+
+    #screen-ia-assistant .ia-section {
+        border-radius: var(--gn-radius-md);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #screen-ia-assistant .btn-ia-back {
+        transition-duration: 0ms;
+    }
+}
+
+/* Controles de selección de la configuración. */
+#screen-ia-assistant .ia-option-group {
+    gap: var(--gn-space-sm);
+}
+
+#screen-ia-assistant .ia-option-btn {
+    min-height: 2.75rem;
+    padding: var(--gn-space-sm) var(--gn-space-lg);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-pill);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-ia-assistant .ia-option-btn.selected,
+#screen-ia-assistant .ia-option-btn[data-selected="true"] {
+    border-color: var(--gn-color-border);
+    background-color: var(--gn-color-accent);
+    color: var(--gn-color-text);
+    font-weight: var(--gn-font-weight-bold);
+}
+
+#screen-ia-assistant .ia-option-btn.ia-type-btn {
+    min-width: 0;
+    border-radius: var(--gn-radius-md);
+}
+
+#screen-ia-assistant .ia-option-btn.ia-type-btn i {
+    margin-right: var(--gn-space-sm);
+}
+
+@media (hover: hover) {
+    #screen-ia-assistant .ia-option-btn:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        background-color: var(--gn-color-surface-secondary);
+    }
+
+    #screen-ia-assistant .ia-option-btn.selected:hover:not(:disabled):not([aria-disabled="true"]),
+    #screen-ia-assistant .ia-option-btn[data-selected="true"]:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-accent);
+    }
+}
+
+#screen-ia-assistant .ia-option-btn:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#screen-ia-assistant .ia-option-btn.selected:active:not(:disabled):not([aria-disabled="true"]),
+#screen-ia-assistant .ia-option-btn[data-selected="true"]:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-accent);
+}
+
+#screen-ia-assistant .ia-option-btn:disabled,
+#screen-ia-assistant .ia-option-btn[aria-disabled="true"],
+#screen-ia-assistant .ia-expand-toggle:disabled,
+#screen-ia-assistant .ia-expand-toggle[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+/* Desplegables de selección; su apertura y scroll siguen en la capa heredada. */
+#screen-ia-assistant .ia-expand-toggle {
+    min-height: 2.75rem;
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+}
+
+#screen-ia-assistant .ia-expand-toggle i {
+    color: var(--gn-color-text-muted);
+}
+
+#screen-ia-assistant .ia-expand-container {
+    background-color: var(--gn-color-surface-secondary);
+    border-radius: var(--gn-radius-md);
+}
+
+#screen-ia-assistant .ia-expand-container.open {
+    outline: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    outline-offset: calc(var(--gn-border-width-thin) * -1);
+}
+
+#screen-ia-assistant .ia-expand-container .ia-expand-content {
+    gap: var(--gn-space-sm);
+}
+
+/* Campos de texto existentes. */
+#screen-ia-assistant :is(.ia-exercise-search, .ia-textarea, .ia-prompt-textarea, .ia-import-json) {
+    min-height: 2.75rem;
+    padding: var(--gn-space-md) var(--gn-space-lg);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    line-height: var(--gn-line-height-relaxed);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-ia-assistant .ia-textarea {
+    min-height: 7.5rem;
+}
+
+#screen-ia-assistant :is(.ia-prompt-textarea, .ia-import-json) {
+    min-height: 9.5rem;
+    font-family: var(--gn-font-numeric);
+    font-size: var(--gn-font-size-sm);
+}
+
+#screen-ia-assistant #iaPromptTextarea[readonly] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text-muted);
+}
+
+#screen-ia-assistant #iaRespuestaTextarea {
+    background-color: var(--gn-color-surface);
+    font-family: var(--gn-font-body);
+}
+
+#screen-ia-assistant :is(.ia-exercise-search, .ia-textarea, .ia-prompt-textarea, .ia-import-json)::placeholder {
+    color: var(--gn-color-text-muted);
+    opacity: 1;
+}
+
+#screen-ia-assistant :is(.ia-exercise-search, .ia-textarea, .ia-prompt-textarea, .ia-import-json):disabled,
+#screen-ia-assistant :is(.ia-exercise-search, .ia-textarea, .ia-prompt-textarea, .ia-import-json)[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+#screen-ia-assistant :is(.ia-exercise-search, .ia-textarea, .ia-prompt-textarea, .ia-import-json)[readonly] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text-muted);
+}
+
+#screen-ia-assistant :is(.ia-exercise-search, .ia-textarea, .ia-prompt-textarea, .ia-import-json)[aria-invalid="true"] {
+    border-color: var(--gn-color-danger-text);
+}
+
+/* Listas seleccionables de ejercicios, materiales y tipos. */
+#screen-ia-assistant :is(.ia-exercises-grid, .ia-material-grid, .ia-tipos-grid) {
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface);
+}
+
+#screen-ia-assistant .ia-exercise-item,
+#screen-ia-assistant .ia-material-check-item,
+#screen-ia-assistant .ia-tipo-check-item {
+    min-height: 2.75rem;
+    border: var(--gn-border-width-thin) var(--gn-border-style) transparent;
+    border-radius: var(--gn-radius-sm);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-normal);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-ia-assistant .ia-exercise-item:has(.ia-exercise-check:checked),
+#screen-ia-assistant .ia-material-check-item:has(.ia-material-check:checked),
+#screen-ia-assistant .ia-tipo-check-item:has(.ia-tipo-check:checked) {
+    border-color: var(--gn-color-border);
+    background-color: var(--gn-color-accent);
+    font-weight: var(--gn-font-weight-semibold);
+}
+
+@media (hover: hover) {
+    #screen-ia-assistant .ia-exercise-item:hover,
+    #screen-ia-assistant .ia-material-check-item:hover,
+    #screen-ia-assistant .ia-tipo-check-item:hover {
+        background-color: var(--gn-color-surface-secondary);
+    }
+}
+
+#screen-ia-assistant .ia-exercise-item:active,
+#screen-ia-assistant .ia-material-check-item:active,
+#screen-ia-assistant .ia-tipo-check-item:active {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#screen-ia-assistant :is(.ia-exercise-check, .ia-material-check, .ia-tipo-check) {
+    width: 1.125rem;
+    height: 1.125rem;
+    accent-color: var(--gn-color-accent);
+}
+
+#screen-ia-assistant :is(.ia-exercise-check, .ia-material-check, .ia-tipo-check):disabled {
+    accent-color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+#screen-ia-assistant .ia-exercise-item .exercise-thumb {
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-sm);
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#screen-ia-assistant .ia-exercise-item .exercise-name,
+#screen-ia-assistant .ia-material-check-item .material-label,
+#screen-ia-assistant .ia-tipo-check-item .tipo-label {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-weight: var(--gn-font-weight-medium);
+}
+
+#screen-ia-assistant .ia-exercise-item .exercise-group-badge {
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-pill);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-title);
+}
+
+#screen-ia-assistant #iaExercisesGrid > p {
+    margin: var(--gn-space-sm);
+    padding: var(--gn-space-lg);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface-secondary);
+    text-align: center;
+}
+
+/* Acciones de selección, generación, resultado e importación. */
+#screen-ia-assistant .ia-select-actions {
+    gap: var(--gn-space-sm);
+}
+
+#screen-ia-assistant .ia-select-actions button,
+#screen-ia-assistant .ia-btn {
+    min-height: 2.75rem;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-ia-assistant .ia-select-actions button,
+#screen-ia-assistant .ia-btn-secondary {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#screen-ia-assistant .ia-btn-primary {
+    background-color: var(--gn-color-accent);
+}
+
+#screen-ia-assistant .ia-btn-import {
+    border-style: dashed;
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text-muted);
+}
+
+#screen-ia-assistant .ia-preview-actions {
+    gap: var(--gn-space-md);
+    border-top-color: var(--gn-color-border-muted);
+}
+
+@media (hover: hover) {
+    #screen-ia-assistant .ia-select-actions button:hover:not(:disabled):not([aria-disabled="true"]),
+    #screen-ia-assistant .ia-btn-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        background-color: var(--gn-color-surface);
+    }
+
+    #screen-ia-assistant .ia-btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        background-color: var(--gn-color-accent);
+    }
+}
+
+#screen-ia-assistant :is(.ia-select-actions button, .ia-btn):disabled,
+#screen-ia-assistant :is(.ia-select-actions button, .ia-btn)[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+/* Acciones generadas con estilos inline: se conserva su apariencia base. */
+#screen-ia-assistant :is(button[onclick="copiarPrompt()"], button[onclick^="procesarRespuesta"]) {
+    min-height: 2.75rem;
+    font-family: var(--gn-font-body);
+    line-height: var(--gn-line-height-normal);
+}
+
+#screen-ia-assistant :is(button[onclick="copiarPrompt()"], button[onclick^="procesarRespuesta"]):disabled,
+#screen-ia-assistant :is(button[onclick="copiarPrompt()"], button[onclick^="procesarRespuesta"])[aria-disabled="true"] {
+    cursor: not-allowed;
+}
+
+/* Contenido de resultado y de importación. */
+#screen-ia-assistant .ia-preview-content {
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-card);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-relaxed);
+}
+
+#screen-ia-assistant .ia-preview-badge {
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-pill);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-semibold);
+}
+
+#screen-ia-assistant .ia-code-block {
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-sm);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-numeric);
+}
+
+/* Foco visible de controles sin cambiar la semántica ni los eventos. */
+#screen-ia-assistant :is(.ia-option-btn, .ia-expand-toggle, .ia-exercise-search, .ia-textarea, .ia-prompt-textarea, .ia-import-json, .ia-exercise-check, .ia-material-check, .ia-tipo-check, .ia-select-actions button, .ia-btn, button[onclick="copiarPrompt()"], button[onclick^="procesarRespuesta"]):focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+@media (max-width: 30rem) {
+    #screen-ia-assistant .ia-option-btn {
+        min-height: 2.5rem;
+        padding-inline: var(--gn-space-md);
+        font-size: var(--gn-font-size-xs);
+    }
+
+    #screen-ia-assistant .ia-option-btn.ia-type-btn {
+        padding-inline: var(--gn-space-sm);
+    }
+
+    #screen-ia-assistant .ia-exercise-item,
+    #screen-ia-assistant .ia-material-check-item,
+    #screen-ia-assistant .ia-tipo-check-item {
+        gap: var(--gn-space-sm);
+        padding-inline: var(--gn-space-sm);
+    }
+
+    #screen-ia-assistant :is(.ia-textarea, .ia-prompt-textarea, .ia-import-json) {
+        min-height: 7.5rem;
+        padding-inline: var(--gn-space-md);
+        font-size: var(--gn-font-size-sm);
+    }
+
+    #screen-ia-assistant .ia-preview-actions {
+        flex-direction: column;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #screen-ia-assistant :is(.ia-option-btn, .ia-expand-toggle, .ia-expand-toggle i, .ia-expand-container, .ia-exercise-item, .ia-material-check-item, .ia-tipo-check-item, .ia-exercise-search, .ia-textarea, .ia-prompt-textarea, .ia-import-json, .ia-select-actions button, .ia-btn) {
+        transition-duration: 0ms;
+    }
+}

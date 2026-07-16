@@ -1,0 +1,357 @@
+/*
+ * Capa visual de la estructura del entrenamiento activo.
+ * Se limita a #active-workout y deja intactos los controles de tiempo.
+ */
+
+#active-workout {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+}
+
+#active-workout .aw-container {
+    background-color: var(--gn-color-background);
+    color: var(--gn-color-text);
+}
+
+/* Cabecera existente: se conserva su posicionamiento y dimensiones funcionales. */
+#active-workout .aw-header {
+    background-color: var(--gn-color-surface);
+    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#active-workout .aw-header-top {
+    gap: var(--gn-space-sm);
+}
+
+#active-workout .aw-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-md);
+    font-weight: var(--gn-font-weight-bold);
+    letter-spacing: 0;
+    line-height: var(--gn-line-height-tight);
+}
+
+#active-workout #aw-session-title {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-weight: var(--gn-font-weight-bold);
+}
+
+/* Acciones existentes de historial y cierre. */
+#active-workout .aw-history-btn,
+#active-workout .aw-close-btn {
+    box-sizing: border-box;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-circle);
+    color: var(--gn-color-text);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#active-workout .aw-history-btn {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#active-workout .aw-close-btn {
+    border-color: var(--gn-color-danger-text);
+    background-color: var(--gn-color-danger);
+    color: var(--gn-color-danger-text);
+}
+
+@media (hover: hover) {
+    #active-workout .aw-history-btn:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        background-color: var(--gn-color-accent);
+    }
+
+    #active-workout .aw-close-btn:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-surface-secondary);
+    }
+}
+
+#active-workout .aw-history-btn:active:not(:disabled):not([aria-disabled="true"]),
+#active-workout .aw-close-btn:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: none;
+}
+
+#active-workout .aw-history-btn:disabled,
+#active-workout .aw-close-btn:disabled,
+#active-workout .aw-history-btn[aria-disabled="true"],
+#active-workout .aw-close-btn[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+/* Controles expandibles de formato y selector de ejercicios. */
+#active-workout .aw-tools-row {
+    background-color: var(--gn-color-background);
+    border-top-color: var(--gn-color-border-muted);
+    border-bottom-color: var(--gn-color-border-muted);
+}
+
+#active-workout .aw-tool-toggle {
+    min-height: 2.75rem;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#active-workout .aw-tool-toggle i {
+    color: currentColor;
+}
+
+#active-workout .aw-tool-toggle.active {
+    border-color: var(--gn-color-border);
+    background-color: var(--gn-color-accent);
+    color: var(--gn-color-text);
+}
+
+@media (hover: hover) {
+    #active-workout .aw-tool-toggle:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        background-color: var(--gn-color-surface-secondary);
+    }
+
+    #active-workout .aw-tool-toggle.active:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-accent);
+    }
+}
+
+#active-workout .aw-tool-toggle:disabled,
+#active-workout .aw-tool-toggle[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+#active-workout #aw-toolbar-wrapper,
+#active-workout #aw-exercises-wrapper {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#active-workout #aw-toolbar-wrapper.open,
+#active-workout #aw-exercises-wrapper.open {
+    border-top-color: var(--gn-color-border-muted);
+}
+
+/* Carcasa de Quill: no se altera su scroll ni sus formatos. */
+#active-workout #aw-toolbar-container {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#active-workout #aw-toolbar-container.ql-toolbar {
+    background-color: var(--gn-color-surface-secondary);
+    outline: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    outline-offset: calc(var(--gn-border-width-thin) * -1);
+    border-radius: var(--gn-radius-md) var(--gn-radius-md) 0 0;
+    box-shadow: var(--gn-shadow-none);
+}
+
+#active-workout #aw-toolbar-container.ql-toolbar .ql-formats {
+    margin-right: var(--gn-space-sm);
+}
+
+#active-workout #aw-toolbar-container.ql-toolbar button.ql-active,
+#active-workout #aw-toolbar-container.ql-toolbar .ql-picker-label.ql-active {
+    border-radius: var(--gn-radius-sm);
+    background-color: var(--gn-color-accent);
+}
+
+#active-workout #aw-toolbar-container.ql-toolbar .ql-stroke {
+    stroke: var(--gn-color-text);
+}
+
+#active-workout #aw-toolbar-container.ql-toolbar .ql-fill {
+    fill: var(--gn-color-text);
+}
+
+#active-workout .aw-content {
+    background-color: var(--gn-color-background);
+}
+
+#active-workout .aw-editor-container,
+#active-workout #aw-editor-container .ql-container,
+#active-workout #aw-editor-container .ql-editor {
+    background-color: var(--gn-color-surface);
+}
+
+#active-workout #aw-editor-container .ql-container {
+    outline: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    outline-offset: calc(var(--gn-border-width-thin) * -1);
+    border-radius: 0 0 var(--gn-radius-md) var(--gn-radius-md);
+}
+
+#active-workout #aw-editor-container .ql-container:focus-within {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: calc(var(--gn-border-width-strong) * -1);
+}
+
+#active-workout #aw-editor-container .ql-editor {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    line-height: var(--gn-line-height-relaxed);
+}
+
+#active-workout #aw-editor-container .ql-editor.ql-blank::before {
+    color: var(--gn-color-text-muted);
+}
+
+#active-workout #aw-editor-container .ql-editor :is(p, ul, ol) {
+    margin-bottom: var(--gn-space-md);
+}
+
+#active-workout #aw-editor-container .ql-editor :is(ul, ol) {
+    padding-left: var(--gn-space-xl);
+}
+
+#active-workout #aw-editor-container .ql-editor a {
+    color: var(--gn-color-info-text);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.125em;
+}
+
+/* Selector y lista de ejercicios insertables. */
+#active-workout .aw-exercises-content {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#active-workout .aw-exercises-content .search-input {
+    min-height: 2.75rem;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#active-workout .aw-exercises-content .search-input::placeholder {
+    color: var(--gn-color-text-muted);
+    opacity: 1;
+}
+
+#active-workout .aw-exercises-content .search-input:disabled,
+#active-workout .aw-exercises-content .search-input[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+#active-workout .aw-exercises-content .exercises-list {
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#active-workout .aw-exercises-content .exercise-item {
+    min-height: 2.75rem;
+    border-bottom-color: var(--gn-color-border-muted);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-medium);
+    line-height: var(--gn-line-height-normal);
+}
+
+#active-workout .aw-exercises-content .exercise-item:last-child {
+    border-bottom: 0;
+}
+
+@media (hover: hover) {
+    #active-workout .aw-exercises-content .exercise-item:hover {
+        background-color: var(--gn-color-surface-secondary);
+    }
+}
+
+#active-workout .aw-exercises-content .exercise-item:active {
+    background-color: var(--gn-color-accent);
+}
+
+#active-workout .aw-exercises-content .no-results {
+    padding: var(--gn-space-xl);
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-relaxed);
+}
+
+/* Indicadores de foco para los controles que ya existen en esta vista. */
+#active-workout .aw-history-btn:focus-visible,
+#active-workout .aw-close-btn:focus-visible,
+#active-workout .aw-tool-toggle:focus-visible,
+#active-workout .aw-exercises-content .search-input:focus-visible,
+#active-workout #aw-toolbar-container.ql-toolbar button:focus-visible,
+#active-workout #aw-toolbar-container.ql-toolbar .ql-picker-label:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+@media (max-width: 30rem) {
+    #active-workout .aw-header-top {
+        align-items: flex-start;
+    }
+
+    #active-workout .aw-title {
+        font-size: var(--gn-font-size-sm);
+    }
+
+    #active-workout .aw-history-btn,
+    #active-workout .aw-close-btn {
+        width: 2.5rem;
+        min-width: 2.5rem;
+        min-height: 2.5rem;
+    }
+
+    #active-workout .aw-tools-row {
+        gap: var(--gn-space-sm);
+        padding-inline: var(--gn-space-md);
+    }
+
+    #active-workout .aw-tool-toggle {
+        padding-inline: var(--gn-space-sm);
+        font-size: var(--gn-font-size-xs);
+    }
+
+    #active-workout .aw-exercises-content {
+        padding-inline: var(--gn-space-md);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #active-workout .aw-history-btn,
+    #active-workout .aw-close-btn,
+    #active-workout .aw-tool-toggle,
+    #active-workout .aw-exercises-content .search-input {
+        transition-duration: 0ms;
+    }
+}

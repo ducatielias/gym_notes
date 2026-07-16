@@ -1,0 +1,395 @@
+/*
+ * Capa visual del detalle y la edicion de Historial.
+ * Se limita a #screen-history-detail para no afectar la lista principal.
+ */
+
+#screen-history-detail {
+    background: var(--gn-color-background);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+}
+
+/* Estructura compartida por el modo lectura y el modo edicion. */
+#screen-history-detail .history-detail-container {
+    background: var(--gn-color-background);
+    color: var(--gn-color-text);
+}
+
+#screen-history-detail .history-detail-sticky-header {
+    background: var(--gn-color-background);
+    border-bottom: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border-muted);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-history-detail .history-detail-nav-top {
+    min-height: 3.5rem;
+    padding-inline: var(--gn-space-lg);
+    background: var(--gn-color-background);
+    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+}
+
+/* Acciones de cabecera existentes: volver/cancelar, editar y guardar. */
+#screen-history-detail .btn-history-detail-close,
+#screen-history-detail .btn-history-detail-edit,
+#screen-history-detail .btn-history-detail-save {
+    appearance: none;
+    box-sizing: border-box;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    cursor: pointer;
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-history-detail .btn-history-detail-close {
+    padding: 0;
+    background: var(--gn-color-surface);
+}
+
+#screen-history-detail .btn-history-detail-edit,
+#screen-history-detail .btn-history-detail-save {
+    padding: var(--gn-space-sm) var(--gn-space-lg);
+    background: var(--gn-color-accent);
+}
+
+@media (hover: hover) {
+    #screen-history-detail .btn-history-detail-close:hover:not(:disabled):not([aria-disabled="true"]) {
+        background: var(--gn-color-surface-secondary);
+        border-color: var(--gn-color-text);
+    }
+
+    #screen-history-detail .btn-history-detail-edit:hover:not(:disabled):not([aria-disabled="true"]),
+    #screen-history-detail .btn-history-detail-save:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+    }
+}
+
+#screen-history-detail .btn-history-detail-close:active:not(:disabled):not([aria-disabled="true"]),
+#screen-history-detail .btn-history-detail-edit:active:not(:disabled):not([aria-disabled="true"]),
+#screen-history-detail .btn-history-detail-save:active:not(:disabled):not([aria-disabled="true"]) {
+    background: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    transform: none;
+}
+
+#screen-history-detail .btn-history-detail-edit:active:not(:disabled):not([aria-disabled="true"]),
+#screen-history-detail .btn-history-detail-save:active:not(:disabled):not([aria-disabled="true"]) {
+    background: var(--gn-color-accent);
+}
+
+#screen-history-detail .btn-history-detail-close:disabled,
+#screen-history-detail .btn-history-detail-edit:disabled,
+#screen-history-detail .btn-history-detail-save:disabled,
+#screen-history-detail .btn-history-detail-close[aria-disabled="true"],
+#screen-history-detail .btn-history-detail-edit[aria-disabled="true"],
+#screen-history-detail .btn-history-detail-save[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+/* Titulo y metadatos del registro. */
+#screen-history-detail .history-detail-title-row {
+    gap: var(--gn-space-xs);
+    padding: var(--gn-space-md) var(--gn-space-lg) var(--gn-space-lg);
+    background: var(--gn-color-background);
+    border-bottom: 0;
+}
+
+#screen-history-detail .history-detail-prefix {
+    padding: 0;
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-semibold);
+    letter-spacing: 0.04em;
+    line-height: var(--gn-line-height-normal);
+    opacity: 1;
+}
+
+#screen-history-detail .history-detail-title {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xl);
+    font-weight: var(--gn-font-weight-bold);
+    letter-spacing: 0;
+    line-height: var(--gn-line-height-tight);
+}
+
+#screen-history-detail .history-detail-meta {
+    max-width: 100%;
+    margin-top: var(--gn-space-xs);
+    padding: var(--gn-space-xs) var(--gn-space-sm);
+    overflow-wrap: anywhere;
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-md);
+    background: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-numeric);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-medium);
+    line-height: var(--gn-line-height-relaxed);
+}
+
+#screen-history-detail .history-detail-meta i {
+    color: var(--gn-color-text);
+}
+
+/* Cuerpo desplazable y contenido enriquecido de lectura. */
+#screen-history-detail .history-detail-body {
+    padding: var(--gn-space-xl) var(--gn-space-lg) calc(6.5rem + env(safe-area-inset-bottom));
+    background: var(--gn-color-background);
+}
+
+#screen-history-detail .history-detail-content,
+#screen-history-detail .history-detail-original,
+#screen-history-detail .history-edit-datetime-row,
+#screen-history-detail .history-edit-datetime-row + div {
+    width: min(100%, 48rem);
+    margin-inline: auto;
+}
+
+#screen-history-detail .history-detail-content {
+    box-sizing: border-box;
+    padding: var(--gn-space-xl);
+    overflow-wrap: anywhere;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-card);
+    background: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    line-height: var(--gn-line-height-relaxed);
+    white-space: pre-wrap;
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-history-detail .history-detail-content :is(p, ul, ol) {
+    margin: 0 0 var(--gn-space-md);
+}
+
+#screen-history-detail .history-detail-content :is(p, ul, ol):last-child {
+    margin-bottom: 0;
+}
+
+#screen-history-detail .history-detail-content :is(ul, ol) {
+    padding-left: var(--gn-space-xl);
+}
+
+#screen-history-detail .history-detail-content li + li {
+    margin-top: var(--gn-space-xs);
+}
+
+#screen-history-detail .history-detail-content a,
+#screen-history-detail .history-detail-original-content a {
+    color: var(--gn-color-info-text);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.125em;
+}
+
+#screen-history-detail .history-detail-original {
+    box-sizing: border-box;
+    margin-top: var(--gn-space-lg);
+    padding: var(--gn-space-lg);
+    overflow-wrap: anywhere;
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-md);
+    background: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text-muted);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-history-detail .history-detail-original-label {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-semibold);
+    letter-spacing: 0.04em;
+    line-height: var(--gn-line-height-normal);
+}
+
+#screen-history-detail .history-detail-original-content {
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-relaxed);
+}
+
+/* Campos existentes del modo edicion. */
+#screen-history-detail .history-edit-datetime-row {
+    gap: var(--gn-space-md);
+    margin-bottom: var(--gn-space-lg);
+}
+
+#screen-history-detail .history-edit-field {
+    min-width: 0;
+}
+
+#screen-history-detail .history-edit-field label,
+#screen-history-detail .history-detail-body > div > label {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+}
+
+#screen-history-detail .history-edit-input {
+    min-height: 2.75rem;
+    padding: var(--gn-space-sm) var(--gn-space-lg);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-numeric);
+    font-size: var(--gn-font-size-md);
+    font-weight: var(--gn-font-weight-medium);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+@media (hover: hover) {
+    #screen-history-detail .history-edit-input:hover:not(:disabled):not([readonly]):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+    }
+}
+
+#screen-history-detail .history-edit-input:disabled,
+#screen-history-detail .history-edit-input[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+#screen-history-detail .history-edit-input[readonly] {
+    border-color: var(--gn-color-border-muted);
+    background: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text-muted);
+    cursor: default;
+}
+
+#screen-history-detail .history-edit-input[aria-invalid="true"] {
+    border-color: var(--gn-color-danger-text);
+}
+
+/* Quill permanece funcional; solo se adapta su presentacion dentro del detalle. */
+#screen-history-detail #history-edit-editor-container {
+    width: min(100%, 48rem);
+    margin-inline: auto;
+}
+
+#screen-history-detail #history-edit-editor-container .ql-toolbar {
+    background: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+}
+
+#screen-history-detail #history-edit-editor-container .ql-toolbar .ql-formats {
+    margin-right: var(--gn-space-sm);
+}
+
+#screen-history-detail #history-edit-editor-container .ql-toolbar button.ql-active,
+#screen-history-detail #history-edit-editor-container .ql-toolbar .ql-picker-label.ql-active {
+    border-radius: var(--gn-radius-sm);
+    background: var(--gn-color-accent);
+}
+
+#screen-history-detail #history-edit-editor-container .ql-toolbar .ql-stroke {
+    stroke: var(--gn-color-text);
+}
+
+#screen-history-detail #history-edit-editor-container .ql-toolbar .ql-fill {
+    fill: var(--gn-color-text);
+}
+
+#screen-history-detail #history-edit-editor-container .ql-container {
+    background: var(--gn-color-surface);
+}
+
+#screen-history-detail #history-edit-editor-container .ql-container:focus-within {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: calc(var(--gn-space-xs) * -1);
+}
+
+#screen-history-detail #history-edit-editor-container .ql-editor {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    line-height: var(--gn-line-height-relaxed);
+}
+
+#screen-history-detail #history-edit-editor-container .ql-editor.ql-blank::before {
+    color: var(--gn-color-text-muted);
+}
+
+#screen-history-detail #history-edit-editor-container .ql-editor :is(p, ul, ol) {
+    margin-bottom: var(--gn-space-md);
+}
+
+#screen-history-detail #history-edit-editor-container .ql-editor :is(ul, ol) {
+    padding-left: var(--gn-space-xl);
+}
+
+/* Foco visible de los controles propios de estas dos vistas. */
+#screen-history-detail .btn-history-detail-close:focus-visible,
+#screen-history-detail .btn-history-detail-edit:focus-visible,
+#screen-history-detail .btn-history-detail-save:focus-visible,
+#screen-history-detail .history-edit-input:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+@media (max-width: 30rem) {
+    #screen-history-detail .history-detail-nav-top {
+        padding-inline: var(--gn-space-md);
+    }
+
+    #screen-history-detail .history-detail-title-row,
+    #screen-history-detail .history-detail-body {
+        padding-inline: var(--gn-space-md);
+    }
+
+    #screen-history-detail .history-detail-title {
+        font-size: var(--gn-font-size-lg);
+    }
+
+    #screen-history-detail .history-detail-content {
+        padding: var(--gn-space-lg);
+        border-radius: var(--gn-radius-md);
+    }
+
+    #screen-history-detail .history-edit-datetime-row {
+        flex-direction: column;
+        gap: var(--gn-space-sm);
+    }
+
+    #screen-history-detail .btn-history-detail-edit,
+    #screen-history-detail .btn-history-detail-save {
+        min-height: 2.5rem;
+        padding-inline: var(--gn-space-md);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #screen-history-detail .btn-history-detail-close,
+    #screen-history-detail .btn-history-detail-edit,
+    #screen-history-detail .btn-history-detail-save,
+    #screen-history-detail .history-edit-input {
+        transition-duration: 0ms;
+    }
+}

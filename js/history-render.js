@@ -20,19 +20,6 @@ function renderHistory() {
     // Asegurar que historyDB esté actualizado
     const history = getHistory();
     
-    // Sincronizar el input con historySearchTerm
-    const input = document.getElementById('historySearchInput');
-    if (input && input.value !== historySearchTerm) {
-        input.value = historySearchTerm;
-        updateHistoryClearButton();
-    }
-    
-    // Sincronizar el select de rutinas con historyRoutineFilter
-    const routineSelect = document.getElementById('historyRoutineFilterSelect');
-    if (routineSelect && routineSelect.value !== historyRoutineFilter) {
-        routineSelect.value = historyRoutineFilter;
-    }
-    
     const searchTerm = historySearchTerm.toLowerCase().trim();
     const filter = historyFilter;
     const routineFilter = historyRoutineFilter;
@@ -83,13 +70,17 @@ function renderHistory() {
     // Determinar si mostrar botón de retroceso
     const showBackButton = historyReturnScreen === 'workout' || historyReturnScreen === 'session';
     const backButtonLabel = historyReturnScreen === 'workout' ? 'Volver al entrenamiento' : 'Volver a la sesión';
+    const headerMode = showBackButton ? historyReturnScreen : 'default';
+    let header = container.querySelector('.history-header');
+    const shouldRenderHeader = !header || header.dataset.historyMode !== headerMode;
 
     // Construir HTML
     let html = '';
 
     // Encabezado
-    html += `
-        <header class="history-header">
+    if (shouldRenderHeader) {
+        html += `
+        <header class="history-header" data-history-mode="${headerMode}">
             <div class="history-header-top">
                 <div style="display: flex; align-items: center; gap: 10px; flex:1;">
                     ${showBackButton ? `
@@ -146,7 +137,9 @@ function renderHistory() {
             <!-- Input oculto para importar historial -->
             <input type="file" id="file-import-history" style="display:none" accept=".json,.txt" onchange="importHistoryFromFile(event)">
         </header>
+        <div class="history-results-container">
     `;
+    }
 
     // Lista de entrenamientos
     if (filtered.length === 0) {
@@ -212,23 +205,24 @@ function renderHistory() {
         html += `</div>`;
     }
 
-    container.innerHTML = html;
-    updateHistoryClearButton();
-    
-    // Sincronizar el input después de renderizar
-    setTimeout(() => {
-        const inputAfterRender = document.getElementById('historySearchInput');
-        if (inputAfterRender && inputAfterRender.value !== historySearchTerm) {
-            inputAfterRender.value = historySearchTerm;
-            updateHistoryClearButton();
+    if (shouldRenderHeader) {
+        html += `</div>`;
+        container.innerHTML = html;
+        header = container.querySelector('.history-header');
+    } else {
+        let resultsContainer = container.querySelector('.history-results-container');
+        if (!resultsContainer && header) {
+            resultsContainer = document.createElement('div');
+            resultsContainer.className = 'history-results-container';
+            header.insertAdjacentElement('afterend', resultsContainer);
         }
-        
-        // Sincronizar el select de rutinas después de renderizar
-        const routineSelectAfterRender = document.getElementById('historyRoutineFilterSelect');
-        if (routineSelectAfterRender && routineSelectAfterRender.value !== historyRoutineFilter) {
-            routineSelectAfterRender.value = historyRoutineFilter;
+
+        if (resultsContainer) {
+            resultsContainer.innerHTML = html;
         }
-    }, 10);
+    }
+
+    syncHistoryHeaderControls(header, filter, routineFilter, stats);
 }
 
 function buildRoutineFilterOptions(selected) {
@@ -241,6 +235,49 @@ function buildRoutineFilterOptions(selected) {
         options += `<option value="${safeValue}" ${selected === r ? 'selected' : ''}>${safeLabel}</option>`;
     });
     return options;
+}
+
+/**
+ * Mantiene sincronizados los controles fijos sin sustituir sus nodos. Asi el
+ * input conserva tanto el foco como la seleccion mientras se escribe.
+ */
+function syncHistoryHeaderControls(header, filter, routineFilter, stats) {
+    if (!header) return;
+
+    const input = header.querySelector('#historySearchInput');
+    if (input && input.value !== historySearchTerm) {
+        input.value = historySearchTerm;
+    }
+
+    const dateFilterSelect = header.querySelector('#historyFilterSelect');
+    if (dateFilterSelect) {
+        const allRecordsOption = dateFilterSelect.querySelector('option[value="todos"]');
+        const allRecordsLabel = `Todos (${stats.total})`;
+        if (allRecordsOption && allRecordsOption.textContent !== allRecordsLabel) {
+            allRecordsOption.textContent = allRecordsLabel;
+        }
+
+        if (dateFilterSelect.value !== filter) {
+            dateFilterSelect.value = filter;
+        }
+    }
+
+    const routineSelect = header.querySelector('#historyRoutineFilterSelect');
+    if (routineSelect) {
+        const routineOptionsKey = JSON.stringify(getUniqueRoutinesFromHistory());
+        if (routineSelect.dataset.routineOptionsKey !== routineOptionsKey) {
+            if (routineSelect.dataset.routineOptionsKey) {
+                routineSelect.innerHTML = buildRoutineFilterOptions(routineFilter);
+            }
+            routineSelect.dataset.routineOptionsKey = routineOptionsKey;
+        }
+
+        if (routineSelect.value !== routineFilter) {
+            routineSelect.value = routineFilter;
+        }
+    }
+
+    updateHistoryClearButton();
 }
 
 function linkifyHistoryHTML(html) {
