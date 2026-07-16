@@ -15,20 +15,13 @@
    PÁGINA DE EJERCICIOS (SCREEN)
    ========================================================================== */
 
-#screen-exercises {
-    background-color: var(--background-color, #fafafa);
-}
-
 .exercises-header {
     position: sticky;
     top: 0;
     z-index: 100;
-    background-color: var(--background-color, #fafafa);
     padding: 16px 20px 14px 20px !important;
-    border-bottom: 1px solid #e5e7eb;
     display: flex;
     flex-direction: column;
-    gap: 10px;
     width: 100%;
 }
 
@@ -37,14 +30,6 @@
     justify-content: space-between;
     align-items: center;
     width: 100%;
-}
-
-.exercises-header-top h1 {
-    font-size: 28px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    margin: 0;
-    line-height: 1;
 }
 
 .btn-exercises-options {
@@ -131,10 +116,6 @@
     border-color: var(--primary-color, #000000);
 }
 
-.exercises-search-wrapper input::placeholder {
-    color: #9ca3af;
-}
-
 /* ==========================================================================
    FILTRO POR GRUPOS (DROPDOWN)
    ========================================================================== */
@@ -188,9 +169,6 @@
    ========================================================================== */
 
 .card-exercise {
-    background: var(--card-background, #ffffff);
-    border-radius: 16px;
-    border: 1px solid #e5e7eb;
     overflow: hidden;
     transition: border-color 0.15s ease;
 }
@@ -202,7 +180,6 @@
 .card-exercise-header {
     display: flex;
     align-items: center;
-    padding: 14px 16px;
     gap: 14px;
     cursor: pointer;
     user-select: none;
@@ -224,24 +201,15 @@
 }
 
 .card-exercise-group {
-    font-size: 11px;
-    font-weight: 700;
-    color: #a9a9a9;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     margin-bottom: 2px;
 }
 
 .card-exercise-name {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--primary-color, #000000);
     margin: 0;
     word-break: break-word;
 }
 
 .card-exercise-chevron {
-    color: #cbd5e1;
     font-size: 14px;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
@@ -414,35 +382,20 @@
    ========================================================================== */
 
 .exercises-empty {
-    padding: 60px 40px;
     text-align: center;
-    color: #9ca3af;
     font-size: 15px;
     line-height: 1.6;
 }
 
 .exercises-empty i {
     font-size: 48px;
-    color: #d1d5db;
     margin-bottom: 16px;
     display: block;
 }
 
 .exercises-empty .btn-empty-add {
     margin-top: 16px;
-    padding: 12px 28px;
-    background: var(--accent-color, #ccff00);
-    color: var(--primary-color, #000000);
-    border: none;
-    border-radius: 30px;
-    font-size: 15px;
-    font-weight: 700;
     cursor: pointer;
-    transition: transform 0.1s ease;
-}
-
-.exercises-empty .btn-empty-add:active {
-    transform: scale(0.95);
 }
 
 /* ==========================================================================

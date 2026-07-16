@@ -12,20 +12,13 @@
    PÁGINA DE HISTORIAL (SCREEN)
    ========================================================================== */
 
-#screen-history {
-    background-color: var(--background-color, #fafafa);
-}
-
 .history-header {
     position: sticky;
     top: 0;
     z-index: 100;
-    background-color: var(--background-color, #fafafa);
     padding: 16px 20px 14px 20px !important;
-    border-bottom: 1px solid #e5e7eb;
     display: flex;
     flex-direction: column;
-    gap: 10px;
     width: 100%;
 }
 
@@ -128,17 +121,12 @@
     border-color: var(--primary-color, #000000);
 }
 
-.history-search-wrapper input::placeholder {
-    color: #9ca3af;
-}
-
-/* ==========================================================================
+/* ========================================================================== 
    FILTROS DEL HISTORIAL (dropdowns en fila)
    ========================================================================== */
 
 .history-filter-bar {
     display: flex;
-    gap: 8px;
     width: 100%;
     flex-wrap: wrap;
 }
@@ -184,7 +172,6 @@
     padding: 12px 20px calc(100px + env(safe-area-inset-bottom, 20px)) 20px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
 }
 
 /* ==========================================================================
@@ -192,22 +179,13 @@
    ========================================================================== */
 
 .card-history {
-    background: var(--card-background, #ffffff);
-    border-radius: 16px;
-    border: 1px solid #e5e7eb;
     overflow: hidden;
     transition: border-color 0.15s ease;
-}
-
-.card-history:active {
-    border-color: var(--primary-color, #000000);
 }
 
 .card-history-header {
     display: flex;
     align-items: center;
-    padding: 14px 16px;
-    gap: 14px;
     cursor: pointer;
     user-select: none;
 }
@@ -215,13 +193,10 @@
 .card-history-icon {
     width: 44px;
     height: 44px;
-    border-radius: 12px;
-    background-color: var(--accent-color, #ccff00);
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 18px;
-    color: var(--primary-color, #000000);
     flex-shrink: 0;
 }
 
@@ -231,40 +206,25 @@
 }
 
 .card-history-date {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text-muted, #666666);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
     margin-bottom: 2px;
 }
 
 .card-history-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--primary-color, #000000);
     margin: 0;
     word-break: break-word;
 }
 
 .card-history-subtitle {
-    font-size: 13px;
-    color: var(--text-muted, #666666);
     margin-top: 2px;
 }
 
 .card-history-duration {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--success-color, #34c759);
-    background: #f0fdf4;
     padding: 4px 10px;
-    border-radius: 20px;
     white-space: nowrap;
 }
 
 .card-history-chevron {
-    color: #cbd5e1;
     font-size: 14px;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
@@ -375,16 +335,11 @@
    ========================================================================== */
 
 .history-empty {
-    padding: 60px 40px;
     text-align: center;
-    color: #9ca3af;
-    font-size: 15px;
-    line-height: 1.6;
 }
 
 .history-empty i {
     font-size: 48px;
-    color: #d1d5db;
     margin-bottom: 16px;
     display: block;
 }

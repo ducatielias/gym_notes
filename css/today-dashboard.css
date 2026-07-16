@@ -7,12 +7,6 @@
    CONTENEDOR PRINCIPAL DE LA PANTALLA "HOY"
    ========================================================================== */
 
-#screen-today {
-    background-color: var(--background-color, #fafafa);
-    /*padding-bottom: calc(80px + env(safe-area-inset-bottom, 20px));*/
-    
-}
-
 #today-dashboard-content {
     padding: 16px 20px 20px 20px;
     display: flex;
@@ -27,14 +21,6 @@
 /* ==========================================================================
    CALENDARIO
    ========================================================================== */
-
-.today-calendar-container {
-    background: var(--card-background, #ffffff);
-    border-radius: 20px;
-    padding: 16px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-}
 
 .today-calendar-header {
     display: flex;
@@ -95,10 +81,6 @@
     user-select: none;
     -webkit-user-select: none;
     cursor: default;
-}
-
-.today-calendar-day.empty {
-    color: #d1d5db;
 }
 
 .today-calendar-day.has-workout {
@@ -163,17 +145,6 @@
    ESTADO VACÍO (CUANDO NO HAY HISTORIAL)
    ========================================================================== */
 
-.today-empty-state {
-    padding: 40px 20px;
-    text-align: center;
-    color: var(--text-muted, #666666);
-    font-size: 15px;
-    line-height: 1.6;
-    background: var(--card-background, #ffffff);
-    border-radius: 16px;
-    border: 1px solid #e5e7eb;
-}
-
 .today-empty-state i {
     font-size: 48px;
     color: #d1d5db;
@@ -182,16 +153,7 @@
 }
 
 .today-empty-state .btn-empty-add {
-    margin-top: 16px;
-    padding: 12px 28px;
-    background: var(--accent-color, #ccff00);
-    color: var(--primary-color, #000000);
-    border: none;
-    border-radius: 30px;
-    font-size: 15px;
-    font-weight: 700;
     cursor: pointer;
-    transition: transform 0.1s ease;
 }
 
 .today-empty-state .btn-empty-add:active {
@@ -206,11 +168,6 @@
     #today-dashboard-content {
         padding: 12px 16px 20px 16px;
         gap: 16px;
-    }
-    
-    .today-calendar-container {
-        padding: 12px;
-        border-radius: 16px;
     }
     
     .today-calendar-day {
@@ -240,10 +197,6 @@
     .today-calendar-day.today {
         outline: 2px solid #fbbf24;
         outline-offset: -3px;
-    }
-    
-    .today-calendar-container {
-        padding: 10px;
     }
     
     .today-calendar-header button {
@@ -286,28 +239,12 @@
     transform: scale(0.96);
 }
 
-.btn-today-data-import {
-    background: #f3f4f6;
-    color: var(--primary-color, #000000);
-    border: 1.5px solid #e5e7eb;
-}
-
 .btn-today-data-import:active {
     background: #e5e7eb;
 }
 
-.btn-today-data-export {
-    background: #f3f4f6;
-    color: var(--primary-color, #000000);
-    border: 1.5px solid #e5e7eb;
-}
-
 .btn-today-data-export:active {
     background: #e5e7eb;
-}
-
-.btn-today-data i {
-    font-size: 16px;
 }
 
 /* ==========================================================================

@@ -54,6 +54,136 @@ async function shareExerciseViaWeb(exercise) {
 // DIALOGO DE COMPARTIR
 // ==========================================================================
 
+/**
+ * Aísla el foco y los listeners temporales de cada diálogo de compartir.
+ */
+const exerciseShareOverlayAccessibility = (() => {
+    const overlayStates = new WeakMap();
+    let instanceSequence = 0;
+
+    const focusableSelector = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled]):not([type="hidden"])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])'
+    ].join(', ');
+
+    function isCustomModalOpen() {
+        const customModal = document.getElementById('customModal');
+        return customModal &&
+            !customModal.classList.contains('hidden') &&
+            customModal.getAttribute('aria-hidden') !== 'true';
+    }
+
+    function getFocusableElements(dialog) {
+        return Array.from(dialog.querySelectorAll(focusableSelector)).filter((element) => {
+            const styles = window.getComputedStyle(element);
+            return !element.disabled &&
+                element.getAttribute('aria-disabled') !== 'true' &&
+                !element.hidden &&
+                !element.closest('.hidden') &&
+                element.getAttribute('aria-hidden') !== 'true' &&
+                styles.display !== 'none' &&
+                styles.visibility !== 'hidden';
+        });
+    }
+
+    function addListener(overlay, target, type, listener, options) {
+        const state = overlayStates.get(overlay);
+        if (!state) return;
+
+        target.addEventListener(type, listener, options);
+        state.listeners.push({ target, type, listener, options });
+    }
+
+    function restoreFocus(state) {
+        const previousFocus = state.previousFocus;
+        if (
+            previousFocus &&
+            previousFocus.isConnected &&
+            !previousFocus.disabled &&
+            !previousFocus.closest('.hidden') &&
+            typeof previousFocus.focus === 'function' &&
+            !isCustomModalOpen()
+        ) {
+            previousFocus.focus();
+        }
+    }
+
+    function cleanup(overlay) {
+        const state = overlayStates.get(overlay);
+        if (!state) return;
+
+        state.listeners.forEach(({ target, type, listener, options }) => {
+            target.removeEventListener(type, listener, options);
+        });
+        overlayStates.delete(overlay);
+        restoreFocus(state);
+    }
+
+    function setup(overlay, { dialog, title, description, initialFocus, onEscape, onBackdrop }) {
+        const instanceId = ++instanceSequence;
+        const activeElement = document.activeElement;
+        const previousFocus = activeElement && activeElement !== document.body ? activeElement : null;
+
+        title.id = `exercise-share-title-${instanceId}`;
+        description.id = `exercise-share-description-${instanceId}`;
+        dialog.setAttribute('role', 'dialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('aria-labelledby', title.id);
+        dialog.setAttribute('aria-describedby', description.id);
+        dialog.setAttribute('tabindex', '-1');
+
+        overlayStates.set(overlay, { dialog, previousFocus, listeners: [] });
+
+        const handleKeydown = (event) => {
+            if (!overlay.isConnected || isCustomModalOpen()) return;
+
+            if (event.key === 'Tab') {
+                const focusableElements = getFocusableElements(dialog);
+                if (focusableElements.length === 0) {
+                    event.preventDefault();
+                    dialog.focus();
+                    return;
+                }
+
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (!focusableElements.includes(document.activeElement)) {
+                    event.preventDefault();
+                    (event.shiftKey ? lastElement : firstElement).focus();
+                } else if (event.shiftKey && document.activeElement === firstElement) {
+                    event.preventDefault();
+                    lastElement.focus();
+                } else if (!event.shiftKey && document.activeElement === lastElement) {
+                    event.preventDefault();
+                    firstElement.focus();
+                }
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                onEscape();
+            }
+        };
+
+        const handleBackdropClick = (event) => {
+            if (event.target === overlay) {
+                onBackdrop();
+            }
+        };
+
+        addListener(overlay, document, 'keydown', handleKeydown);
+        addListener(overlay, overlay, 'click', handleBackdropClick);
+
+        const focusableElements = getFocusableElements(dialog);
+        (focusableElements.includes(initialFocus) ? initialFocus : focusableElements[0] || dialog).focus();
+    }
+
+    return { setup, addListener, cleanup };
+})();
+
 window.showExerciseShareDialog = function(exercise) {
     return new Promise((resolve) => {
         const overlay = document.createElement('div');
@@ -86,27 +216,40 @@ window.showExerciseShareDialog = function(exercise) {
         `;
         
         document.body.appendChild(overlay);
-        
-        document.getElementById('share-file-btn').onclick = () => {
+
+        const dialog = overlay.querySelector('.modal-container');
+        const title = dialog.querySelector('h3');
+        const description = dialog.querySelector('.modal-body p');
+        const saveFileButton = overlay.querySelector('#share-file-btn');
+        const shareLinkButton = overlay.querySelector('#share-link-btn');
+        const cancelButton = overlay.querySelector('#share-cancel-btn');
+        let settled = false;
+
+        function closeShareDialog(result) {
+            if (settled) return;
+            settled = true;
+            exerciseShareOverlayAccessibility.cleanup(overlay);
             overlay.remove();
-            resolve('file');
-        };
-        
-        document.getElementById('share-link-btn').onclick = () => {
-            overlay.remove();
-            resolve('share');
-        };
-        
-        document.getElementById('share-cancel-btn').onclick = () => {
-            overlay.remove();
-            resolve(null);
-        };
-        
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                overlay.remove();
-                resolve(null);
-            }
+            resolve(result);
+        }
+
+        exerciseShareOverlayAccessibility.setup(overlay, {
+            dialog,
+            title,
+            description,
+            initialFocus: saveFileButton,
+            onEscape: () => closeShareDialog(null),
+            onBackdrop: () => closeShareDialog(null)
+        });
+
+        exerciseShareOverlayAccessibility.addListener(overlay, saveFileButton, 'click', () => {
+            closeShareDialog('file');
+        });
+        exerciseShareOverlayAccessibility.addListener(overlay, shareLinkButton, 'click', () => {
+            closeShareDialog('share');
+        });
+        exerciseShareOverlayAccessibility.addListener(overlay, cancelButton, 'click', () => {
+            closeShareDialog(null);
         });
     });
 };

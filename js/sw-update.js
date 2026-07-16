@@ -229,6 +229,141 @@ async function checkForUpdateAndShowResult() {
 // MODAL DE ACTUALIZACIÓN
 // ==========================================================================
 
+/**
+ * Isola los listeners temporales y el foco de cada diálogo de actualización.
+ * Los listeners del ciclo de vida del Service Worker permanecen fuera de esta
+ * utilidad y no se eliminan al cerrar el diálogo.
+ */
+const swUpdateModalAccessibility = (() => {
+    const overlayStates = new WeakMap();
+    let instanceSequence = 0;
+
+    const focusableSelector = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled]):not([type="hidden"])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])'
+    ].join(', ');
+
+    function isCustomModalOpen() {
+        const customModal = document.getElementById('customModal');
+        return customModal &&
+            !customModal.classList.contains('hidden') &&
+            customModal.getAttribute('aria-hidden') !== 'true';
+    }
+
+    function getFocusableElements(dialog) {
+        return Array.from(dialog.querySelectorAll(focusableSelector)).filter((element) => {
+            const styles = window.getComputedStyle(element);
+            return !element.disabled &&
+                element.getAttribute('aria-disabled') !== 'true' &&
+                !element.hidden &&
+                !element.closest('.hidden') &&
+                element.getAttribute('aria-hidden') !== 'true' &&
+                styles.display !== 'none' &&
+                styles.visibility !== 'hidden';
+        });
+    }
+
+    function addListener(overlay, target, type, listener, options) {
+        const state = overlayStates.get(overlay);
+        if (!state) return;
+
+        target.addEventListener(type, listener, options);
+        state.listeners.push({ target, type, listener, options });
+    }
+
+    function restoreFocus(state) {
+        const previousFocus = state.previousFocus;
+        if (
+            previousFocus &&
+            previousFocus.isConnected &&
+            !previousFocus.disabled &&
+            !previousFocus.closest('.hidden') &&
+            typeof previousFocus.focus === 'function' &&
+            !isCustomModalOpen()
+        ) {
+            previousFocus.focus();
+        }
+    }
+
+    function cleanup(overlay) {
+        const state = overlayStates.get(overlay);
+        if (!state) return;
+
+        state.listeners.forEach(({ target, type, listener, options }) => {
+            target.removeEventListener(type, listener, options);
+        });
+        overlayStates.delete(overlay);
+        restoreFocus(state);
+    }
+
+    function setup(overlay, { dialog, title, description, onEscape, onBackdrop }) {
+        const instanceId = ++instanceSequence;
+        const activeElement = document.activeElement;
+        const previousFocus = activeElement && activeElement !== document.body ? activeElement : null;
+
+        title.id = `sw-update-title-${instanceId}`;
+        description.id = `sw-update-description-${instanceId}`;
+        dialog.setAttribute('role', 'dialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('aria-labelledby', title.id);
+        dialog.setAttribute('aria-describedby', description.id);
+        dialog.setAttribute('tabindex', '-1');
+
+        overlayStates.set(overlay, { dialog, previousFocus, listeners: [] });
+
+        const handleKeydown = (event) => {
+            if (!overlay.isConnected || isCustomModalOpen()) return;
+
+            if (event.key === 'Tab') {
+                const focusableElements = getFocusableElements(dialog);
+                if (focusableElements.length === 0) {
+                    event.preventDefault();
+                    dialog.focus();
+                    return;
+                }
+
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (!focusableElements.includes(document.activeElement)) {
+                    event.preventDefault();
+                    (event.shiftKey ? lastElement : firstElement).focus();
+                } else if (event.shiftKey && document.activeElement === firstElement) {
+                    event.preventDefault();
+                    lastElement.focus();
+                } else if (!event.shiftKey && document.activeElement === lastElement) {
+                    event.preventDefault();
+                    firstElement.focus();
+                }
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                onEscape();
+            }
+        };
+
+        const handleBackdropClick = (event) => {
+            if (event.target === overlay) {
+                onBackdrop();
+            }
+        };
+
+        addListener(overlay, document, 'keydown', handleKeydown);
+        addListener(overlay, overlay, 'click', handleBackdropClick);
+
+        // El aviso puede aparecer automáticamente; no preselecciona una
+        // acción que recarga la página, pero sí entra en el diálogo modal.
+        if (!isCustomModalOpen()) {
+            dialog.focus();
+        }
+    }
+
+    return { setup, addListener, cleanup };
+})();
+
 function showUpdateModal() {
     console.log('[sw-update] Mostrando modal de actualización...');
     
@@ -286,18 +421,36 @@ function showUpdateModal() {
 
     document.body.appendChild(overlay);
 
-    // Event listeners
-    document.getElementById('sw-update-btn').addEventListener('click', function() {
+    const dialog = overlay.querySelector('.modal-container');
+    const title = dialog.querySelector('h3');
+    const description = dialog.querySelector('.modal-body p');
+    const updateButton = overlay.querySelector('#sw-update-btn');
+    const exportAndUpdateButton = overlay.querySelector('#sw-export-update-btn');
+    const laterButton = overlay.querySelector('#sw-later-btn');
+
+    swUpdateModalAccessibility.setup(overlay, {
+        dialog,
+        title,
+        description,
+        onEscape: () => closeUpdateModal(),
+        onBackdrop: () => {
+            closeUpdateModal();
+            console.log('[sw-update] Actualización pospuesta (clic fuera)');
+        }
+    });
+
+    // Listeners temporales de esta instancia visual.
+    swUpdateModalAccessibility.addListener(overlay, updateButton, 'click', function() {
         closeUpdateModal();
         performUpdate();
     });
 
-    document.getElementById('sw-export-update-btn').addEventListener('click', function() {
+    swUpdateModalAccessibility.addListener(overlay, exportAndUpdateButton, 'click', function() {
         closeUpdateModal();
         performExportAndUpdate();
     });
 
-    document.getElementById('sw-later-btn').addEventListener('click', function() {
+    swUpdateModalAccessibility.addListener(overlay, laterButton, 'click', function() {
         // Guardar la versión ignorada en localStorage
         if (swCurrentVersion && swCurrentVersion !== 'desconocida') {
             localStorage.setItem('sw_ignored_version', swCurrentVersion);
@@ -310,19 +463,12 @@ function showUpdateModal() {
             window.showAlert('Has ignorado esta actualización. No se te volverá a preguntar por esta versión.', 'Ignorada');
         }
     });
-
-    // Cerrar al hacer clic fuera
-    overlay.addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeUpdateModal();
-            console.log('[sw-update] Actualización pospuesta (clic fuera)');
-        }
-    });
 }
 
 function closeUpdateModal() {
     const modal = document.getElementById('sw-update-modal');
     if (modal) {
+        swUpdateModalAccessibility.cleanup(modal);
         modal.remove();
     }
 }

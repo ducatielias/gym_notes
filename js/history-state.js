@@ -71,6 +71,10 @@ function applyHistoryDataLoad(historyDataLoad) {
     historyDataStorageIssue = historyDataLoad.issue;
     historyDataPersistenceBlocked = historyDataLoad.persistenceBlocked;
 
+    // Mantener la referencia pública alineada también tras una recarga desde
+    // almacenamiento o un fallback temporal por datos corruptos.
+    window.historyDB = historyDB;
+
     if (historyDataStorageIssue && !historyStorageWarningLogged) {
         console.warn('[history-state] sharkHistory no se ha cargado. Se usara un estado temporal sin sobrescribir el valor almacenado.', {
             status: historyDataStorageIssue.status,
@@ -136,29 +140,37 @@ function getHistory() {
     return refreshHistoryData();
 }
 
-function setHistory(history) {
-    historyDB = history;
-    saveHistory();
-    // Actualizar la referencia global
+/**
+ * Persiste una mutación de historial sin dejar el estado en memoria adelantado
+ * si localStorage rechaza la escritura o está bloqueado por datos corruptos.
+ */
+function commitHistoryMutation(nextHistory) {
+    const previousHistory = historyDB;
+    historyDB = nextHistory;
+
+    const persistenceResult = saveHistory();
+    if (!persistenceResult.ok) {
+        historyDB = previousHistory;
+    }
+
     window.historyDB = historyDB;
-    return historyDB;
+    return persistenceResult;
+}
+
+function setHistory(history) {
+    refreshHistoryData();
+    return commitHistoryMutation(history);
 }
 
 function addHistoryRecord(record) {
     // Asegurarnos de tener la versión más reciente
     refreshHistoryData();
-    historyDB.unshift(record);
-    saveHistory();
-    // Actualizar la referencia global
-    window.historyDB = historyDB;
-    return historyDB;
+    return commitHistoryMutation([record, ...historyDB]);
 }
 
 function deleteHistoryRecord(id) {
-    historyDB = historyDB.filter(item => item.id !== id);
-    saveHistory();
-    window.historyDB = historyDB;
-    return historyDB;
+    refreshHistoryData();
+    return commitHistoryMutation(historyDB.filter(item => item.id !== id));
 }
 
 function getHistoryRecord(id) {
@@ -168,9 +180,8 @@ function getHistoryRecord(id) {
 }
 
 function clearAllHistory() {
-    historyDB = [];
-    saveHistory();
-    window.historyDB = historyDB;
+    refreshHistoryData();
+    return commitHistoryMutation([]);
 }
 
 function getHistoryStats() {

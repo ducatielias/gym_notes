@@ -11,9 +11,12 @@ const modalInput = document.getElementById('modalInput');
 const modalConfirmBtn = document.getElementById('modalConfirmBtn');
 const modalCancelBtn = document.getElementById('modalCancelBtn');
 const modalIcon = document.getElementById('modalIcon');
+const modalDialog = modalOverlay.querySelector('.modal-container');
 
 let resolvePromise = null;
 let currentType = 'alert'; // 'alert', 'confirm', 'prompt', 'selector'
+let modalTriggerElement = null;
+let modalKeyboardListenerAttached = false;
 
 const modalIconVariantClasses = [
     'modal-icon--alert',
@@ -30,48 +33,143 @@ function setModalIconVariant(variantClass) {
     modalIcon.classList.add(variantClass);
 }
 
-function closeModal() {
-    modalOverlay.classList.add('hidden');
-    if (resolvePromise) {
-        if (currentType === 'prompt') {
-            resolvePromise(null);
-        } else if (currentType === 'confirm') {
-            resolvePromise(false);
-        } else if (currentType === 'selector') {
-            resolvePromise(null);
-        } else {
-            resolvePromise(undefined);
-        }
-        resolvePromise = null;
+function getModalFocusableElements() {
+    const focusableSelector = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled]):not([type="hidden"])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])'
+    ].join(', ');
+
+    return Array.from(modalDialog.querySelectorAll(focusableSelector)).filter((element) => {
+        return !element.closest('.hidden') && element.getAttribute('aria-hidden') !== 'true';
+    });
+}
+
+function restoreModalFocus() {
+    const elementToRestore = modalTriggerElement;
+    modalTriggerElement = null;
+
+    if (
+        elementToRestore &&
+        elementToRestore.isConnected &&
+        !elementToRestore.disabled &&
+        !elementToRestore.closest('.hidden') &&
+        typeof elementToRestore.focus === 'function'
+    ) {
+        elementToRestore.focus();
     }
-    // Restaurar scroll del body si se bloqueó
+}
+
+function focusModalInitialElement(preferredElement) {
+    const focusableElements = getModalFocusableElements();
+    const initialElement = focusableElements.includes(preferredElement)
+        ? preferredElement
+        : focusableElements[0] || modalDialog;
+
+    initialElement.focus();
+}
+
+function activateModalKeyboardListener() {
+    if (!modalKeyboardListenerAttached) {
+        document.addEventListener('keydown', handleModalKeydown);
+        modalKeyboardListenerAttached = true;
+    }
+}
+
+function deactivateModalKeyboardListener() {
+    if (modalKeyboardListenerAttached) {
+        document.removeEventListener('keydown', handleModalKeydown);
+        modalKeyboardListenerAttached = false;
+    }
+}
+
+function completeModal(result) {
+    const resolver = resolvePromise;
+    resolvePromise = null;
+
+    modalOverlay.classList.add('hidden');
+    modalOverlay.setAttribute('aria-hidden', 'true');
+    deactivateModalKeyboardListener();
     document.body.style.overflow = '';
-    // Limpiar contenido dinámico del selector si existe
+
     const dynamicContent = document.getElementById('modalDynamicContent');
     if (dynamicContent) {
         dynamicContent.innerHTML = '';
+    }
+
+    restoreModalFocus();
+
+    if (resolver) {
+        resolver(result);
+    }
+}
+
+function closeModal() {
+    if (currentType === 'prompt' || currentType === 'selector') {
+        completeModal(null);
+    } else if (currentType === 'confirm') {
+        completeModal(false);
+    } else {
+        completeModal(undefined);
     }
 }
 
 function confirmModal(value) {
-    modalOverlay.classList.add('hidden');
-    if (resolvePromise) {
-        if (currentType === 'prompt') {
-            resolvePromise(value);
-        } else if (currentType === 'confirm') {
-            resolvePromise(value);
-        } else if (currentType === 'selector') {
-            resolvePromise(value);
-        } else {
-            resolvePromise(undefined);
+    completeModal(currentType === 'alert' ? undefined : value);
+}
+
+function handleModalKeydown(event) {
+    if (modalOverlay.classList.contains('hidden')) return;
+
+    if (event.key === 'Tab') {
+        const focusableElements = getModalFocusableElements();
+
+        if (focusableElements.length === 0) {
+            event.preventDefault();
+            modalDialog.focus();
+            return;
         }
-        resolvePromise = null;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (!focusableElements.includes(document.activeElement)) {
+            event.preventDefault();
+            (event.shiftKey ? lastElement : firstElement).focus();
+        } else if (event.shiftKey && document.activeElement === firstElement) {
+            event.preventDefault();
+            lastElement.focus();
+        } else if (!event.shiftKey && document.activeElement === lastElement) {
+            event.preventDefault();
+            firstElement.focus();
+        }
+        return;
     }
-    document.body.style.overflow = '';
-    const dynamicContent = document.getElementById('modalDynamicContent');
-    if (dynamicContent) {
-        dynamicContent.innerHTML = '';
+
+    if (event.key === 'Enter' && currentType !== 'selector') {
+        event.preventDefault();
+        modalConfirmBtn.click();
+    } else if (event.key === 'Escape') {
+        event.preventDefault();
+        modalCancelBtn.click();
     }
+}
+
+function openModal(resolve, preferredFocusElement) {
+    const activeElement = document.activeElement;
+    modalTriggerElement = activeElement instanceof HTMLElement && activeElement !== document.body
+        ? activeElement
+        : null;
+    resolvePromise = resolve;
+
+    modalOverlay.classList.remove('hidden');
+    modalOverlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    activateModalKeyboardListener();
+    focusModalInitialElement(preferredFocusElement);
 }
 
 function setupModalListeners() {
@@ -109,18 +207,6 @@ function setupModalListeners() {
         }
     };
 
-    // Tecla Enter confirma, Escape cancela
-    document.addEventListener('keydown', (e) => {
-        if (!modalOverlay.classList.contains('hidden')) {
-            if (e.key === 'Enter' && currentType !== 'selector') {
-                e.preventDefault();
-                modalConfirmBtn.click();
-            } else if (e.key === 'Escape') {
-                e.preventDefault();
-                modalCancelBtn.click();
-            }
-        }
-    });
 }
 
 function showAlert(message, title = 'Aviso') {
@@ -142,12 +228,8 @@ function showAlert(message, title = 'Aviso') {
             dynamicContent.classList.add('hidden');
         }
         
-        modalOverlay.classList.remove('hidden');
-        resolvePromise = resolve;
-        
-        // Prevenir scroll del body
-        document.body.style.overflow = 'hidden';
         modalInput.value = '';
+        openModal(resolve, modalConfirmBtn);
     });
 }
 
@@ -170,10 +252,8 @@ function showConfirm(message, title = 'Confirmar') {
             dynamicContent.classList.add('hidden');
         }
         
-        modalOverlay.classList.remove('hidden');
-        resolvePromise = resolve;
-        document.body.style.overflow = 'hidden';
         modalInput.value = '';
+        openModal(resolve, modalConfirmBtn);
     });
 }
 
@@ -198,10 +278,7 @@ function showPrompt(message, defaultValue = '', title = 'Entrada de texto') {
             dynamicContent.classList.add('hidden');
         }
         
-        modalOverlay.classList.remove('hidden');
-        resolvePromise = resolve;
-        document.body.style.overflow = 'hidden';
-        setTimeout(() => modalInput.focus(), 50);
+        openModal(resolve, modalInput);
     });
 }
 
@@ -263,9 +340,7 @@ function showRoutineSelector(routines, currentRoutineId, actionType = 'copy') {
         
         contentContainer.appendChild(listContainer);
         
-        modalOverlay.classList.remove('hidden');
-        resolvePromise = resolve;
-        document.body.style.overflow = 'hidden';
+        openModal(resolve, contentContainer.querySelector('.modal-routine-item:not([disabled])') || modalCancelBtn);
     });
 }
 

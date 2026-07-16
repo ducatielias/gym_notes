@@ -73,7 +73,13 @@ function importHistoryFromFile(event) {
                 return record;
             });
             
-            setHistory(historyConIds);
+            const persistenceResult = setHistory(historyConIds);
+            if (!persistenceResult.ok) {
+                console.error('[history-export] No se pudo importar el historial.', persistenceResult);
+                window.showAlert(`No se pudo importar el historial: ${persistenceResult.error || persistenceResult.status}.`, 'Error');
+                return;
+            }
+
             renderHistory();
             
             window.showAlert(`Historial importado correctamente.\n${historyConIds.length} registro(s) importados.`, 'Importación completada');
@@ -96,7 +102,13 @@ async function clearAllHistoryConfirm() {
         'Borrar historial'
     );
     if (confirm) {
-        clearAllHistory();
+        const persistenceResult = clearAllHistory();
+        if (!persistenceResult.ok) {
+            console.error('[history-export] No se pudo borrar el historial.', persistenceResult);
+            window.showAlert(`No se pudo borrar el historial: ${persistenceResult.error || persistenceResult.status}.`, 'Error');
+            return;
+        }
+
         renderHistory();
         window.showAlert('Historial eliminado correctamente.', 'Eliminado');
     }
@@ -111,7 +123,13 @@ async function deleteHistoryItem(id) {
         'Eliminar registro'
     );
     if (confirm) {
-        deleteHistoryRecord(id);
+        const persistenceResult = deleteHistoryRecord(id);
+        if (!persistenceResult.ok) {
+            console.error('[history-export] No se pudo eliminar el registro.', persistenceResult);
+            window.showAlert(`No se pudo eliminar el registro: ${persistenceResult.error || persistenceResult.status}.`, 'Error');
+            return;
+        }
+
         renderHistory();
         window.showAlert('Registro eliminado.', 'Eliminado');
     }

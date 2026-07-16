@@ -18,6 +18,121 @@
 
 let importFileData = null;
 
+const dataTransferOverlayAccessibility = (() => {
+    const overlayStates = new WeakMap();
+    let instanceSequence = 0;
+    const focusableSelector = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled]):not([type="hidden"])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[contenteditable="true"]',
+        '[tabindex]:not([tabindex="-1"])'
+    ].join(', ');
+
+    function isFocusable(element) {
+        if (
+            !(element instanceof HTMLElement) ||
+            !element.isConnected ||
+            element.disabled ||
+            element.closest('.hidden') ||
+            element.getAttribute('aria-hidden') === 'true'
+        ) {
+            return false;
+        }
+
+        const computedStyle = window.getComputedStyle(element);
+        return computedStyle.display !== 'none' && computedStyle.visibility !== 'hidden';
+    }
+
+    function getFocusableElements(dialog) {
+        return Array.from(dialog.querySelectorAll(focusableSelector)).filter(isFocusable);
+    }
+
+    function isCommonModalOpen() {
+        const commonModal = document.getElementById('customModal');
+        return commonModal && !commonModal.classList.contains('hidden');
+    }
+
+    function setup(overlay, closeOverlay) {
+        const dialog = overlay.querySelector('.modal-container');
+        const title = dialog?.querySelector('h3');
+        if (!dialog || !title) return;
+
+        const instanceId = `${overlay.id}-a11y-${++instanceSequence}`;
+        const description = dialog.querySelector('.modal-body > p');
+        const triggerElement = document.activeElement;
+
+        dialog.setAttribute('role', 'dialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('tabindex', '-1');
+        title.id = `${instanceId}-title`;
+        dialog.setAttribute('aria-labelledby', title.id);
+
+        if (description) {
+            description.id = `${instanceId}-description`;
+            dialog.setAttribute('aria-describedby', description.id);
+        }
+
+        const handleKeydown = (event) => {
+            if (!overlay.isConnected || isCommonModalOpen()) return;
+
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeOverlay();
+                return;
+            }
+
+            if (event.key !== 'Tab') return;
+
+            const focusableElements = getFocusableElements(dialog);
+            if (focusableElements.length === 0) {
+                event.preventDefault();
+                dialog.focus();
+                return;
+            }
+
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+
+            if (!focusableElements.includes(document.activeElement)) {
+                event.preventDefault();
+                (event.shiftKey ? lastElement : firstElement).focus();
+            } else if (event.shiftKey && document.activeElement === firstElement) {
+                event.preventDefault();
+                lastElement.focus();
+            } else if (!event.shiftKey && document.activeElement === lastElement) {
+                event.preventDefault();
+                firstElement.focus();
+            }
+        };
+
+        overlayStates.set(overlay, { triggerElement, handleKeydown });
+        document.addEventListener('keydown', handleKeydown);
+
+        const focusableElements = getFocusableElements(dialog);
+        const firstFormControl = focusableElements.find((element) => (
+            ['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)
+        ));
+        (firstFormControl || focusableElements[0] || dialog).focus();
+    }
+
+    function cleanup(overlay) {
+        const state = overlayStates.get(overlay);
+        if (!state) return;
+
+        document.removeEventListener('keydown', state.handleKeydown);
+        overlayStates.delete(overlay);
+
+        if (isFocusable(state.triggerElement)) {
+            state.triggerElement.focus();
+        }
+    }
+
+    return { setup, cleanup };
+})();
+
 // ==========================================================================
 // FUNCIÓN: OBTENER TIMESTAMP PARA NOMBRE DE ARCHIVO
 // ==========================================================================
@@ -187,11 +302,13 @@ function openExportDataModal() {
     `;
     
     document.body.appendChild(overlay);
+    dataTransferOverlayAccessibility.setup(overlay, cerrarExportDataModal);
 }
 
 function cerrarExportDataModal() {
     const modal = document.getElementById('export-data-modal');
     if (modal) {
+        dataTransferOverlayAccessibility.cleanup(modal);
         modal.remove();
     }
 }
@@ -382,11 +499,13 @@ function showImportSelectionModal(data, fechaExportacion) {
     `;
     
     document.body.appendChild(overlay);
+    dataTransferOverlayAccessibility.setup(overlay, cerrarImportDataModal);
 }
 
 function cerrarImportDataModal() {
     const modal = document.getElementById('import-data-modal');
     if (modal) {
+        dataTransferOverlayAccessibility.cleanup(modal);
         modal.remove();
     }
     // No limpiamos importFileData aquí para que pueda usarse después si el usuario confirma

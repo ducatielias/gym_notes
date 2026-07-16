@@ -19,6 +19,10 @@
 
 let exerciseViewerOrigen = null; // 'session', 'workout', 'exercises', 'history', 'history-list'
 let lightboxActive = false;
+let activeLightboxOverlay = null;
+let lightboxEscapeHandler = null;
+let lightboxTriggerElement = null;
+let lightboxRemovalTimer = null;
 
 // ==========================================================================
 // ABRIR VISOR DE EJERCICIOS
@@ -183,7 +187,7 @@ function closeExerciseViewerFull() {
     if (lightboxActive) {
         closeExerciseLightbox();
     }
-    
+
     // Limpiar el contenedor
     const container = document.getElementById('screen-exercise-viewer');
     if (container) {
@@ -284,6 +288,83 @@ function searchExerciseOnViewerWeb(nombre) {
 // LIGHTBOX INTERNO PARA IMÁGENES
 // ==========================================================================
 
+function getLightboxFocusableElements(overlay) {
+    const focusableSelector = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled]):not([type="hidden"])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])'
+    ].join(', ');
+
+    return Array.from(overlay.querySelectorAll(focusableSelector)).filter((element) => {
+        return !element.closest('.hidden') && element.getAttribute('aria-hidden') !== 'true';
+    });
+}
+
+function restoreLightboxFocus() {
+    const elementToRestore = lightboxTriggerElement;
+    lightboxTriggerElement = null;
+
+    if (
+        elementToRestore &&
+        elementToRestore.isConnected &&
+        !elementToRestore.disabled &&
+        !elementToRestore.closest('.hidden') &&
+        typeof elementToRestore.focus === 'function'
+    ) {
+        elementToRestore.focus();
+    }
+}
+
+function removeLightboxKeyboardListener() {
+    if (lightboxEscapeHandler) {
+        document.removeEventListener('keydown', lightboxEscapeHandler);
+        lightboxEscapeHandler = null;
+    }
+}
+
+function handleLightboxKeydown(event) {
+    const overlay = activeLightboxOverlay;
+    if (!lightboxActive || !overlay) return;
+
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        closeExerciseLightbox();
+        return;
+    }
+
+    if (event.key !== 'Tab') return;
+
+    const focusableElements = getLightboxFocusableElements(overlay);
+    if (focusableElements.length === 0) {
+        event.preventDefault();
+        overlay.focus();
+        return;
+    }
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (!focusableElements.includes(document.activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? lastElement : firstElement).focus();
+    } else if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+    } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+    }
+}
+
+function handleLightboxBackdropClick(event) {
+    if (event.target === event.currentTarget) {
+        closeExerciseLightbox();
+    }
+}
+
 function openExerciseLightbox(src, nombre) {
     console.log('[exercise-viewer] Abriendo lightbox para:', src);
     const safeSource = GymNotesSafe.getSafeLightboxImageUrl(src);
@@ -296,6 +377,15 @@ function openExerciseLightbox(src, nombre) {
     if (lightboxActive) {
         closeExerciseLightbox();
     }
+
+    const staleOverlay = document.getElementById('exerciseLightboxOverlay');
+    if (staleOverlay) {
+        staleOverlay.remove();
+    }
+    if (lightboxRemovalTimer) {
+        clearTimeout(lightboxRemovalTimer);
+        lightboxRemovalTimer = null;
+    }
     
     // Crear el overlay del lightbox
     const overlay = document.createElement('div');
@@ -304,6 +394,7 @@ function openExerciseLightbox(src, nombre) {
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'Visor de imagen');
+    overlay.setAttribute('tabindex', '-1');
     
     // Contenido del lightbox
     overlay.innerHTML = `
@@ -316,51 +407,61 @@ function openExerciseLightbox(src, nombre) {
     
     // Añadir al body
     document.body.appendChild(overlay);
+    activeLightboxOverlay = overlay;
     lightboxActive = true;
+    const activeElement = document.activeElement;
+    lightboxTriggerElement = activeElement instanceof HTMLElement && activeElement !== document.body
+        ? activeElement
+        : null;
     
     // Activar la animación después de un pequeño delay
     requestAnimationFrame(() => {
-        overlay.classList.add('visible');
+        if (lightboxActive && activeLightboxOverlay === overlay) {
+            overlay.classList.add('visible');
+        }
     });
     
     // Cerrar al hacer clic fuera de la imagen
-    overlay.addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeExerciseLightbox();
-        }
-    });
-    
-    // Cerrar con la tecla Escape
-    const escapeHandler = function(e) {
-        if (e.key === 'Escape') {
-            closeExerciseLightbox();
-            document.removeEventListener('keydown', escapeHandler);
-        }
-    };
-    document.addEventListener('keydown', escapeHandler);
+    overlay.addEventListener('click', handleLightboxBackdropClick);
+
+    lightboxEscapeHandler = handleLightboxKeydown;
+    document.addEventListener('keydown', lightboxEscapeHandler);
     
     // Prevenir scroll del body
     document.body.style.overflow = 'hidden';
+
+    const closeButton = overlay.querySelector('.lightbox-close-btn');
+    (closeButton || overlay).focus();
 }
 
 function closeExerciseLightbox() {
     console.log('[exercise-viewer] Cerrando lightbox');
     
-    const overlay = document.getElementById('exerciseLightboxOverlay');
+    const overlay = activeLightboxOverlay || document.getElementById('exerciseLightboxOverlay');
+    removeLightboxKeyboardListener();
+    lightboxActive = false;
+    activeLightboxOverlay = null;
+
+    if (lightboxRemovalTimer) {
+        clearTimeout(lightboxRemovalTimer);
+        lightboxRemovalTimer = null;
+    }
+
     if (overlay) {
+        overlay.removeEventListener('click', handleLightboxBackdropClick);
         overlay.classList.remove('visible');
         // Esperar a que termine la animación antes de eliminar
-        setTimeout(() => {
+        lightboxRemovalTimer = setTimeout(() => {
             if (overlay.parentNode) {
                 overlay.parentNode.removeChild(overlay);
             }
+            lightboxRemovalTimer = null;
         }, 350);
     }
     
-    lightboxActive = false;
-    
     // Restaurar scroll del body
     document.body.style.overflow = '';
+    restoreLightboxFocus();
 }
 
 function linkifyExerciseViewerHTML(html) {
