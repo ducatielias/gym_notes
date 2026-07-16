@@ -58,11 +58,11 @@ function renderExercises() {
             <header class="exercises-header">
                 <div class="exercises-header-top">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="icons/icon-192x192.png" 
-                             alt="Gym Notes" 
-                             style="height: 32px; width: 32px; border-radius: 8px;"
+                        <img class="exercises-header__brand-icon"
+                             src="icons/icon-192x192.png" 
+                             alt="Gym Notes"
                              onerror="this.style.display='none'">
-                        <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0;">Ejercicios</h1>
+                        <h1 class="exercises-header__title">Ejercicios</h1>
                     </div>
                     <div style="position:relative;">
                         <button class="btn-exercises-options" onclick="toggleExercisesOptionsMenu(event)" title="Opciones">

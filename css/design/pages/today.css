@@ -8,7 +8,7 @@
     color: var(--gn-color-text);
 }
 
-/* Cabecera dinámica: conserva su estructura y estilos inline existentes. */
+/* Cabecera dinámica: conserva su estructura y delega los estilos estáticos de marca a esta capa. */
 #screen-today .screen-header {
     background-color: var(--gn-color-background);
     border-bottom: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border-muted);
@@ -21,7 +21,14 @@
     min-inline-size: 0;
 }
 
-#screen-today .screen-header h1 {
+#screen-today .today-header__brand-icon {
+    inline-size: var(--gn-space-2xl);
+    block-size: var(--gn-space-2xl);
+    border-radius: var(--gn-space-sm);
+}
+
+#screen-today .screen-header h1,
+#screen-today .screen-header h1.today-header__title {
     min-inline-size: 0;
     max-inline-size: 100%;
     overflow-wrap: anywhere;

@@ -1,6 +1,7 @@
 /*
  * Tokens visuales base de GymNotes.
- * Fase 3B: definidos, pero todavía no cargados ni aplicados a la interfaz.
+ * Enlazados desde index.html y consumidos por las capas activas de css/design.
+ * Son la fuente central de los valores visuales reutilizables.
  */
 
 :root {

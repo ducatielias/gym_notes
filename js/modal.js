@@ -15,6 +15,21 @@ const modalIcon = document.getElementById('modalIcon');
 let resolvePromise = null;
 let currentType = 'alert'; // 'alert', 'confirm', 'prompt', 'selector'
 
+const modalIconVariantClasses = [
+    'modal-icon--alert',
+    'modal-icon--confirm',
+    'modal-icon--prompt',
+    'modal-icon--selector'
+];
+
+/**
+ * Aplica la variante visual conocida del icono sin modificar estilos inline.
+ */
+function setModalIconVariant(variantClass) {
+    modalIcon.classList.remove(...modalIconVariantClasses);
+    modalIcon.classList.add(variantClass);
+}
+
 function closeModal() {
     modalOverlay.classList.add('hidden');
     if (resolvePromise) {
@@ -114,7 +129,7 @@ function showAlert(message, title = 'Aviso') {
         modalTitle.textContent = title;
         modalMessage.textContent = message;
         modalIcon.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
-        modalIcon.style.color = '#3b82f6';
+        setModalIconVariant('modal-icon--alert');
         modalInput.classList.add('hidden');
         modalCancelBtn.classList.add('hidden');
         modalConfirmBtn.textContent = 'Aceptar';
@@ -142,7 +157,7 @@ function showConfirm(message, title = 'Confirmar') {
         modalTitle.textContent = title;
         modalMessage.textContent = message;
         modalIcon.innerHTML = '<i class="fa-solid fa-question-circle"></i>';
-        modalIcon.style.color = '#f59e0b';
+        setModalIconVariant('modal-icon--confirm');
         modalInput.classList.add('hidden');
         modalCancelBtn.classList.remove('hidden');
         modalCancelBtn.textContent = 'Cancelar';
@@ -168,7 +183,7 @@ function showPrompt(message, defaultValue = '', title = 'Entrada de texto') {
         modalTitle.textContent = title;
         modalMessage.textContent = message;
         modalIcon.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
-        modalIcon.style.color = '#8b5cf6';
+        setModalIconVariant('modal-icon--prompt');
         modalInput.classList.remove('hidden');
         modalInput.value = defaultValue;
         modalInput.placeholder = 'Escribe aquí...';
@@ -198,7 +213,7 @@ function showRoutineSelector(routines, currentRoutineId, actionType = 'copy') {
         modalTitle.textContent = actionType === 'copy' ? 'Copiar sesión' : 'Mover sesión';
         modalMessage.textContent = `Selecciona la rutina donde deseas ${actionText}:`;
         modalIcon.innerHTML = '<i class="fa-solid fa-list-ul"></i>';
-        modalIcon.style.color = '#ccff00';
+        setModalIconVariant('modal-icon--selector');
         
         modalInput.classList.add('hidden');
         modalCancelBtn.classList.remove('hidden');

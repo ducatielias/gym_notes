@@ -49,6 +49,23 @@
     line-height: 1;
 }
 
+/* Variantes conocidas del modal común; preservan los colores previos sin inline styles. */
+#customModal .modal-icon--alert {
+    color: #3b82f6;
+}
+
+#customModal .modal-icon--confirm {
+    color: #f59e0b;
+}
+
+#customModal .modal-icon--prompt {
+    color: #8b5cf6;
+}
+
+#customModal .modal-icon--selector {
+    color: #ccff00;
+}
+
 #customModal .modal-header h3 {
     color: var(--gn-color-text);
     font-family: var(--gn-font-title);

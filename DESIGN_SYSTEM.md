@@ -2,11 +2,14 @@
 
 ## Estado y alcance
 
-Este documento define la identidad visual objetivo de GymNotes y las reglas para
-sus futuras migraciones visuales. Los tokens iniciales viven en
-`css/design/tokens.css`, pero **todavía no se cargan ni se aplican** a la
-interfaz. Esta decisión evita cambios visibles mientras se prepara una
-migración gradual de los componentes existentes.
+Este documento define la identidad visual de GymNotes y las reglas para sus
+futuras migraciones visuales. Los tokens viven en `css/design/tokens.css`, se
+cargan desde `index.html` y son consumidos por las capas activas de
+`css/design`.
+
+La caché PWA actual es `gym-notes-v1-05`. Su precaché incluye las 17 hojas
+activas del Design System y, durante `activate`, el Service Worker elimina
+cualquier caché distinta de la versión actual.
 
 ## Identidad visual
 
@@ -49,8 +52,9 @@ significado.
 3. Toda acción principal debe ser visualmente única; las acciones secundarias y
    destructivas deben conservar la misma jerarquía en toda la aplicación.
 4. Los estados vacío, carga, error y éxito deben reutilizar patrones comunes.
-5. La navegación inferior se reserva para destinos principales y deberá
-   evolucionar a una pill flotante sin alterar la navegación funcional.
+5. La navegación inferior se reserva para destinos principales. Es una barra
+   estructural fija, de ancho completo y con esquinas superiores redondeadas;
+   no debe convertirse en una tarjeta flotante.
 
 ## Paleta oficial
 
@@ -109,7 +113,7 @@ largos.
 | Control | 16px | Botones, inputs y selectores. |
 | Tarjeta | 24px | Tarjetas y grupos de contenido. |
 | Modal | 28px | Diálogos y hojas modales. |
-| Pill | 999px | Navegación inferior y acciones tipo píldora. |
+| Pill | 999px | Acciones tipo píldora y elementos activos internos. |
 | Círculo | 50% | Botones solo-icono y avatares. |
 
 ## Bordes
@@ -125,8 +129,8 @@ largos.
 - Sin sombra por defecto en superficies, tarjetas y controles.
 - Menús: sombra mínima para separarse del contenido inmediato.
 - Modales: sombra moderada, solo para reforzar la capa de overlay.
-- Navegación inferior flotante: sombra ligera y corta para garantizar
-  separación sobre el contenido al desplazarse.
+- Navegación inferior fija: sin sombra fuerte; el borde superior define su
+  separación respecto al contenido.
 
 ## Movimiento
 
@@ -142,26 +146,20 @@ largos.
 | Contexto | Objetivo |
 |---|---|
 | Móvil pequeño | 320–359px: conservar acciones esenciales, evitar filas forzadas y mantener objetivos táctiles. |
-| Móvil estándar | 360–599px: experiencia principal, una columna y navegación pill segura respecto al área inferior. |
+| Móvil estándar | 360–599px: experiencia principal, una columna y navegación fija segura respecto al área inferior. |
 | Tablet | 600–1023px: ampliar respiración y limitar el ancho de lectura sin duplicar la navegación. |
 | Escritorio | 1024px o más: contenido centrado con ancho máximo, tarjetas amplias y acciones accesibles sin depender de hover. |
 
-No se implementan layouts en esta fase; estas medidas son objetivos de las
-fases posteriores.
+Estas medidas guían las capas activas y cualquier ajuste responsive posterior.
 
-## Componentes que se migrarán después
+## Estado de migración de componentes
 
-1. Botones.
-2. Tarjetas.
-3. Formularios y buscadores.
-4. Encabezados.
-5. Menús contextuales.
-6. Modales y confirmaciones.
-7. Navegación inferior.
-8. Badges y etiquetas.
-9. Estados vacíos, carga, error y éxito.
-10. Quill y herramientas editoriales.
-11. Temporizadores y controles del entrenamiento activo.
+Las capas activas ya cubren botones, formularios, modales, tarjetas,
+encabezados, menús contextuales y navegación inferior. Las pantallas de Hoy,
+Ejercicios, el editor y visor de ejercicios, Historial, Entrenamiento activo,
+temporizadores y Asistente IA también disponen de capas visuales propias.
 
-Cada migración deberá ser independiente, conservar el comportamiento actual y
-verificarse en móvil y escritorio antes de continuar con el siguiente grupo.
+Quill, estados vacíos, badges y acciones de cada pantalla se han adaptado
+cuando pertenecen a esas capas. La consolidación futura debe conservar el
+comportamiento existente, verificarse en móvil y escritorio y no eliminar CSS
+heredado funcional sin una auditoría específica.
