@@ -319,6 +319,13 @@ function renderTodayDashboard() {
         
         <!-- Calendario -->
         <div class="today-calendar-container" id="today-calendar-container"></div>
+
+        <!-- Panel de progreso basado en el historial -->
+        <section
+            id="today-progress-section"
+            class="today-progress"
+            aria-labelledby="today-progress-title"
+        ></section>
         
         ${historyDB.length === 0 ? `
             <div class="today-empty-state">
@@ -330,6 +337,12 @@ function renderTodayDashboard() {
     `;
 
     renderTodayCalendar();
+
+    if (window.GymNotesTodayProgress && typeof window.GymNotesTodayProgress.render === 'function') {
+        window.GymNotesTodayProgress.render(document.getElementById('today-progress-section'));
+    } else {
+        console.warn('[today-dashboard] El módulo de progreso no está disponible');
+    }
     
     console.log('[today-dashboard] Dashboard renderizado correctamente');
 }
