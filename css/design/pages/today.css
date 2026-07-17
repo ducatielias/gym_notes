@@ -120,6 +120,42 @@
     cursor: not-allowed;
 }
 
+/* Variante informativa del botón IA: conserva íntegra la geometría primaria. */
+#screen-today .today-data-buttons-row--single .btn-today-entrenamiento-libre {
+    border-color: var(--gn-color-border);
+    background-color: var(--gn-color-info-text);
+    color: var(--gn-color-text-inverse);
+}
+
+#screen-today .today-data-buttons-row--single .btn-today-entrenamiento-libre i {
+    color: currentColor;
+}
+
+@media (hover: hover) {
+    #screen-today .today-data-buttons-row--single .btn-today-entrenamiento-libre:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-border);
+        background-color: color-mix(in srgb, var(--gn-color-info-text) 88%, var(--gn-color-border));
+        color: var(--gn-color-text-inverse);
+    }
+}
+
+#screen-today .today-data-buttons-row--single .btn-today-entrenamiento-libre:active:not(:disabled):not([aria-disabled="true"]) {
+    border-color: var(--gn-color-info-text);
+    background-color: var(--gn-color-info);
+    color: var(--gn-color-info-text);
+}
+
+#screen-today .today-data-buttons-row--single .btn-today-entrenamiento-libre:focus-visible {
+    outline-color: var(--gn-color-info-text);
+}
+
+#screen-today .today-data-buttons-row--single .btn-today-entrenamiento-libre:disabled,
+#screen-today .today-data-buttons-row--single .btn-today-entrenamiento-libre[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-text);
+}
+
 /* Calendario: superficie limpia y estados visuales del mes sin cambiar sus datos. */
 #screen-today .today-calendar-container {
     padding: var(--gn-space-xl);
@@ -278,6 +314,13 @@
 #screen-today .today-options-menu .menu-delete,
 #screen-today .today-options-menu .menu-delete i {
     color: var(--gn-color-danger-text);
+}
+
+/* Reutiliza la geometría del separador de los menús de cabecera existentes. */
+#screen-today .today-options-menu .menu-divider {
+    block-size: var(--gn-border-width-thin);
+    margin: var(--gn-space-xs) 6px;
+    background-color: var(--gn-color-border-muted);
 }
 
 /* Estados vacíos: mantienen los mensajes existentes en una superficie de baja jerarquía. */

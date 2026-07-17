@@ -194,9 +194,10 @@
 
 .btn-scroll-top {
     position: fixed;
-    /* Fallback para pantallas sin cabecera principal compatible. */
-    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
-    right: 20px;
+    /* Coincide con los 16 px / 20 px del botón de opciones de cada cabecera. */
+    top: var(--gn-space-lg);
+    right: calc(var(--gn-space-xl) - var(--gn-space-xs));
+    bottom: auto;
     background-color: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -212,8 +213,8 @@
     font-size: 18px;
     cursor: pointer;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-    /* Queda por debajo de los headers sticky y de sus menús contextuales. */
-    z-index: 90;
+    /* Sustituye al botón de opciones visible, sin superar un menú abierto. */
+    z-index: 101;
     opacity: 0;
     visibility: hidden;
     transform: translateY(15px);
@@ -233,24 +234,32 @@
     background-color: #000000;
 }
 
-/* Las cabeceras principales comparten el eje del menú (44 px y right: 20 px).
-   El botón se sitúa bajo su altura real sin cálculos de scroll en JavaScript. */
-@supports selector(#main-content:has(.screen:not(.hidden))) {
-    #main-content:has(#screen-today:not(.hidden)) ~ .btn-scroll-top,
-    #main-content:has(#screen-plan:not(.hidden)) ~ .btn-scroll-top {
-        --gn-scroll-top-header-height: 4.625rem;
+/* En navegadores con CSS Anchor Positioning, el botón global toma la
+   coordenada horizontal real del control de opciones de la pantalla activa.
+   Las pantallas ocultas no generan caja y, por tanto, no actúan como ancla. */
+@supports (anchor-name: --gn-header-options-button) and (left: anchor(--gn-header-options-button left)) {
+    #screen-today .screen-header .btn-header-options,
+    #plan-container > .screen-header .btn-header-ia + div .btn-header-options,
+    #screen-history .btn-history-options,
+    #screen-exercises .btn-exercises-options {
+        anchor-name: --gn-header-options-button;
     }
 
-    #main-content:has(#screen-history:not(.hidden)) ~ .btn-scroll-top,
-    #main-content:has(#screen-exercises:not(.hidden)) ~ .btn-scroll-top {
-        --gn-scroll-top-header-height: 11.625rem;
+    .btn-scroll-top {
+        position-anchor: --gn-header-options-button;
+        left: anchor(left, calc(100vw - 2.75rem - var(--gn-space-xl) + var(--gn-space-xs)));
+        right: auto;
     }
+}
 
-    #main-content:has(#screen-today:not(.hidden)) ~ .btn-scroll-top,
-    #main-content:has(#screen-plan:not(.hidden)) ~ .btn-scroll-top,
-    #main-content:has(#screen-history:not(.hidden)) ~ .btn-scroll-top,
-    #main-content:has(#screen-exercises:not(.hidden)) ~ .btn-scroll-top {
-        top: calc(var(--gn-scroll-top-header-height) + var(--gn-space-md) + env(safe-area-inset-top, 0px));
-        bottom: auto;
+/* Cada menú vive en el contexto de apilamiento de su header (z-index: 100).
+   Al abrirse, ese contexto asciende solo lo necesario para quedar sobre el
+   botón de scroll, que normalmente sustituye al control de tres puntos. */
+@supports selector(.screen-header:has(.today-options-menu:not(.hidden))) {
+    #screen-today .screen-header:has(.today-options-menu:not(.hidden)),
+    #plan-container > .screen-header:has(.routine-list-options-menu:not(.hidden)),
+    #screen-history .history-header:has(.history-options-menu:not(.hidden)),
+    #screen-exercises .exercises-header:has(.exercises-options-menu:not(.hidden)) {
+        z-index: 102;
     }
 }

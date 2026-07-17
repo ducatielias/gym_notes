@@ -264,20 +264,22 @@ function renderTodayDashboard() {
                         <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>
                     <div class="today-options-menu hidden" id="todayOptionsMenu" onclick="event.stopPropagation()" style="top: calc(100% + 8px); right: 0;">
-                        <button class="menu-item" onclick="closeTodayOptionsMenu(); openImportDataModal();">
-                            <i class="fa-solid fa-file-import"></i> Importar datos
-                        </button>
-                        <button class="menu-item" onclick="closeTodayOptionsMenu(); openExportDataModal();">
-                            <i class="fa-solid fa-file-export"></i> Exportar datos
-                        </button>
                         <button class="menu-item" onclick="closeTodayOptionsMenu(); handleTodayActualizarApp();">
                             <i class="fa-solid fa-rotate"></i> Actualizar app
                         </button>
                         <button class="menu-item" onclick="closeTodayOptionsMenu(); mostrarVersion();">
                             <i class="fa-solid fa-tag"></i> Versión
                         </button>
+                        <div class="menu-divider" aria-hidden="true"></div>
+                        <button class="menu-item" onclick="closeTodayOptionsMenu(); openImportDataModal();">
+                            <i class="fa-solid fa-file-import"></i> Importar datos
+                        </button>
+                        <button class="menu-item" onclick="closeTodayOptionsMenu(); openExportDataModal();">
+                            <i class="fa-solid fa-file-export"></i> Exportar datos
+                        </button>
+                        <div class="menu-divider" aria-hidden="true"></div>
                         <button class="menu-item menu-delete" onclick="confirmTodayClearAllData();">
-                            <i class="fa-solid fa-trash-can"></i> Eliminar todos los datos
+                            <i class="fa-solid fa-trash-can"></i> Eliminar todo
                         </button>
                     </div>
                 </div>
@@ -310,7 +312,7 @@ function renderTodayDashboard() {
         </button>
 
         <div class="today-data-buttons-row today-data-buttons-row--single">
-            <button class="btn-today-data" onclick="openIAAssistant()">
+            <button class="btn-today-entrenamiento-libre" onclick="openIAAssistant()">
                 <i class="fa-solid fa-robot"></i> Crear rutina con IA
             </button>
         </div>
