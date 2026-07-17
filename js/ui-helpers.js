@@ -9,6 +9,14 @@
 const allScreens = document.querySelectorAll('.screen');
 const globalScrollTopButton = document.getElementById('globalScrollTopBtn');
 
+// Respeta la preferencia de movimiento del sistema sin alterar el destino del desplazamiento.
+function getMotionAwareScrollBehavior() {
+    return typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'auto'
+        : 'smooth';
+}
+
 // Asignar el escuchador de scroll a cada una de ellas de forma genérica
 allScreens.forEach(screen => {
     screen.addEventListener('scroll', function() {
@@ -31,7 +39,7 @@ function scrollToTopGlobal() {
     if (activeScreen) {
         activeScreen.scrollTo({
             top: 0,
-            behavior: 'smooth'
+            behavior: getMotionAwareScrollBehavior()
         });
     }
 }

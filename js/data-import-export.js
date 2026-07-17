@@ -659,6 +659,7 @@ function synchronizeImportedMemory(preparedImport) {
 }
 
 function showImportPersistenceError(result) {
+    cerrarImportDataModal();
     console.error('[data-import-export] Error en la importación:', result);
 
     if (result.status === GymNotesStorage.STATUS.ROLLBACK_FAILED) {
@@ -675,11 +676,13 @@ function importData() {
     const importEjercicios = document.getElementById('import-ejercicios')?.checked || false;
     
     if (!importRutinas && !importHistorial && !importEjercicios) {
+        cerrarImportDataModal();
         window.showAlert('Selecciona al menos un tipo de datos para importar.', 'Aviso');
         return;
     }
     
     if (!importFileData) {
+        cerrarImportDataModal();
         window.showAlert('No hay datos para importar.', 'Error');
         return;
     }
@@ -690,6 +693,7 @@ function importData() {
     if (importHistorial) tipos.push('historial');
     if (importEjercicios) tipos.push('ejercicios');
     
+    cerrarImportDataModal();
     window.showConfirm(
         `¿Estás seguro de que quieres importar ${tipos.join(', ')}?\n\n⚠️ Los datos existentes serán SOBRESCRITOS. Esta acción no se puede deshacer.`,
         'Confirmar importación'

@@ -11,7 +11,9 @@
 // ==========================================================================
 
 let todayCalendarDate = new Date();
-let todayDashboardInitialized = false;
+let todayDashboardInitializationStarted = false;
+let todaySwitchTabHookInstalled = false;
+let todayRenderQueued = false;
 
 // ==========================================================================
 // FUNCIONES AUXILIARES
@@ -203,7 +205,10 @@ function irAlHistorialDesdeCalendario(dateKey) {
         const primeraTarjeta = tarjetasEncontradas[0];
         void primeraTarjeta.offsetHeight;
         primeraTarjeta.scrollIntoView({
-            behavior: 'smooth',
+            behavior: typeof window.matchMedia === 'function' &&
+                window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                ? 'auto'
+                : 'smooth',
             block: 'center',
             inline: 'nearest'
         });
@@ -490,14 +495,35 @@ function iniciarEntrenamientoLibreToday() {
 }
 
 // ==========================================================================
-// FUNCIÓN PARA INICIALIZAR EL DASHBOARD DESDE switchTab
+// SOLICITUD DE RENDERIZADO DE "HOY"
 // ==========================================================================
+
+/**
+ * Agrupa los disparadores de visibilidad de "Hoy" en una sola microtarea.
+ * La pantalla solo puede tener un render pendiente y se vuelve a comprobar su
+ * visibilidad justo antes de actualizar el DOM.
+ */
+function requestTodayRender() {
+    const todayScreen = document.getElementById('screen-today');
+    if (!todayScreen || todayScreen.classList.contains('hidden') || todayRenderQueued) {
+        return;
+    }
+
+    todayRenderQueued = true;
+    queueMicrotask(function() {
+        todayRenderQueued = false;
+
+        const currentTodayScreen = document.getElementById('screen-today');
+        if (currentTodayScreen && !currentTodayScreen.classList.contains('hidden')) {
+            renderTodayDashboard();
+        }
+    });
+}
 
 function initTodayDashboard() {
     const todayScreen = document.getElementById('screen-today');
     if (todayScreen && !todayScreen.classList.contains('hidden')) {
-        renderTodayDashboard();
-        todayDashboardInitialized = true;
+        requestTodayRender();
     }
 }
 
@@ -506,78 +532,40 @@ function initTodayDashboard() {
 // ==========================================================================
 
 function setupSwitchTabHook() {
+    if (todaySwitchTabHookInstalled) return;
+
     if (typeof window.switchTab === 'function') {
         const originalSwitchTab = window.switchTab;
         window.switchTab = function(tabId) {
-            originalSwitchTab.call(this, tabId);
+            const result = originalSwitchTab.apply(this, arguments);
             if (tabId === 'today') {
-                setTimeout(function() {
-                    renderTodayDashboard();
-                }, 100);
+                requestTodayRender();
             }
+            return result;
         };
+        todaySwitchTabHookInstalled = true;
         console.log('[today-dashboard] switchTab hook configurado');
     } else {
-        console.warn('[today-dashboard] switchTab no existe, se usará el observer');
+        console.warn('[today-dashboard] switchTab no existe; no se puede inicializar Hoy');
     }
-}
-
-function setupVisibilityObserver() {
-    const todayScreen = document.getElementById('screen-today');
-    if (!todayScreen) {
-        console.warn('[today-dashboard] screen-today no encontrado para el observer');
-        return;
-    }
-
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                const target = mutation.target;
-                if (target.id === 'screen-today') {
-                    const isHidden = target.classList.contains('hidden');
-                    if (!isHidden && !todayDashboardInitialized) {
-                        console.log('[today-dashboard] screen-today se hizo visible (observer)');
-                        renderTodayDashboard();
-                        todayDashboardInitialized = true;
-                    } else if (!isHidden) {
-                        renderTodayDashboard();
-                    }
-                }
-            }
-        });
-    });
-
-    observer.observe(todayScreen, { attributes: true, attributeFilter: ['class'] });
-    console.log('[today-dashboard] Observer configurado para screen-today');
 }
 
 // ==========================================================================
 // INICIALIZAR AL CARGAR EL DOM
 // ==========================================================================
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('[today-dashboard] DOMContentLoaded - Inicializando...');
-    setupSwitchTabHook();
-    setupVisibilityObserver();
-    setTimeout(function() {
-        const todayScreen = document.getElementById('screen-today');
-        if (todayScreen && !todayScreen.classList.contains('hidden')) {
-            console.log('[today-dashboard] screen-today visible al cargar');
-            renderTodayDashboard();
-            todayDashboardInitialized = true;
-        }
-    }, 200);
-});
+function initializeTodayDashboard() {
+    if (todayDashboardInitializationStarted) return;
 
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    console.log('[today-dashboard] Script cargado en estado:', document.readyState);
-    setTimeout(function() {
-        const todayScreen = document.getElementById('screen-today');
-        if (todayScreen && !todayScreen.classList.contains('hidden')) {
-            renderTodayDashboard();
-            todayDashboardInitialized = true;
-        }
-    }, 100);
+    todayDashboardInitializationStarted = true;
+    setupSwitchTabHook();
+    requestTodayRender();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeTodayDashboard);
+} else {
+    initializeTodayDashboard();
 }
 
 // ==========================================================================
