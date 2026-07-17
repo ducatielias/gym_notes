@@ -53,14 +53,22 @@
     line-height: var(--gn-line-height-normal);
 }
 
-.gn-header__button {
+.gn-header__button,
+/* El botón de Rutinas sigue a la acción IA; Sesiones conserva su botón actual. */
+#plan-container > .screen-header .btn-header-ia + div .btn-header-options {
     appearance: none;
     box-sizing: border-box;
-    min-inline-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
-    min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
-    border: var(--gn-border-width-thin) var(--gn-border-style) transparent;
+    display: inline-grid;
+    flex: 0 0 2.75rem;
+    inline-size: 2.75rem;
+    min-inline-size: 2.75rem;
+    block-size: 2.75rem;
+    min-block-size: 2.75rem;
+    padding: 0;
+    place-items: center;
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-circle);
-    background-color: transparent;
+    background-color: var(--gn-color-surface);
     color: var(--gn-color-text);
     cursor: pointer;
     transition:
@@ -69,24 +77,36 @@
         color var(--gn-motion-fast) var(--gn-ease-standard);
 }
 
-.gn-header__button:focus-visible {
-    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
-    outline-offset: var(--gn-space-xs);
+.gn-header__button:focus-visible,
+#plan-container > .screen-header .btn-header-ia + div .btn-header-options:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-text);
+    outline-offset: 2px;
 }
 
 @media (hover: hover) {
-    .gn-header__button:hover:not(:disabled):not([aria-disabled="true"]) {
+    .gn-header__button:hover:not(:disabled):not([aria-disabled="true"]),
+    #plan-container > .screen-header .btn-header-ia + div .btn-header-options:hover:not(:disabled):not([aria-disabled="true"]) {
         background-color: var(--gn-color-surface-secondary);
-        border-color: var(--gn-color-border-muted);
+        border-color: var(--gn-color-text);
     }
 }
 
 .gn-header__button:disabled,
-.gn-header__button[aria-disabled="true"] {
+.gn-header__button[aria-disabled="true"],
+#plan-container > .screen-header .btn-header-ia + div .btn-header-options:disabled,
+#plan-container > .screen-header .btn-header-ia + div .btn-header-options[aria-disabled="true"] {
     background-color: var(--gn-color-disabled);
     border-color: var(--gn-color-border-muted);
     color: var(--gn-color-disabled-text);
     cursor: not-allowed;
+}
+
+.gn-header__button:active:not(:disabled):not([aria-disabled="true"]),
+#plan-container > .screen-header .btn-header-ia + div .btn-header-options:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: none;
+    border-color: var(--gn-color-border);
+    background-color: var(--gn-color-accent);
+    color: var(--gn-color-text);
 }
 
 /* Puente de Plan: conserva sticky, top y z-index heredados de gym-plan.css. */
@@ -154,8 +174,7 @@
 
 /* Los controles existentes conservan clases, eventos e iconos; solo cambia su presentación. */
 #plan-container > .screen-header .btn-back,
-#plan-container > .screen-header .btn-header-ia,
-#plan-container > .screen-header .btn-header-options {
+#plan-container > .screen-header .btn-header-ia {
     appearance: none;
     box-sizing: border-box;
     border: var(--gn-border-width-thin) var(--gn-border-style) transparent;
@@ -181,8 +200,7 @@
     white-space: nowrap;
 }
 
-#plan-container > .screen-header .btn-header-ia,
-#plan-container > .screen-header .btn-header-options {
+#plan-container > .screen-header .btn-header-ia {
     flex: 0 0 calc(var(--gn-space-2xl) + var(--gn-space-md));
     inline-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
     block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
@@ -193,16 +211,14 @@
 
 @media (hover: hover) {
     #plan-container > .screen-header .btn-back:hover:not(:disabled):not([aria-disabled="true"]),
-    #plan-container > .screen-header .btn-header-ia:hover:not(:disabled):not([aria-disabled="true"]),
-    #plan-container > .screen-header .btn-header-options:hover:not(:disabled):not([aria-disabled="true"]) {
+    #plan-container > .screen-header .btn-header-ia:hover:not(:disabled):not([aria-disabled="true"]) {
         background-color: var(--gn-color-surface-secondary);
         border-color: var(--gn-color-border-muted);
     }
 }
 
 #plan-container > .screen-header .btn-back:active:not(:disabled):not([aria-disabled="true"]),
-#plan-container > .screen-header .btn-header-ia:active:not(:disabled):not([aria-disabled="true"]),
-#plan-container > .screen-header .btn-header-options:active:not(:disabled):not([aria-disabled="true"]) {
+#plan-container > .screen-header .btn-header-ia:active:not(:disabled):not([aria-disabled="true"]) {
     background-color: var(--gn-color-surface-secondary);
     border-color: var(--gn-color-border);
     color: var(--gn-color-text);
@@ -211,8 +227,7 @@
 }
 
 #plan-container > .screen-header .btn-back:focus-visible,
-#plan-container > .screen-header .btn-header-ia:focus-visible,
-#plan-container > .screen-header .btn-header-options:focus-visible {
+#plan-container > .screen-header .btn-header-ia:focus-visible {
     outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
     outline-offset: var(--gn-space-xs);
 }
@@ -220,9 +235,7 @@
 #plan-container > .screen-header .btn-back:disabled,
 #plan-container > .screen-header .btn-back[aria-disabled="true"],
 #plan-container > .screen-header .btn-header-ia:disabled,
-#plan-container > .screen-header .btn-header-ia[aria-disabled="true"],
-#plan-container > .screen-header .btn-header-options:disabled,
-#plan-container > .screen-header .btn-header-options[aria-disabled="true"] {
+#plan-container > .screen-header .btn-header-ia[aria-disabled="true"] {
     background-color: var(--gn-color-disabled);
     border-color: var(--gn-color-border-muted);
     color: var(--gn-color-disabled-text);
@@ -231,9 +244,9 @@
 
 @media (prefers-reduced-motion: reduce) {
     .gn-header__button,
+    #plan-container > .screen-header .btn-header-ia + div .btn-header-options,
     #plan-container > .screen-header .btn-back,
-    #plan-container > .screen-header .btn-header-ia,
-    #plan-container > .screen-header .btn-header-options {
-        transition-duration: 1ms;
+    #plan-container > .screen-header .btn-header-ia {
+        transition-duration: 0ms;
     }
 }

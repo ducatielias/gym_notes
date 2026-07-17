@@ -12,6 +12,10 @@
     display: none !important;
 }
 
+#screen-plan {
+    background-color: var(--gn-color-background);
+}
+
 /* ==========================================================================
    ENCABEZADOS SUPERIORES FIJOS MODIFICADOS (DOS LÍNEAS)
    ========================================================================== */
@@ -20,7 +24,6 @@
     top: 0;
     z-index: 100;
     background-color: var(--background-color, #fafafa);
-    padding: 15px 20px 14px 20px !important;
     border-bottom: 1px solid #e5e7eb;
     display: flex;
     flex-direction: column;

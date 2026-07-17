@@ -28,7 +28,7 @@ function renderRoutineList() {
             <div class="header-nav-row">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <img src="icons/icon-192x192.png" alt="Gym Notes" style="height:32px; width:32px; border-radius:8px;" onerror="this.style.display='none'">
-                    <h1 style="font-size:28px; font-weight:800; letter-spacing:-0.5px; margin:0; line-height:0;">Rutinas</h1>
+                    <h1 style="font-size:28px; font-weight:800; letter-spacing:-0.5px; margin:0;">Rutinas</h1>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px;">
                     <button class="btn-header-ia" onclick="openIAAssistant()" title="Asistente IA">
