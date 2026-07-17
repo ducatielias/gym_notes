@@ -114,10 +114,12 @@
     background-color: var(--gn-color-surface);
     color: var(--gn-color-text);
     font-family: var(--gn-font-body);
-    font-size: var(--gn-font-size-sm);
+    font-size: var(--gn-font-size-md);
     font-weight: var(--gn-font-weight-medium);
     line-height: var(--gn-line-height-normal);
     box-shadow: var(--gn-shadow-none);
+    background-position: right 14px center;
+    background-size: 16px;
     transition: border-color var(--gn-motion-fast) var(--gn-ease-standard),
         background-color var(--gn-motion-fast) var(--gn-ease-standard);
 }

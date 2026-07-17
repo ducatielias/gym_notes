@@ -10,6 +10,9 @@
 
 /* Cabecera dinámica: conserva su estructura y delega los estilos estáticos de marca a esta capa. */
 #screen-today .screen-header {
+    /* La capa heredada usa !important: se iguala el padding inferior de Rutinas
+       para que el borde visible quede en la misma coordenada vertical. */
+    padding: var(--gn-space-lg) calc(var(--gn-space-xl) - var(--gn-space-xs)) calc(var(--gn-space-lg) - var(--gn-border-width)) calc(var(--gn-space-xl) - var(--gn-space-xs)) !important;
     background-color: var(--gn-color-background);
     border-bottom: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border-muted);
     box-shadow: var(--gn-shadow-none);
@@ -34,44 +37,6 @@
     overflow-wrap: anywhere;
     color: var(--gn-color-text);
     font-family: var(--gn-font-title);
-}
-
-#screen-today .screen-header .btn-header-options {
-    appearance: none;
-    box-sizing: border-box;
-    flex: 0 0 calc(var(--gn-space-2xl) + var(--gn-space-md));
-    inline-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
-    block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
-    padding: 0;
-    border: var(--gn-border-width-thin) var(--gn-border-style) transparent;
-    border-radius: var(--gn-radius-circle);
-    background-color: transparent;
-    color: var(--gn-color-text);
-    font-family: var(--gn-font-body);
-    cursor: pointer;
-    transition:
-        background-color var(--gn-motion-fast) var(--gn-ease-standard),
-        border-color var(--gn-motion-fast) var(--gn-ease-standard),
-        color var(--gn-motion-fast) var(--gn-ease-standard);
-}
-
-@media (hover: hover) {
-    #screen-today .screen-header .btn-header-options:hover:not(:disabled):not([aria-disabled="true"]) {
-        border-color: var(--gn-color-border-muted);
-        background-color: var(--gn-color-surface-secondary);
-    }
-}
-
-#screen-today .screen-header .btn-header-options:active:not(:disabled):not([aria-disabled="true"]) {
-    border-color: var(--gn-color-border);
-    background-color: var(--gn-color-surface-secondary);
-    color: var(--gn-color-text);
-    transform: none;
-}
-
-#screen-today .screen-header .btn-header-options:focus-visible {
-    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
-    outline-offset: var(--gn-space-xs);
 }
 
 #screen-today #today-dashboard-content {
@@ -141,8 +106,6 @@
     outline-offset: var(--gn-space-xs);
 }
 
-#screen-today .screen-header .btn-header-options:disabled,
-#screen-today .screen-header .btn-header-options[aria-disabled="true"],
 #screen-today .btn-today-entrenamiento-libre:disabled,
 #screen-today .btn-today-entrenamiento-libre[aria-disabled="true"],
 #screen-today .today-empty-state .btn-empty-add:disabled,
@@ -270,6 +233,11 @@
     inline-size: 100%;
 }
 
+/* Reutiliza el botón secundario existente para la única acción visible de IA. */
+#screen-today .today-data-buttons-row--single {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 #screen-today .btn-today-data {
     box-sizing: border-box;
     min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
@@ -305,6 +273,11 @@
     background-color: var(--gn-color-surface);
     color: var(--gn-color-text);
     transform: none;
+}
+
+#screen-today .today-options-menu .menu-delete,
+#screen-today .today-options-menu .menu-delete i {
+    color: var(--gn-color-danger-text);
 }
 
 /* Estados vacíos: mantienen los mensajes existentes en una superficie de baja jerarquía. */
@@ -372,7 +345,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #screen-today .screen-header .btn-header-options,
     #screen-today .btn-today-entrenamiento-libre,
     #screen-today .today-empty-state .btn-empty-add,
     #screen-today .today-calendar-header button,

@@ -14,6 +14,7 @@ let todayCalendarDate = new Date();
 let todayDashboardInitializationStarted = false;
 let todaySwitchTabHookInstalled = false;
 let todayRenderQueued = false;
+let todayGlobalDataClearInProgress = false;
 
 // ==========================================================================
 // FUNCIONES AUXILIARES
@@ -263,11 +264,20 @@ function renderTodayDashboard() {
                         <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>
                     <div class="today-options-menu hidden" id="todayOptionsMenu" onclick="event.stopPropagation()" style="top: calc(100% + 8px); right: 0;">
-                        <button class="menu-item" onclick="handleTodayActualizarApp(); closeTodayOptionsMenu();">
+                        <button class="menu-item" onclick="closeTodayOptionsMenu(); openImportDataModal();">
+                            <i class="fa-solid fa-file-import"></i> Importar datos
+                        </button>
+                        <button class="menu-item" onclick="closeTodayOptionsMenu(); openExportDataModal();">
+                            <i class="fa-solid fa-file-export"></i> Exportar datos
+                        </button>
+                        <button class="menu-item" onclick="closeTodayOptionsMenu(); handleTodayActualizarApp();">
                             <i class="fa-solid fa-rotate"></i> Actualizar app
                         </button>
-                        <button class="menu-item" onclick="mostrarVersion(); closeTodayOptionsMenu();">
+                        <button class="menu-item" onclick="closeTodayOptionsMenu(); mostrarVersion();">
                             <i class="fa-solid fa-tag"></i> Versión
+                        </button>
+                        <button class="menu-item menu-delete" onclick="confirmTodayClearAllData();">
+                            <i class="fa-solid fa-trash-can"></i> Eliminar todos los datos
                         </button>
                     </div>
                 </div>
@@ -298,19 +308,15 @@ function renderTodayDashboard() {
         <button class="btn-today-entrenamiento-libre" onclick="iniciarEntrenamientoLibreToday()">
             <i class="fa-solid fa-plus-circle"></i> Entrenamiento Libre
         </button>
+
+        <div class="today-data-buttons-row today-data-buttons-row--single">
+            <button class="btn-today-data" onclick="openIAAssistant()">
+                <i class="fa-solid fa-robot"></i> Crear rutina con IA
+            </button>
+        </div>
         
         <!-- Calendario -->
         <div class="today-calendar-container" id="today-calendar-container"></div>
-        
-        <!-- Botones de Importar/Exportar Datos -->
-        <div class="today-data-buttons-row">
-            <button class="btn-today-data btn-today-data-import" onclick="openImportDataModal()">
-                <i class="fa-solid fa-file-import"></i> Importar datos
-            </button>
-            <button class="btn-today-data btn-today-data-export" onclick="openExportDataModal()">
-                <i class="fa-solid fa-file-export"></i> Exportar datos
-            </button>
-        </div>
         
         ${historyDB.length === 0 ? `
             <div class="today-empty-state">
@@ -342,6 +348,127 @@ function closeTodayOptionsMenu() {
     const menu = document.getElementById('todayOptionsMenu');
     if (menu) {
         menu.classList.add('hidden');
+    }
+}
+
+/**
+ * Devuelve el bloqueo del dominio que impediría sustituir un fallback temporal
+ * por datos vacíos persistidos tras una lectura corrupta.
+ */
+function getTodayGlobalDataClearPersistenceBlock() {
+    // Historial se refresca desde su API pública antes de consultar su estado.
+    getHistory();
+
+    const blockedStates = [
+        { blocked: appDataPersistenceBlocked, key: APP_DATA_STORAGE_KEY, cause: appDataStorageIssue },
+        { blocked: exercisesDataPersistenceBlocked, key: EXERCISES_STORAGE_KEY, cause: exercisesDataStorageIssue },
+        { blocked: historyDataPersistenceBlocked, key: HISTORY_STORAGE_KEY, cause: historyDataStorageIssue }
+    ];
+
+    const blockedState = blockedStates.find(state => state.blocked);
+    return blockedState
+        ? { ok: false, status: 'persistence-blocked', storageState: 'unchanged', ...blockedState }
+        : null;
+}
+
+/** Prepara el único conjunto de cambios persistidos por el borrado global. */
+function prepareTodayGlobalDataClear() {
+    return GymNotesStorage.prepareJsonChanges([
+        {
+            key: APP_DATA_STORAGE_KEY,
+            value: { routines: [] },
+            schema: { type: 'object', requiredKeys: ['routines'] }
+        },
+        {
+            key: EXERCISES_STORAGE_KEY,
+            value: { exercises: [] },
+            schema: { type: 'object', requiredKeys: ['exercises'] }
+        },
+        {
+            key: HISTORY_STORAGE_KEY,
+            value: [],
+            schema: { type: 'array' }
+        }
+    ]);
+}
+
+/**
+ * Sincroniza las referencias de memoria solo después de una transacción
+ * aplicada. No usa los setters de dominio porque ejecutarían escrituras
+ * independientes después de la operación coordinada.
+ */
+function synchronizeTodayGlobalDataClear() {
+    appData.routines = [];
+    window.appData = appData;
+
+    exercisesData.exercises = [];
+    window.exercisesData = exercisesData;
+
+    historyDB.splice(0, historyDB.length);
+    window.historyDB = historyDB;
+
+    currentRoutineId = null;
+    window.currentRoutineId = null;
+
+    // Deja preparadas las pantallas no activas sin cambiar la navegación actual.
+    renderRoutineList();
+    renderExercises();
+    renderHistory();
+    renderTodayDashboard();
+}
+
+async function reportTodayGlobalDataClearError(result) {
+    const message = result.status === GymNotesStorage.STATUS.ROLLBACK_FAILED
+        ? 'No se pudieron eliminar todos los datos y el almacenamiento puede estar en un estado incierto. Recarga la aplicación antes de realizar más cambios.'
+        : 'No se pudieron eliminar los datos de GymNotes. No se ha aplicado ningún cambio.';
+
+    console.error('[today-dashboard] Error al eliminar todos los datos.', result);
+    await window.showAlert(message, 'Error al eliminar datos');
+    return result;
+}
+
+async function executeTodayGlobalDataClear() {
+    const blockedResult = getTodayGlobalDataClearPersistenceBlock();
+    if (blockedResult) {
+        return reportTodayGlobalDataClearError(blockedResult);
+    }
+
+    const preparedChanges = prepareTodayGlobalDataClear();
+    if (!preparedChanges.ok) {
+        return reportTodayGlobalDataClearError(preparedChanges);
+    }
+
+    const persistenceResult = GymNotesStorage.applyPreparedChanges(preparedChanges);
+    if (!persistenceResult.ok) {
+        return reportTodayGlobalDataClearError(persistenceResult);
+    }
+
+    synchronizeTodayGlobalDataClear();
+    await window.showAlert('Se han eliminado todos los datos de GymNotes.', 'Datos eliminados');
+    return persistenceResult;
+}
+
+/** Cierra el menú antes de pedir confirmación y bloquea ejecuciones solapadas. */
+async function confirmTodayClearAllData() {
+    if (todayGlobalDataClearInProgress) {
+        return { ok: false, status: 'operation-in-progress', storageState: 'unchanged' };
+    }
+
+    todayGlobalDataClearInProgress = true;
+    try {
+        closeTodayOptionsMenu();
+        const confirmed = await window.showConfirm(
+            '¿Eliminar todos los datos de GymNotes?\n\nSe eliminarán todas las rutinas y sesiones, ejercicios e historial. Esta acción no se puede deshacer.',
+            'Eliminar todos los datos'
+        );
+
+        if (!confirmed) {
+            return { ok: false, status: 'cancelled', storageState: 'unchanged' };
+        }
+
+        return await executeTodayGlobalDataClear();
+    } finally {
+        todayGlobalDataClearInProgress = false;
     }
 }
 
@@ -581,5 +708,6 @@ window.initTodayDashboard = initTodayDashboard;
 window.todayCalendarDate = todayCalendarDate;
 window.toggleTodayOptionsMenu = toggleTodayOptionsMenu;
 window.closeTodayOptionsMenu = closeTodayOptionsMenu;
+window.confirmTodayClearAllData = confirmTodayClearAllData;
 window.handleTodayActualizarApp = handleTodayActualizarApp;
 window.mostrarVersion = mostrarVersion;
