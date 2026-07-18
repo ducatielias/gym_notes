@@ -6,30 +6,52 @@
 .gn-bottom-nav,
 .bottom-nav {
     position: fixed;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    right: var(--gn-space-md);
+    bottom: calc(var(--gn-space-md) + env(safe-area-inset-bottom, 0px));
+    left: var(--gn-space-md);
     box-sizing: border-box;
-    width: 100%;
-    max-width: none;
+    width: auto;
+    max-width: 48rem;
     height: auto;
     min-block-size: calc(var(--gn-space-3xl) + var(--gn-space-md));
-    margin: 0;
-    padding: var(--gn-space-sm) var(--gn-space-lg);
-    padding-bottom: calc(var(--gn-space-sm) + env(safe-area-inset-bottom, 0px));
-    border: 0;
-    border-top: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
-    border-radius: var(--gn-radius-card) var(--gn-radius-card) 0 0;
+    margin: 0 auto;
+    padding: var(--gn-space-xs) var(--gn-space-md);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-card);
     background-color: var(--gn-color-surface);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: var(--gn-shadow-none);
+    box-shadow: 0 var(--gn-space-sm) 0 var(--gn-color-border);
     color: var(--gn-color-text);
     z-index: var(--gn-layer-navigation);
     transition:
         background-color var(--gn-motion-standard) var(--gn-ease-standard),
         border-color var(--gn-motion-standard) var(--gn-ease-standard);
+}
+
+/* Desvanece el contenido bajo la barra solo mientras la navegacion esta visible. */
+@supports selector(body:has(.bottom-nav)) {
+    body:has(.bottom-nav:not(.hidden-nav)) #main-content::after {
+        content: "";
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        block-size: calc(
+            var(--gn-space-3xl) +
+            var(--gn-space-3xl) +
+            var(--gn-space-xl) +
+            env(safe-area-inset-bottom, 0px)
+        );
+        background: linear-gradient(
+            to bottom,
+            transparent,
+            var(--gn-color-background)
+        );
+        pointer-events: none;
+        z-index: var(--gn-layer-sticky);
+    }
 }
 
 .gn-bottom-nav__item,
@@ -39,7 +61,7 @@
     flex: 1 1 0;
     min-inline-size: 0;
     min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
-    padding: 0 var(--gn-space-sm);
+    padding: 0 var(--gn-space-xs);
     border: var(--gn-border-width-thin) var(--gn-border-style) transparent;
     border-radius: var(--gn-radius-md);
     background-color: transparent;
@@ -72,16 +94,14 @@
 .gn-bottom-nav__label,
 .bottom-nav .nav-item > span {
     max-inline-size: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .gn-bottom-nav__item--active,
 .bottom-nav .nav-item.active,
 .bottom-nav .nav-item[aria-current="page"] {
-    border-color: var(--gn-color-border);
-    background-color: var(--gn-color-accent);
-    color: var(--gn-color-text);
+    border-color: transparent;
+    background-color: var(--gn-color-border);
+    color: var(--gn-color-text-inverse);
     font-weight: var(--gn-font-weight-bold);
 }
 
@@ -95,7 +115,6 @@
 @media (hover: hover) {
     .gn-bottom-nav__item:hover:not(:disabled):not([aria-disabled="true"]):not(.gn-bottom-nav__item--active),
     .bottom-nav .nav-item:hover:not(:disabled):not([aria-disabled="true"]):not(.active):not([aria-current="page"]) {
-        border-color: var(--gn-color-border-muted);
         background-color: var(--gn-color-surface-secondary);
         color: var(--gn-color-text);
     }
@@ -103,7 +122,7 @@
 
 .gn-bottom-nav__item:active:not(:disabled):not([aria-disabled="true"]),
 .bottom-nav .nav-item:active:not(:disabled):not([aria-disabled="true"]) {
-    border-color: var(--gn-color-border);
+    border-color: transparent;
     background-color: var(--gn-color-surface-secondary);
     color: var(--gn-color-text);
 }
