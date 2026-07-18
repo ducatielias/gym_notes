@@ -48,7 +48,7 @@
 
 @media (hover: hover) {
     #screen-history .btn-history-options:hover {
-        background: var(--gn-color-surface-secondary);
+        background: var(--gn-color-surface);
         border-color: var(--gn-color-text);
     }
 }

@@ -58,7 +58,7 @@
 @media (hover: hover) {
     #screen-exercises .btn-exercises-options:hover {
         border-color: var(--gn-color-text);
-        background: var(--gn-color-surface-secondary);
+        background: var(--gn-color-surface);
     }
 }
 

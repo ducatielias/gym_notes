@@ -89,7 +89,7 @@
     .gn-header__button:hover:not(:disabled):not([aria-disabled="true"]),
     #plan-container > .screen-header .btn-header-ia + div .btn-header-options:hover:not(:disabled):not([aria-disabled="true"]),
     #screen-today .screen-header .btn-header-options:hover:not(:disabled):not([aria-disabled="true"]) {
-        background-color: var(--gn-color-surface-secondary);
+        background-color: var(--gn-color-surface);
         border-color: var(--gn-color-text);
     }
 }
