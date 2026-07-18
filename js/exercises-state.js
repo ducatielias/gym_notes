@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * MÓDULO: exercises-state.js
  * Estado global y almacenamiento para el módulo de Ejercicios
@@ -7,6 +8,17 @@
 // ESTADO GLOBAL
 // ==========================================================================
 
+=======
+/**
+ * MÓDULO: exercises-state.js
+ * Estado global y almacenamiento para el módulo de Ejercicios
+ */
+
+// ==========================================================================
+// ESTADO GLOBAL
+// ==========================================================================
+
+>>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 const EXERCISES_STORAGE_KEY = 'sharkExercises';
 
 function createDefaultExercisesData() {
@@ -82,6 +94,7 @@ if (exercisesDataStorageIssue) {
 }
 
 let exercisesFilter = 'Todos';
+<<<<<<< HEAD
 let exercisesSearchTerm = '';
 let currentExerciseId = null;
 let exerciseAutocompleteActive = false;
@@ -98,6 +111,24 @@ const DEFAULT_EXERCISE_GROUPS = [
 // FUNCIONES DE ALMACENAMIENTO
 // ==========================================================================
 
+=======
+let exercisesSearchTerm = '';
+let currentExerciseId = null;
+let exerciseAutocompleteActive = false;
+
+// Grupos por defecto
+const DEFAULT_EXERCISE_GROUPS = [
+    'Compuesto', 'Full Body', 'Trapecios', 'Hombros', 'Pectorales',
+    'Dorsales', 'Espalda', 'Bíceps', 'Tríceps', 'Antebrazos',
+    'Abdominales', 'Oblicuos', 'Glúteos', 'Abductores', 'Aductores',
+    'Cuádriceps', 'Isquiotibiales', 'Gemelos'
+];
+
+// ==========================================================================
+// FUNCIONES DE ALMACENAMIENTO
+// ==========================================================================
+
+>>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 function saveExercises() {
     if (exercisesDataPersistenceBlocked) {
         return {
@@ -129,16 +160,26 @@ function saveExercises() {
     }
 
     return writeResult;
+<<<<<<< HEAD
 }
 
 function getExercises() {
     return exercisesData.exercises || [];
 }
 
+=======
+}
+
+function getExercises() {
+    return exercisesData.exercises || [];
+}
+
+>>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 function setExercises(exercises) {
     exercisesData.exercises = exercises;
     return saveExercises();
 }
+<<<<<<< HEAD
 
 function getExerciseGroups() {
     const exerciseGroups = new Set();
@@ -197,4 +238,64 @@ window.getExerciseGroups = getExerciseGroups;
 window.getAllGroups = getAllGroups;
 window.generateExerciseId = generateExerciseId;
 window.DEFAULT_EXERCISE_GROUPS = DEFAULT_EXERCISE_GROUPS;
+=======
+
+function getExerciseGroups() {
+    const exerciseGroups = new Set();
+    getExercises().forEach(ex => {
+        if (ex.grupo) exerciseGroups.add(ex.grupo);
+    });
+    return [...exerciseGroups].sort();
+}
+
+function getAllGroups() {
+    const customGroups = getExerciseGroups();
+    const allGroups = new Set([...DEFAULT_EXERCISE_GROUPS, ...customGroups]);
+    return [...allGroups].sort();
+}
+
+function generateExerciseId() {
+    return 'ex-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6);
+}
+
+// ==========================================================================
+// FUNCIÓN PARA BUSCAR EJERCICIO POR NOMBRE
+// ==========================================================================
+
+function buscarEjercicioPorNombre(nombre) {
+    if (!nombre || typeof nombre !== 'string') return null;
+    const nombreLimpio = nombre.trim();
+    if (!nombreLimpio) return null;
+    
+    const exercises = getExercises();
+    // Buscar coincidencia exacta (insensible a mayúsculas)
+    let ejercicio = exercises.find(ex => ex.nombre.toLowerCase() === nombreLimpio.toLowerCase());
+    
+    if (!ejercicio) {
+        // Buscar coincidencia parcial (si el nombre contiene el texto o viceversa)
+        ejercicio = exercises.find(ex => 
+            ex.nombre.toLowerCase().includes(nombreLimpio.toLowerCase()) || 
+            nombreLimpio.toLowerCase().includes(ex.nombre.toLowerCase())
+        );
+    }
+    
+    return ejercicio || null;
+}
+
+// ==========================================================================
+// EXPOSICIÓN GLOBAL
+// ==========================================================================
+
+window.exercisesData = exercisesData;
+window.exercisesFilter = exercisesFilter;
+window.exercisesSearchTerm = exercisesSearchTerm;
+window.currentExerciseId = currentExerciseId;
+window.saveExercises = saveExercises;
+window.getExercises = getExercises;
+window.setExercises = setExercises;
+window.getExerciseGroups = getExerciseGroups;
+window.getAllGroups = getAllGroups;
+window.generateExerciseId = generateExerciseId;
+window.DEFAULT_EXERCISE_GROUPS = DEFAULT_EXERCISE_GROUPS;
+>>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 window.buscarEjercicioPorNombre = buscarEjercicioPorNombre;

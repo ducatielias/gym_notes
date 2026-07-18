@@ -1,13 +1,17 @@
 @echo off
 echo Empezando la automatizacion...
 
-:: 1. Añade todos los cambios al escenario de Git
+:: 1. Trae lo que esté en GitHub y lo fusiona con tu carpeta local
+:: Usamos --allow-unrelated-histories por si los proyectos nacieron separados
+git pull origin main --allow-unrelated-histories
+
+:: 2. Añade todos tus archivos locales (HTML, JS, CSS)
 git add .
 
-:: 2. Hace el commit con un mensaje automático
-git commit -m "Auto-update: Cambios guardados automaticamente"
+:: 3. Hace el commit con un mensaje automático
+git commit -m "Auto-update: Cambios y cache actualizados"
 
-:: 3. Sube los cambios a GitHub (asegúrate de que tu rama se llama main o master)
+:: 4. Sube todo limpio a GitHub
 git push origin main
 
 echo ¡Todo listo y subido a GitHub!

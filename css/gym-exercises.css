@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * ESTILOS DE INTERFAZ: gym-exercises.css
  * Controla la página de ejercicios, tarjetas, filtros, búsqueda y editor de ejercicios.
@@ -15,6 +16,25 @@
    PÁGINA DE EJERCICIOS (SCREEN)
    ========================================================================== */
 
+=======
+/**
+ * ESTILOS DE INTERFAZ: gym-exercises.css
+ * Controla la página de ejercicios, tarjetas, filtros, búsqueda y editor de ejercicios.
+ * 
+ * MODIFICADO: Estructura mejorada para animación fluida de tarjetas (CSS Grid)
+ * MODIFICADO: Añadida opción "Borrar todos los ejercicios" en el menú de opciones
+ * MODIFICADO: Orden de elementos al expandir: botones primero, notas después
+ * MODIFICADO: Notas con scroll para contenido largo (max-height + overflow-y)
+ * CORREGIDO: El padding vertical se aplica SOLO cuando la tarjeta está expandida.
+ *           Esto permite que grid-template-rows: 0fr colapse completamente a 0px.
+ * MODIFICADO: Añadido line-height:1 al título del header para alinear icono.
+ */
+
+/* ==========================================================================
+   PÁGINA DE EJERCICIOS (SCREEN)
+   ========================================================================== */
+
+>>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 .exercises-header {
     position: sticky;
     top: 0;
@@ -24,6 +44,7 @@
     flex-direction: column;
     width: 100%;
 }
+<<<<<<< HEAD
 
 .exercises-header-top {
     display: flex;
@@ -168,15 +189,169 @@
    TARJETAS DE EJERCICIOS - ESTRUCTURA CON CSS GRID
    ========================================================================== */
 
+=======
+
+.exercises-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.btn-exercises-options {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 20px;
+    padding: 8px 10px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-exercises-options:active {
+    background-color: #f3f4f6;
+    color: var(--primary-color, #000000);
+}
+
+/* ==========================================================================
+   BÚSQUEDA Y FILTROS
+   ========================================================================== */
+
+.exercises-search-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.exercises-search-wrapper .icon-search {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 14px;
+    z-index: 1;
+}
+
+.exercises-search-wrapper .clear-input-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    z-index: 2;
+}
+
+.exercises-search-wrapper .clear-input-btn:active {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+.exercises-search-wrapper.has-value .clear-input-btn {
+    display: flex;
+}
+
+.exercises-search-wrapper input {
+    width: 100%;
+    padding: 12px 40px 12px 40px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.15s ease;
+    color: var(--primary-color, #000000);
+}
+
+.exercises-search-wrapper input:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+/* ==========================================================================
+   FILTRO POR GRUPOS (DROPDOWN)
+   ========================================================================== */
+
+.exercises-filter-bar {
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.exercises-filter-bar select {
+    width: 100%;
+    padding: 10px 15px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4b5563;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+
+.exercises-filter-bar select:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+.exercises-filter-bar select option {
+    padding: 8px;
+}
+
+/* ==========================================================================
+   CONTENEDOR DE TARJETAS - PADDING BOTTOM AUMENTADO PARA MÓVILES
+   ========================================================================== */
+
+.exercises-grid {
+    padding: 12px 20px calc(100px + env(safe-area-inset-bottom, 20px)) 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ==========================================================================
+   TARJETAS DE EJERCICIOS - ESTRUCTURA CON CSS GRID
+   ========================================================================== */
+
+>>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 .card-exercise {
     overflow: hidden;
     transition: border-color 0.15s ease;
 }
+<<<<<<< HEAD
 
 .card-exercise:active {
     border-color: var(--primary-color, #000000);
 }
 
+=======
+
+.card-exercise:active {
+    border-color: var(--primary-color, #000000);
+}
+
+>>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 .card-exercise-header {
     display: flex;
     align-items: center;
@@ -184,6 +359,7 @@
     cursor: pointer;
     user-select: none;
 }
+<<<<<<< HEAD
 
 .card-exercise-thumb {
     width: 56px;
@@ -200,6 +376,24 @@
     min-width: 0;
 }
 
+=======
+
+.card-exercise-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    object-fit: cover;
+    background-color: #f3f4f6;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.card-exercise-info {
+    flex: 1;
+    min-width: 0;
+}
+
+>>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 .card-exercise-group {
     margin-bottom: 2px;
 }
@@ -212,6 +406,7 @@
 .card-exercise-chevron {
     font-size: 14px;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+<<<<<<< HEAD
     flex-shrink: 0;
 }
 
@@ -381,6 +576,177 @@
    ESTADO VACÍO
    ========================================================================== */
 
+=======
+    flex-shrink: 0;
+}
+
+.card-exercise.expanded .card-exercise-chevron {
+    transform: rotate(180deg);
+}
+
+/* ==========================================================================
+   CUERPO DE TARJETA (EXPANDIBLE) - CSS GRID CON PADDING CONDICIONAL
+   ========================================================================== */
+
+/* El contenedor body controla la altura mediante filas de Grid */
+.card-exercise-body {
+    display: grid;
+    grid-template-rows: 0fr; /* Colapsado - las tarjetas empiezan cerradas */
+    overflow: hidden;
+    transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: #ffffff;
+}
+
+/* Cuando se expande, la fila pasa a ocupar 1 fracción del espacio disponible */
+.card-exercise.expanded .card-exercise-body {
+    grid-template-rows: 1fr; /* Expandido */
+}
+
+/* CRITICAL: El contenedor interno DEBE tener min-height: 0 */
+/* El padding vertical es 0 por defecto para permitir el colapso total a 0px */
+.card-exercise-inner {
+    min-height: 0;
+    padding: 0px 16px 0px 16px; /* Sin padding vertical cuando está colapsado */
+    transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* El padding vertical se aplica SOLO cuando la tarjeta está expandida */
+.card-exercise.expanded .card-exercise-inner {
+    padding-top: 12px;   /* Espacio superior para separar del header */
+    padding-bottom: 20px; /* Espacio inferior original */
+}
+
+/* ==========================================================================
+   NOTAS DEL EJERCICIO - CON SCROLL PARA CONTENIDO LARGO
+   ========================================================================== */
+
+.card-exercise-notes {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #374151;
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 10px;
+    border: 1px solid #f3f4f6;
+    margin-top: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 480px) {
+    .card-exercise-notes {
+        max-height: 220px;
+    }
+}
+
+@media (max-width: 360px) {
+    .card-exercise-notes {
+        max-height: 160px;
+    }
+}
+
+.card-exercise-notes a {
+    color: #2563eb;
+    text-decoration: underline;
+    word-break: break-word;
+}
+
+.card-exercise-notes::-webkit-scrollbar {
+    width: 4px;
+}
+
+.card-exercise-notes::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.card-exercise-notes::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.card-exercise-notes::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* ==========================================================================
+   BOTONES DE ACCIÓN EN TARJETA
+   ========================================================================== */
+
+.card-exercise-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-exercise-action {
+    flex: 1;
+    min-width: 44px;
+    padding: 10px 0;
+    border: none;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+}
+
+.btn-exercise-action:active {
+    transform: scale(0.94);
+}
+
+.btn-exercise-action i {
+    font-size: 14px;
+}
+
+.btn-exercise-action:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn-exercise-action-video {
+    background: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+}
+
+.btn-exercise-action-share {
+    background: #e8eaf6;
+    color: #3949ab;
+}
+
+.btn-exercise-action-history {
+    background: #e3f2fd;
+    color: #0d47a1;
+}
+
+.btn-exercise-action-web {
+    background: #e0f7fa;
+    color: #006064;
+}
+
+.btn-exercise-action-edit {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.btn-exercise-action-delete {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+/* ==========================================================================
+   ESTADO VACÍO
+   ========================================================================== */
+
+>>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 .exercises-empty {
     text-align: center;
     font-size: 15px;
@@ -397,6 +763,7 @@
     margin-top: 16px;
     cursor: pointer;
 }
+<<<<<<< HEAD
 
 /* ==========================================================================
    EDITOR DE EJERCICIOS - PANTALLA COMPLETA
@@ -785,4 +1152,394 @@
         pointer-events: none;
         z-index: 100;
     }
+=======
+
+/* ==========================================================================
+   EDITOR DE EJERCICIOS - PANTALLA COMPLETA
+   ========================================================================== */
+
+#screen-exercise-editor {
+    background-color: var(--background-color, #fafafa);
+}
+
+.exercise-editor-container {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    width: 100%;
+    background-color: #ffffff;
+    overflow: hidden !important;
+}
+
+.exercise-editor-sticky-header {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    background-color: #ffffff;
+    z-index: 10;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.exercise-editor-nav-top {
+    height: 56px;
+    padding: 0 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    border-bottom: 1px solid #f3f4f6;
+    flex-shrink: 0;
+}
+
+.btn-exercise-nav-close {
+    background: #f3f4f6;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--primary-color, #000000);
+    transition: transform 0.1s ease;
+}
+
+.btn-exercise-nav-close:active {
+    transform: scale(0.9);
+}
+
+.btn-exercise-nav-save {
+    background-color: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.1s ease, transform 0.1s ease;
+}
+
+.btn-exercise-nav-save:active {
+    transform: scale(0.96);
+    filter: brightness(0.9);
+}
+
+.exercise-editor-title-row {
+    padding: 5px 16px 5px 16px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #f3f4f6;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.exercise-editor-prefix {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-color, #000000);
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-left: 2px;
+}
+
+.exercise-editor-title-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary-color, #000000);
+    outline: none;
+    padding: 0;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.exercise-editor-title-input::placeholder {
+    color: #cbd5e1;
+}
+
+.exercise-editor-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 16px 16px 120px 16px;
+    background-color: #ffffff;
+}
+
+.exercise-editor-body label {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #4b5563;
+    margin-bottom: 2px;
+    margin-top: 12px;
+}
+
+.exercise-editor-body label:first-of-type {
+    margin-top: 0;
+}
+
+.exercise-editor-body input,
+.exercise-editor-body select,
+.exercise-editor-body textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    font-size: 15px;
+    outline: none;
+    background-color: #ffffff;
+    transition: border-color 0.15s ease;
+    font-family: inherit;
+    color: var(--primary-color, #000000);
+    box-sizing: border-box;
+}
+
+.exercise-editor-body input:focus,
+.exercise-editor-body select:focus,
+.exercise-editor-body textarea:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+.exercise-editor-body textarea {
+    min-height: 80px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.exercise-editor-body select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+}
+
+/* Músculos implicados en el editor de ejercicios */
+.exercise-muscles-toggle {
+    display: block;
+    padding: 12px 0 4px 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #4b5563;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+
+.exercise-muscles-toggle i {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
+}
+
+.exercise-muscles-toggle.open i {
+    transform: rotate(90deg);
+}
+
+.exercise-muscles-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #f9fafb;
+    border-radius: 14px;
+    margin-bottom: 0;
+}
+
+.exercise-muscles-container.open {
+    max-height: 200px;
+    padding: 12px 14px;
+    margin-top: 8px;
+    border: 1px solid #e5e7eb;
+    overflow-y: auto;
+}
+
+.exercise-muscles-container .muscles-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
+}
+
+.exercise-muscles-container .muscle-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #374151;
+    padding: 4px 0;
+}
+
+.exercise-muscles-container .muscle-check input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    accent-color: var(--accent-color, #ccff00);
+    cursor: pointer;
+}
+
+.exercise-muscles-container .muscle-check .muscle-label {
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.3;
+}
+
+/* ==========================================================================
+   MENÚ DE OPCIONES (tres puntos)
+   ========================================================================== */
+
+.exercises-options-menu {
+    position: absolute;
+    top: 50px;
+    right: 16px;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    width: 200px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    animation: fadeInMenu 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.exercises-options-menu.hidden {
+    display: none !important;
+}
+
+@keyframes fadeInMenu {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.exercises-options-menu .menu-item {
+    background: none;
+    border: none;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.12s ease, color 0.12s ease;
+    width: 100%;
+}
+
+.exercises-options-menu .menu-item i {
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.exercises-options-menu .menu-item:active {
+    background-color: #f3f4f6;
+    color: #000000;
+}
+
+.exercises-options-menu .menu-divider {
+    height: 1px;
+    background-color: #f3f4f6;
+    margin: 4px 6px;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 480px) {
+    .card-exercise-actions {
+        gap: 6px;
+    }
+    
+    .btn-exercise-action {
+        font-size: 11px;
+        padding: 8px 0;
+        min-width: 36px;
+    }
+    
+    .btn-exercise-action i {
+        font-size: 12px;
+    }
+    
+    .card-exercise-thumb {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .card-exercise-name {
+        font-size: 15px;
+    }
+    
+    .exercises-header-top h1 {
+        font-size: 24px;
+    }
+    
+    .exercise-muscles-container .muscles-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 4px 12px;
+    }
+    
+    .exercise-editor-body {
+        padding: 12px 12px 120px 12px;
+    }
+    
+    .exercises-grid {
+        padding: 12px 12px calc(100px + env(safe-area-inset-bottom, 20px)) 12px;
+    }
+}
+
+/* ==========================================================================
+   TOOLTIP PARA BOTONES
+   ========================================================================== */
+
+.btn-exercise-action[data-tooltip] {
+    position: relative;
+}
+
+@media (hover: hover) {
+    .btn-exercise-action[data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 100;
+    }
+>>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 }
