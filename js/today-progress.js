@@ -459,7 +459,7 @@
 
         return `
             <li class="today-progress__recent-item">
-                <${tagName} class="today-progress__recent-card${hasPublicDetailAction ? ' today-progress__recent-card--interactive' : ''}"${actionAttributes}>
+                <${tagName} class="today-progress__recent-card gn-elevated-card${hasPublicDetailAction ? ' today-progress__recent-card--interactive' : ''}"${actionAttributes}>
                     <span class="today-progress__recent-date" aria-label="${escapeText(dateParts.accessibleDate)}">
                         <span class="today-progress__recent-day">${dateParts.dayLabel}</span>
                         <span class="today-progress__recent-date-label">${dateParts.dateLabel}</span>
@@ -481,15 +481,14 @@
             ? `<ul class="today-progress__recent-list">
                 ${model.recentRecords.map(item => buildRecentCard(item, model.allRecordsNewestFirst, model.now)).join('')}
                </ul>`
-            : `<div class="today-progress__empty">
+            : `<div class="today-progress__empty gn-elevated-card">
                 <p>Aún no hay entrenamientos en este periodo.</p>
                 <p>Completa una sesión para empezar a ver tu progreso.</p>
                </div>`;
 
         return `
-            <div class="today-progress__summary">
-                <p class="today-progress__eyebrow">PROGRESO</p>
-                <h2 id="today-progress-title" class="today-progress__title">Historial</h2>
+            <section class="today-progress__summary gn-elevated-card" aria-labelledby="today-progress-title">
+                <h3 id="today-progress-title" class="today-progress__title">Historial</h3>
                 <p class="today-progress__subtitle">Resumen de tus últimos ${periodLabel}.</p>
 
                 <div class="today-progress__metrics" role="list" aria-label="Resumen del periodo">
@@ -506,7 +505,7 @@
                         <span class="today-progress__metric-label">Volumen</span>
                     </div>
                 </div>
-            </div>
+            </section>
 
             <div class="today-progress__period-selector" role="group" aria-label="Periodo del progreso">
                 ${[7, 30].map(days => `
@@ -519,15 +518,18 @@
                 `).join('')}
             </div>
 
-            <div class="today-progress__recent">
+            <section class="today-progress__recent" aria-labelledby="today-recent-title">
                 <div class="today-progress__recent-header">
-                    <h3 class="today-progress__recent-title">ENTRENAMIENTOS RECIENTES</h3>
-                    <span class="today-progress__recent-count">${sessionsLabel}</span>
+                    <h3 id="today-recent-title" class="today-section-heading">ENTRENAMIENTOS RECIENTES</h3>
+                    <span class="today-progress__recent-count today-section-meta">${sessionsLabel}</span>
                 </div>
                 ${recentMarkup}
-            </div>
+            </section>
 
-            <p class="today-progress__consistency">${escapeText(model.consistencyMessage)}</p>
+            <section class="today-progress__motivation" aria-labelledby="today-motivation-title">
+                <h3 id="today-motivation-title" class="today-section-heading">MOTIVACIÓN</h3>
+                <p class="today-progress__consistency gn-elevated-card">${escapeText(model.consistencyMessage)}</p>
+            </section>
         `;
     }
 

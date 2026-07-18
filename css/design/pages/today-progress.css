@@ -10,27 +10,9 @@
     color: var(--gn-color-text);
 }
 
-#screen-today .today-progress__summary,
-#screen-today .today-progress__consistency {
-    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
-    border-radius: var(--gn-radius-modal);
-    background-color: var(--gn-color-surface);
-    box-shadow: 0 var(--gn-space-md) 0 var(--gn-color-border);
-}
-
 #screen-today .today-progress__summary {
     padding: var(--gn-space-2xl);
     margin-bottom: var(--gn-space-md);
-}
-
-#screen-today .today-progress__eyebrow {
-    margin: 0 0 var(--gn-space-lg);
-    color: var(--gn-color-info-text);
-    font-family: var(--gn-font-title);
-    font-size: var(--gn-font-size-xs);
-    font-weight: var(--gn-font-weight-bold);
-    letter-spacing: 0.16em;
-    line-height: var(--gn-line-height-tight);
 }
 
 #screen-today .today-progress__title {
@@ -151,18 +133,8 @@
     min-inline-size: 0;
     align-items: baseline;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: var(--gn-space-lg);
-}
-
-#screen-today .today-progress__recent-title,
-#screen-today .today-progress__recent-count {
-    margin: 0;
-    color: var(--gn-color-text);
-    font-family: var(--gn-font-title);
-    font-size: var(--gn-font-size-sm);
-    font-weight: var(--gn-font-weight-bold);
-    letter-spacing: 0.08em;
-    line-height: var(--gn-line-height-normal);
 }
 
 #screen-today .today-progress__recent-count {
@@ -172,7 +144,7 @@
 
 #screen-today .today-progress__recent-list {
     display: grid;
-    gap: var(--gn-space-lg);
+    gap: var(--gn-space-xl);
     padding: 0;
     margin: 0;
     list-style: none;
@@ -192,9 +164,6 @@
     min-block-size: 8rem;
     padding: var(--gn-space-xl);
     align-items: center;
-    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
-    border-radius: var(--gn-radius-card);
-    background-color: var(--gn-color-surface);
     color: var(--gn-color-text);
     font-family: var(--gn-font-body);
     text-align: start;
@@ -288,9 +257,6 @@
 
 #screen-today .today-progress__empty {
     padding: var(--gn-space-2xl) var(--gn-space-xl);
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
-    border-radius: var(--gn-radius-card);
-    background-color: var(--gn-color-surface-secondary);
     color: var(--gn-color-text-muted);
     text-align: center;
 }
@@ -303,6 +269,11 @@
 
 #screen-today .today-progress__empty p + p {
     margin-top: var(--gn-space-sm);
+}
+
+#screen-today .today-progress__motivation {
+    display: grid;
+    gap: var(--gn-space-lg);
 }
 
 #screen-today .today-progress__consistency {
@@ -351,11 +322,6 @@
 
     #screen-today .today-progress__recent-header {
         align-items: flex-start;
-    }
-
-    #screen-today .today-progress__recent-title,
-    #screen-today .today-progress__recent-count {
-        font-size: var(--gn-font-size-xs);
     }
 
     #screen-today .today-progress__recent-card {

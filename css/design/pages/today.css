@@ -50,6 +50,45 @@
     gap: var(--gn-space-xl);
 }
 
+#screen-today .today-dashboard__section,
+#screen-today .today-dashboard__quick-actions {
+    display: grid;
+    min-inline-size: 0;
+}
+
+#screen-today .today-dashboard__section {
+    gap: var(--gn-space-lg);
+}
+
+#screen-today .today-dashboard__section--progress {
+    gap: var(--gn-space-xl);
+}
+
+#screen-today .today-dashboard__quick-actions {
+    gap: var(--gn-space-md);
+}
+
+#screen-today .today-section-heading,
+#screen-today .today-section-meta {
+    min-inline-size: 0;
+    margin: 0;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-bold);
+    letter-spacing: 0.08em;
+    line-height: var(--gn-line-height-normal);
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+}
+
+#screen-today .gn-elevated-card {
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-modal);
+    background-color: var(--gn-color-surface);
+    box-shadow: 0 var(--gn-space-md) 0 var(--gn-color-border);
+}
+
 /* Acción primaria: inicia el entrenamiento libre existente. */
 #screen-today .btn-today-entrenamiento-libre,
 #screen-today .today-empty-state .btn-empty-add {
@@ -159,10 +198,6 @@
 /* Calendario: superficie limpia y estados visuales del mes sin cambiar sus datos. */
 #screen-today .today-calendar-container {
     padding: var(--gn-space-xl);
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
-    border-radius: var(--gn-radius-card);
-    background-color: var(--gn-color-surface);
-    box-shadow: var(--gn-shadow-none);
 }
 
 #screen-today .today-calendar-header {
@@ -355,6 +390,11 @@
 
     #screen-today .today-calendar-container {
         padding: var(--gn-space-lg);
+    }
+
+    #screen-today .today-section-heading,
+    #screen-today .today-section-meta {
+        font-size: var(--gn-font-size-xs);
     }
 
     #screen-today .today-calendar-month-year {

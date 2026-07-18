@@ -303,37 +303,33 @@ function renderTodayDashboard() {
         }
     }
 
-    const historyDB = getHistoryDB();
-
     dashboardContent.innerHTML = `
-        <!-- Botón Entrenamiento Libre -->
-        <button class="btn-today-entrenamiento-libre" onclick="iniciarEntrenamientoLibreToday()">
-            <i class="fa-solid fa-plus-circle"></i> Entrenamiento Libre
-        </button>
-
-        <div class="today-data-buttons-row today-data-buttons-row--single">
-            <button class="btn-today-entrenamiento-libre" onclick="openIAAssistant()">
-                <i class="fa-solid fa-robot"></i> Crear rutina con IA
-            </button>
-        </div>
-        
-        <!-- Calendario -->
-        <div class="today-calendar-container" id="today-calendar-container"></div>
-
-        <!-- Panel de progreso basado en el historial -->
         <section
-            id="today-progress-section"
-            class="today-progress"
-            aria-labelledby="today-progress-title"
-        ></section>
-        
-        ${historyDB.length === 0 ? `
-            <div class="today-empty-state">
-                <i class="fa-solid fa-dumbbell"></i>
-                <p>No tienes entrenamientos registrados aún.</p>
-                <p style="font-size:13px; margin-top:4px;">Finaliza un entrenamiento para que aparezca en el calendario.</p>
+            class="today-dashboard__section today-dashboard__section--actions"
+            aria-labelledby="today-quick-actions-title"
+        >
+            <h2 id="today-quick-actions-title" class="today-section-heading">ACCIONES RÁPIDAS</h2>
+            <div class="today-dashboard__quick-actions">
+                <button class="btn-today-entrenamiento-libre" onclick="iniciarEntrenamientoLibreToday()">
+                    <i class="fa-solid fa-plus-circle"></i> Entrenamiento Libre
+                </button>
+
+                <div class="today-data-buttons-row today-data-buttons-row--single">
+                    <button class="btn-today-entrenamiento-libre" onclick="openIAAssistant()">
+                        <i class="fa-solid fa-robot"></i> Crear rutina con IA
+                    </button>
+                </div>
             </div>
-        ` : ''}
+        </section>
+
+        <section
+            class="today-dashboard__section today-dashboard__section--progress"
+            aria-labelledby="today-progress-heading"
+        >
+            <h2 id="today-progress-heading" class="today-section-heading">PROGRESO</h2>
+            <div class="today-calendar-container gn-elevated-card" id="today-calendar-container"></div>
+            <div id="today-progress-section" class="today-progress"></div>
+        </section>
     `;
 
     renderTodayCalendar();
