@@ -8,7 +8,7 @@
  * MODIFICADO: Soporte para mensaje "getVersion" que devuelve CACHE_VERSION
  */
 
-const CACHE_VERSION = 'gym-notes-v1-23';
+const CACHE_VERSION = 'gym-notes-v1-24';
 const CACHE_NAME = CACHE_VERSION;
 
 // ============================================================
@@ -133,7 +133,8 @@ self.addEventListener('install', (event) => {
       })
       .then(() => {
         console.log('[SW] Instalación completada');
-        return self.skipWaiting();
+        // El worker permanece en espera hasta que la interfaz reciba una
+        // confirmación explícita y envíe el mensaje "skipWaiting".
       })
   );
 });

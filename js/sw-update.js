@@ -22,6 +22,8 @@ let swUpdateRegistration = null;
 let swUpdateResolve = null;
 let swCurrentVersion = 'desconocida';
 let swVersionLoaded = false;
+let swUpdateApplying = false;
+let swUpdateReloaded = false;
 
 // ==========================================================================
 // OBTENER VERSIÓN DESDE sw.js
@@ -477,82 +479,135 @@ function closeUpdateModal() {
 // ACCIONES DE ACTUALIZACIÓN
 // ==========================================================================
 
-function performUpdate() {
+async function performUpdate() {
+    if (swUpdateApplying) {
+        return { applied: false, reason: 'already-applying' };
+    }
+
     console.log('[sw-update] Ejecutando actualización...');
-    
-    // Limpiar la versión ignorada al actualizar
-    localStorage.removeItem('sw_ignored_version');
-    
-    if (typeof window.showAlert === 'function') {
-        window.showAlert('🔄 Actualizando la aplicación...\nLa página se recargará automáticamente.', 'Actualizando');
+
+    if (!('serviceWorker' in navigator)) {
+        return { applied: false, reason: 'service-worker-unsupported' };
     }
-    
-    // Forzar la activación del nuevo Service Worker
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((registration) => {
-            // Buscar el worker en espera
-            if (registration.waiting) {
-                // Enviar mensaje para saltar la espera
-                registration.waiting.postMessage({ action: 'skipWaiting' });
-            } else {
-                // Si no hay worker en espera, recargar directamente
-                window.location.reload();
-            }
-        }).catch(() => {
+
+    swUpdateApplying = true;
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const waitingWorker = registration.waiting;
+
+        if (!waitingWorker) {
+            swUpdateApplying = false;
+            console.warn('[sw-update] No hay un Service Worker en espera para activar.');
+            return { applied: false, reason: 'no-waiting-worker' };
+        }
+
+        // Limpiar la versión ignorada solo después de confirmar que puede aplicarse.
+        localStorage.removeItem('sw_ignored_version');
+
+        if (typeof window.showAlert === 'function') {
+            window.showAlert('🔄 Actualizando la aplicación...\nLa página se recargará automáticamente.', 'Actualizando');
+        }
+
+        const reloadOnce = () => {
+            if (swUpdateReloaded) return;
+
+            swUpdateReloaded = true;
+            console.log('[sw-update] Nuevo Service Worker activo, recargando...');
             window.location.reload();
-        });
-    } else {
-        window.location.reload();
+        };
+
+        // El listener solo existe tras una confirmación explícita y se consume una vez.
+        navigator.serviceWorker.addEventListener('controllerchange', reloadOnce, { once: true });
+
+        try {
+            waitingWorker.postMessage({ action: 'skipWaiting' });
+        } catch (error) {
+            navigator.serviceWorker.removeEventListener('controllerchange', reloadOnce);
+            throw error;
+        }
+
+        return { applied: true, reason: 'confirmed' };
+    } catch (error) {
+        swUpdateApplying = false;
+        console.error('[sw-update] No se pudo aplicar la actualización:', error);
+        return {
+            applied: false,
+            reason: 'apply-failed',
+            error: error instanceof Error ? error.message : String(error)
+        };
     }
-    
-    // Escuchar cuando el nuevo SW tome el control
-    navigator.serviceWorker.addEventListener('controllerchange', function() {
-        console.log('[sw-update] Nuevo Service Worker activo, recargando...');
-        window.location.reload();
-    });
 }
 
 function performExportAndUpdate() {
     console.log('[sw-update] Exportando datos y actualizando...');
-    
-    // Limpiar la versión ignorada
-    localStorage.removeItem('sw_ignored_version');
-    
-    // Abrir el modal de exportación de datos
-    if (typeof window.openExportDataModal === 'function') {
-        // Modificamos ligeramente el comportamiento para que después de exportar, se actualice
-        const originalClose = window.cerrarExportDataModal;
-        
-        // Sobrescribimos temporalmente el cierre para ejecutar la actualización después de exportar
-        window.cerrarExportDataModal = function() {
-            // Restaurar la función original
-            window.cerrarExportDataModal = originalClose;
-            
-            // Ejecutar la exportación real
-            if (typeof originalClose === 'function') {
-                originalClose();
-            }
-            
-            // Mostrar mensaje y actualizar
-            setTimeout(() => {
-                if (typeof window.showAlert === 'function') {
-                    window.showAlert('✅ Datos exportados.\n🔄 Actualizando la aplicación...', 'Completado');
-                }
-                setTimeout(() => {
-                    performUpdate();
-                }, 1000);
-            }, 500);
-        };
-        
-        // Abrir el modal de exportación
-        window.openExportDataModal();
-    } else {
-        // Si no existe la función de exportación, solo actualizar
-        window.showAlert('⚠️ No se pudo exportar los datos.\nActualizando directamente...', 'Aviso');
-        setTimeout(() => {
-            performUpdate();
-        }, 1000);
+
+    const canExport = typeof window.openExportDataModal === 'function' &&
+        typeof window.exportData === 'function' &&
+        typeof window.cerrarExportDataModal === 'function';
+
+    if (!canExport) {
+        if (typeof window.showAlert === 'function') {
+            window.showAlert('No se pudo iniciar la exportación. La actualización no se ha aplicado.', 'Aviso');
+        }
+        return { applied: false, reason: 'export-unavailable' };
     }
+
+    const originalExportData = window.exportData;
+    const originalCloseExportModal = window.cerrarExportDataModal;
+    let handlersRestored = false;
+
+    const restoreExportHandlers = () => {
+        if (handlersRestored) return;
+
+        handlersRestored = true;
+        window.exportData = originalExportData;
+        window.cerrarExportDataModal = originalCloseExportModal;
+    };
+
+    // Cancelar, pulsar fuera o usar Escape solo restaura y cierra el exportador.
+    window.cerrarExportDataModal = function(...args) {
+        restoreExportHandlers();
+        return originalCloseExportModal.apply(this, args);
+    };
+
+    // La actualización continúa únicamente si exportData cerró el modal tras
+    // generar correctamente el archivo. Los errores de validación lo mantienen abierto.
+    window.exportData = function(...args) {
+        const exportModal = document.getElementById('export-data-modal');
+        let result;
+
+        try {
+            result = originalExportData.apply(this, args);
+        } catch (error) {
+            restoreExportHandlers();
+            throw error;
+        }
+
+        const exportCompleted = Boolean(exportModal) &&
+            !document.getElementById('export-data-modal');
+
+        if (exportCompleted) {
+            restoreExportHandlers();
+            performUpdate();
+        }
+
+        return result;
+    };
+
+    try {
+        window.openExportDataModal();
+    } catch (error) {
+        restoreExportHandlers();
+        throw error;
+    }
+
+    if (!document.getElementById('export-data-modal')) {
+        restoreExportHandlers();
+        return { applied: false, reason: 'export-not-started' };
+    }
+
+    return { applied: false, reason: 'awaiting-export' };
 }
 
 // ==========================================================================
