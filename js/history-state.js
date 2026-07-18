@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /**
  * MÓDULO: history-state.js
  * Estado global y almacenamiento para el módulo de Historial
@@ -8,17 +7,6 @@
 // ESTADO GLOBAL
 // ==========================================================================
 
-=======
-/**
- * MÓDULO: history-state.js
- * Estado global y almacenamiento para el módulo de Historial
- */
-
-// ==========================================================================
-// ESTADO GLOBAL
-// ==========================================================================
-
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 const HISTORY_STORAGE_KEY = 'sharkHistory';
 
 function createDefaultHistoryData() {
@@ -100,7 +88,6 @@ function applyHistoryDataLoad(historyDataLoad) {
 
 applyHistoryDataLoad(loadHistoryData());
 let historyFilter = 'todos'; // 'todos', 'hoy', 'semana', 'mes'
-<<<<<<< HEAD
 let historyRoutineFilter = 'todos';
 let historySearchTerm = '';
 let historyViewingItem = null;
@@ -111,18 +98,6 @@ let historyOriginalRoutineFilter = 'todos'; // Guarda el filtro de rutina origin
 // FUNCIONES DE ALMACENAMIENTO
 // ==========================================================================
 
-=======
-let historyRoutineFilter = 'todos';
-let historySearchTerm = '';
-let historyViewingItem = null;
-let historyReturnScreen = null; // 'workout' o 'session' para saber a dónde volver
-let historyOriginalRoutineFilter = 'todos'; // Guarda el filtro de rutina original cuando se aplica desde origen
-
-// ==========================================================================
-// FUNCIONES DE ALMACENAMIENTO
-// ==========================================================================
-
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 function saveHistory() {
     if (historyDataPersistenceBlocked) {
         return {
@@ -196,7 +171,6 @@ function addHistoryRecord(record) {
 function deleteHistoryRecord(id) {
     refreshHistoryData();
     return commitHistoryMutation(historyDB.filter(item => item.id !== id));
-<<<<<<< HEAD
 }
 
 function getHistoryRecord(id) {
@@ -205,21 +179,10 @@ function getHistoryRecord(id) {
     return historyDB.find(item => item.id === id);
 }
 
-=======
-}
-
-function getHistoryRecord(id) {
-    // Asegurarnos de tener la versión más reciente
-    refreshHistoryData();
-    return historyDB.find(item => item.id === id);
-}
-
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 function clearAllHistory() {
     refreshHistoryData();
     return commitHistoryMutation([]);
 }
-<<<<<<< HEAD
 
 function getHistoryStats() {
     // Asegurarnos de tener la versión más reciente
@@ -286,72 +249,4 @@ window.clearAllHistory = clearAllHistory;
 window.getHistoryStats = getHistoryStats;
 window.getUniqueRoutinesFromHistory = getUniqueRoutinesFromHistory;
 window.getUniqueSessionsFromHistory = getUniqueSessionsFromHistory;
-=======
-
-function getHistoryStats() {
-    // Asegurarnos de tener la versión más reciente
-    refreshHistoryData();
-    return {
-        total: historyDB.length,
-        totalMinutes: historyDB.reduce((acc, item) => acc + (item.duracion_minutos || 0), 0),
-        uniqueSessions: new Set(historyDB.map(item => item.nombre_sesion)).size,
-        uniqueRoutines: new Set(historyDB.map(item => item.nombre_rutina)).size
-    };
-}
-
-function getUniqueRoutinesFromHistory() {
-    const routines = new Set();
-    historyDB.forEach(item => {
-        if (item.nombre_rutina) routines.add(item.nombre_rutina);
-    });
-    return ['todos', ...routines].sort();
-}
-
-function getUniqueSessionsFromHistory() {
-    const sessions = new Set();
-    historyDB.forEach(item => {
-        if (item.nombre_sesion) sessions.add(item.nombre_sesion);
-    });
-    return [...sessions].sort();
-}
-
-// ==========================================================================
-// FUNCIÓN PARA RESTAURAR FILTROS AL VOLVER
-// ==========================================================================
-
-function resetHistoryFilters() {
-    historySearchTerm = '';
-    window.historySearchTerm = '';
-    historyRoutineFilter = 'todos';
-    window.historyRoutineFilter = 'todos';
-    historyFilter = 'todos';
-    window.historyFilter = 'todos';
-    historyReturnScreen = null;
-    window.historyReturnScreen = null;
-    historyOriginalRoutineFilter = 'todos';
-    window.historyOriginalRoutineFilter = 'todos';
-}
-
-// ==========================================================================
-// EXPOSICIÓN GLOBAL
-// ==========================================================================
-
-window.historyDB = historyDB;
-window.historyFilter = historyFilter;
-window.historyRoutineFilter = historyRoutineFilter;
-window.historySearchTerm = historySearchTerm;
-window.historyViewingItem = historyViewingItem;
-window.historyReturnScreen = historyReturnScreen;
-window.historyOriginalRoutineFilter = historyOriginalRoutineFilter;
-window.saveHistory = saveHistory;
-window.getHistory = getHistory;
-window.setHistory = setHistory;
-window.addHistoryRecord = addHistoryRecord;
-window.deleteHistoryRecord = deleteHistoryRecord;
-window.getHistoryRecord = getHistoryRecord;
-window.clearAllHistory = clearAllHistory;
-window.getHistoryStats = getHistoryStats;
-window.getUniqueRoutinesFromHistory = getUniqueRoutinesFromHistory;
-window.getUniqueSessionsFromHistory = getUniqueSessionsFromHistory;
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 window.resetHistoryFilters = resetHistoryFilters;

@@ -1,16 +1,8 @@
-<<<<<<< HEAD
 /**
  * MÓDULO: plan-state.js
  * Estado global y almacenamiento para el módulo de Plan (Rutinas y Sesiones)
  */
 
-=======
-/**
- * MÓDULO: plan-state.js
- * Estado global y almacenamiento para el módulo de Plan (Rutinas y Sesiones)
- */
-
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 // ========================================================================== 
 // ESTADO GLOBAL
 // ========================================================================== 
@@ -103,19 +95,11 @@ if (appDataStorageIssue) {
 }
 
 let currentRoutineId = null;
-<<<<<<< HEAD
 
 // ==========================================================================
 // FUNCIONES DE ALMACENAMIENTO
 // ==========================================================================
 
-=======
-
-// ==========================================================================
-// FUNCIONES DE ALMACENAMIENTO
-// ==========================================================================
-
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 function saveData() {
     if (appDataPersistenceBlocked) {
         return {
@@ -148,7 +132,6 @@ function saveData() {
 
     return writeResult;
 }
-<<<<<<< HEAD
 
 // ==========================================================================
 // EXPOSICIÓN GLOBAL (para que otros módulos puedan acceder)
@@ -156,13 +139,4 @@ function saveData() {
 
 window.appData = appData;
 window.currentRoutineId = currentRoutineId;
-=======
-
-// ==========================================================================
-// EXPOSICIÓN GLOBAL (para que otros módulos puedan acceder)
-// ==========================================================================
-
-window.appData = appData;
-window.currentRoutineId = currentRoutineId;
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 window.saveData = saveData;

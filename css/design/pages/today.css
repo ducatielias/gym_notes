@@ -65,11 +65,8 @@
 }
 
 #screen-today .today-dashboard__quick-actions {
-<<<<<<< HEAD
     --today-action-shadow-offset: calc(var(--gn-space-sm) - var(--gn-border-width));
 
-=======
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
     gap: var(--gn-space-md);
 }
 
@@ -91,12 +88,8 @@
     border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-modal);
     background-color: var(--gn-color-surface);
-<<<<<<< HEAD
     box-shadow: 0 var(--gn-space-sm) 0 var(--gn-color-border);
     margin-block-end: var(--gn-space-sm);
-=======
-    box-shadow: 0 var(--gn-space-md) 0 var(--gn-color-border);
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 }
 
 /* Acción primaria: inicia el entrenamiento libre existente. */
@@ -128,15 +121,12 @@
     gap: var(--gn-space-sm);
 }
 
-<<<<<<< HEAD
 #screen-today .today-dashboard__quick-actions .btn-today-entrenamiento-libre {
     border-width: var(--gn-border-width-strong);
     box-shadow: 0 var(--today-action-shadow-offset) 0 var(--gn-color-border);
     margin-block-end: var(--today-action-shadow-offset);
 }
 
-=======
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 #screen-today .btn-today-entrenamiento-libre i {
     font-size: var(--gn-font-size-lg);
 }
@@ -203,13 +193,10 @@
     color: var(--gn-color-info-text);
 }
 
-<<<<<<< HEAD
 #screen-today .today-dashboard__quick-actions .btn-today-entrenamiento-libre:active:not(:disabled):not([aria-disabled="true"]) {
     box-shadow: 0 var(--gn-border-width-thin) 0 var(--gn-color-border);
 }
 
-=======
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 #screen-today .today-data-buttons-row--single .btn-today-entrenamiento-libre:focus-visible {
     outline-color: var(--gn-color-info-text);
 }
@@ -221,14 +208,11 @@
     color: var(--gn-color-text);
 }
 
-<<<<<<< HEAD
 #screen-today .today-dashboard__quick-actions .btn-today-entrenamiento-libre:disabled,
 #screen-today .today-dashboard__quick-actions .btn-today-entrenamiento-libre[aria-disabled="true"] {
     box-shadow: var(--gn-shadow-none);
 }
 
-=======
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 /* Calendario: superficie limpia y estados visuales del mes sin cambiar sus datos. */
 #screen-today .today-calendar-container {
     padding: var(--gn-space-xl);
@@ -422,13 +406,10 @@
         gap: var(--gn-space-lg);
     }
 
-<<<<<<< HEAD
     #screen-today .today-dashboard__section--progress {
         gap: var(--gn-space-lg);
     }
 
-=======
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
     #screen-today .today-calendar-container {
         padding: var(--gn-space-lg);
     }

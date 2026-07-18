@@ -12,10 +12,6 @@
 
 #screen-today .today-progress__summary {
     padding: var(--gn-space-2xl);
-<<<<<<< HEAD
-=======
-    margin-bottom: var(--gn-space-md);
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
 }
 
 #screen-today .today-progress__title {
@@ -76,7 +72,6 @@
 }
 
 #screen-today .today-progress__period-selector {
-<<<<<<< HEAD
     --today-period-shadow-offset: calc(var(--gn-space-sm) - var(--gn-border-width));
 
     display: grid;
@@ -94,19 +89,6 @@
     border-radius: var(--gn-radius-md);
     background-color: var(--gn-color-surface);
     box-shadow: 0 var(--today-period-shadow-offset) 0 var(--gn-color-border);
-=======
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--gn-space-lg);
-}
-
-#screen-today .today-progress__period-button {
-    min-block-size: 3.25rem;
-    padding: var(--gn-space-md) var(--gn-space-lg);
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
-    border-radius: var(--gn-radius-md);
-    background-color: var(--gn-color-surface);
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
     color: var(--gn-color-text);
     font-family: var(--gn-font-title);
     font-size: var(--gn-font-size-md);
@@ -137,10 +119,7 @@
 #screen-today .today-progress__period-button:active {
     border-color: var(--gn-color-info-text);
     background-color: var(--gn-color-info);
-<<<<<<< HEAD
     box-shadow: 0 var(--gn-border-width-thin) 0 var(--gn-color-border);
-=======
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
     color: var(--gn-color-info-text);
 }
 
@@ -171,11 +150,7 @@
 
 #screen-today .today-progress__recent-list {
     display: grid;
-<<<<<<< HEAD
     gap: var(--gn-space-lg);
-=======
-    gap: var(--gn-space-xl);
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
     padding: 0;
     margin: 0;
     list-style: none;
@@ -309,11 +284,7 @@
 
 #screen-today .today-progress__consistency {
     padding: var(--gn-space-xl);
-<<<<<<< HEAD
     margin-block-start: 0;
-=======
-    margin: 0 0 var(--gn-space-md);
->>>>>>> a0e06567d66fb0b2bcaca3a4ed517c8aee665a60
     color: var(--gn-color-text);
     font-family: var(--gn-font-title);
     font-size: var(--gn-font-size-md);
