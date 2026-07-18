@@ -9,6 +9,59 @@
 const allScreens = document.querySelectorAll('.screen');
 const globalScrollTopButton = document.getElementById('globalScrollTopBtn');
 
+// Menús de opciones de las pantallas principales y de las dos vistas de Plan.
+const headerOptionsMenuIds = [
+    'todayOptionsMenu',
+    'routineListOptionsMenu',
+    'sessionListOptionsMenu',
+    'historyOptionsMenu',
+    'exercisesOptionsMenu'
+];
+
+/**
+ * Devuelve solo los menús de cabecera abiertos en una pantalla visible.
+ * Ignorar pantallas inactivas evita que un estado conservado al navegar bloquee
+ * la primera interacción legítima de la pantalla actual.
+ */
+function getOpenVisibleHeaderOptionsMenus() {
+    return headerOptionsMenuIds
+        .map(menuId => document.getElementById(menuId))
+        .filter(menu => (
+            menu &&
+            !menu.classList.contains('hidden') &&
+            !menu.closest('.screen.hidden')
+        ));
+}
+
+/**
+ * Cierra un menú de cabecera antes de que un clic exterior alcance el control
+ * situado debajo. Las opciones internas y el botón controlador mantienen su
+ * flujo normal, por lo que no requieren un segundo clic.
+ */
+function handleHeaderOptionsMenuOutsideClick(event) {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return;
+
+    const openMenus = getOpenVisibleHeaderOptionsMenus();
+    if (openMenus.length === 0) return;
+
+    const clickedInsideMenu = openMenus.some(menu => menu.contains(target));
+    const clickedMenuToggle = openMenus.some(menu => menu.previousElementSibling?.contains(target));
+
+    if (clickedInsideMenu || clickedMenuToggle) return;
+
+    openMenus.forEach(menu => menu.classList.add('hidden'));
+
+    // La captura impide que el mismo clic cierre el menú y active el elemento
+    // inferior. El siguiente clic, con todos los menús cerrados, no se consume.
+    event.preventDefault();
+    event.stopPropagation();
+}
+
+// Un único listener cubre tanto el clic de ratón como el click sintetizado por
+// una interacción táctil, sin combinar eventos redundantes de puntero y toque.
+document.addEventListener('click', handleHeaderOptionsMenuOutsideClick, true);
+
 // Respeta la preferencia de movimiento del sistema sin alterar el destino del desplazamiento.
 function getMotionAwareScrollBehavior() {
     return typeof window.matchMedia === 'function' &&
