@@ -38,10 +38,11 @@
 }
 
 #screen-today .today-progress__metric {
+    container-type: inline-size;
     display: flex;
     min-inline-size: 0;
     min-block-size: 7rem;
-    padding: var(--gn-space-lg) var(--gn-space-md);
+    padding: var(--gn-space-lg) 0;
     align-items: center;
     justify-content: center;
     flex-direction: column;
@@ -56,11 +57,12 @@
     max-inline-size: 100%;
     color: var(--gn-color-text);
     font-family: var(--gn-font-numeric);
-    font-size: var(--gn-font-size-2xl);
+    font-size: clamp(var(--gn-font-size-xs), 3vw, var(--gn-font-size-xl));
+    font-size: clamp(var(--gn-font-size-xs), 15cqi, var(--gn-font-size-2xl));
     font-variant-numeric: tabular-nums;
     font-weight: var(--gn-font-weight-bold);
     line-height: var(--gn-line-height-tight);
-    overflow-wrap: anywhere;
+    white-space: nowrap;
 }
 
 #screen-today .today-progress__metric-label {
@@ -315,11 +317,7 @@
 
     #screen-today .today-progress__metric {
         min-block-size: 6rem;
-        padding: var(--gn-space-md) var(--gn-space-sm);
-    }
-
-    #screen-today .today-progress__metric-value {
-        font-size: clamp(var(--gn-font-size-md), 6vw, var(--gn-font-size-xl));
+        padding: var(--gn-space-md) 0;
     }
 
     #screen-today .today-progress__period-button {
@@ -373,8 +371,8 @@
         padding-inline: var(--gn-space-md);
     }
 
-    #screen-today .today-progress__metric {
-        padding-inline: var(--gn-space-xs);
+    #screen-today .today-progress__metrics {
+        gap: var(--gn-space-xs);
     }
 
     #screen-today .today-progress__metric-label {
