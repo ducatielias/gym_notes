@@ -12,17 +12,17 @@ git pull origin main --allow-unrelated-histories
 echo [2/4] Escaneando todos los archivos de GymNotes...
 git add -A
 
-:: 3. DETECTAR TU CACHE_VERSION DESDE SW.JS
+:: 3. DETECTAR TU CACHE_VERSION DESDE SW.JS (Filtrando solo la asignación)
 set "DETECTED_VERSION="
 
 if exist sw.js (
-    :: Busca la linea que tenga CACHE_VERSION y extrae el texto entre las comillas simples
-    for /f "tokens=2 delims='" %%a in ('findstr "CACHE_VERSION" sw.js 2^>nul') do (
+    :: Busca la línea que tenga CACHE_VERSION y un signo = para evitar los console.log
+    for /f "tokens=2 delims='" %%a in ('findstr "CACHE_VERSION.*=" sw.js 2^>nul') do (
         set "DETECTED_VERSION=%%a"
     )
 )
 
-:: Si por algun motivo se borra el archivo o no encuentra la linea, usa un respaldo
+:: Si por algun motivo no encuentra la linea, usa un respaldo
 if "!DETECTED_VERSION!"=="" (
     set "COMMIT_MESSAGE=Auto-Update - Cambios Generales"
 ) else (
