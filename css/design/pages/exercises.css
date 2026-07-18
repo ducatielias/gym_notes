@@ -1,0 +1,366 @@
+/*
+ * Capa visual de la pantalla principal de Ejercicios.
+ * Se limita a #screen-exercises para no afectar al editor, visor ni modales.
+ */
+
+#screen-exercises {
+    background: var(--gn-color-background);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+}
+
+/* Cabecera, búsqueda y filtro de la lista principal. */
+#screen-exercises .exercises-header {
+    gap: var(--gn-space-md);
+    background: var(--gn-color-background);
+    border-bottom: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border-muted);
+    color: var(--gn-color-text);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-exercises .exercises-header-top h1 {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-weight: var(--gn-font-weight-bold);
+    line-height: var(--gn-line-height-tight);
+}
+
+/* Marca dinámica: conserva las medidas estáticas sin atributos style. */
+#screen-exercises .exercises-header__brand-icon {
+    inline-size: 2rem;
+    block-size: 2rem;
+    border-radius: var(--gn-space-sm);
+}
+
+#screen-exercises .exercises-header-top h1.exercises-header__title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.03125rem;
+}
+
+#screen-exercises .btn-exercises-options {
+    display: inline-grid;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    min-height: 2.75rem;
+    place-items: center;
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-circle);
+    background: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+@media (hover: hover) {
+    #screen-exercises .btn-exercises-options:hover {
+        border-color: var(--gn-color-text);
+        background: var(--gn-color-surface-secondary);
+    }
+}
+
+#screen-exercises .btn-exercises-options:active,
+#screen-exercises .btn-exercises-options.active {
+    transform: none;
+    border-color: var(--gn-color-border);
+    background: var(--gn-color-accent);
+    color: var(--gn-color-text);
+}
+
+#screen-exercises .btn-exercises-options:focus-visible,
+#screen-exercises .exercises-search-wrapper input:focus-visible,
+#screen-exercises .exercises-filter-bar select:focus-visible,
+#screen-exercises .clear-input-btn:focus-visible,
+#screen-exercises .btn-exercise-action:focus-visible,
+#screen-exercises .btn-empty-add:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-text);
+    outline-offset: 2px;
+}
+
+#screen-exercises .exercises-search-wrapper {
+    color: var(--gn-color-text-muted);
+}
+
+#screen-exercises .exercises-search-wrapper input {
+    min-height: 2.75rem;
+    padding: var(--gn-space-md) 2.75rem var(--gn-space-md) 2.75rem;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        background-color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-exercises .exercises-search-wrapper input::placeholder {
+    color: var(--gn-color-text-muted);
+    opacity: 1;
+}
+
+#screen-exercises .exercises-search-wrapper input:focus-visible {
+    border-color: var(--gn-color-border);
+    background: var(--gn-color-surface);
+}
+
+#screen-exercises .clear-input-btn {
+    width: 2rem;
+    height: 2rem;
+    border: var(--gn-border-width-thin) var(--gn-border-style) transparent;
+    border-radius: var(--gn-radius-circle);
+    background: transparent;
+    color: var(--gn-color-text-muted);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+@media (hover: hover) {
+    #screen-exercises .clear-input-btn:hover {
+        background: var(--gn-color-surface-secondary);
+        color: var(--gn-color-text);
+    }
+}
+
+#screen-exercises .exercises-filter-bar select {
+    min-height: 2.75rem;
+    padding: var(--gn-space-md) 2.75rem var(--gn-space-md) var(--gn-space-lg);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    font-weight: var(--gn-font-weight-medium);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        background-color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-exercises .exercises-filter-bar select:focus-visible {
+    border-color: var(--gn-color-border);
+    background-color: var(--gn-color-surface);
+}
+
+/* Listado y tarjetas expandibles. Se conservan sus reglas estructurales heredadas. */
+#screen-exercises .exercises-grid {
+    width: min(100%, 48rem);
+    margin-inline: auto;
+    padding-top: var(--gn-space-lg);
+    padding-inline: var(--gn-space-lg);
+    gap: var(--gn-space-lg);
+}
+
+#screen-exercises .card-exercise {
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-card);
+    background: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-exercises .card-exercise-header {
+    padding: var(--gn-space-lg);
+    color: var(--gn-color-text);
+}
+
+@media (hover: hover) {
+    #screen-exercises .card-exercise-header:hover {
+        background: var(--gn-color-surface);
+    }
+}
+
+#screen-exercises .card-exercise-thumb {
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-md);
+    background: var(--gn-color-surface-secondary);
+}
+
+#screen-exercises .card-exercise-group {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    min-height: 1.5rem;
+    padding-inline: var(--gn-space-sm);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-pill);
+    background: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-semibold);
+    letter-spacing: 0.02em;
+    line-height: var(--gn-line-height-normal);
+    text-transform: uppercase;
+}
+
+#screen-exercises .card-exercise-name {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-md);
+    font-weight: var(--gn-font-weight-bold);
+    line-height: var(--gn-line-height-normal);
+}
+
+#screen-exercises .card-exercise-chevron {
+    color: var(--gn-color-text-muted);
+}
+
+#screen-exercises .card-exercise-inner {
+    color: var(--gn-color-text);
+}
+
+#screen-exercises .card-exercise-body {
+    background-color: var(--gn-color-surface);
+}
+
+#screen-exercises .card-exercise-notes {
+    padding: var(--gn-space-md);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-sm);
+    background: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text-muted);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-relaxed);
+}
+
+/* Acciones disponibles tras expandir una tarjeta. */
+#screen-exercises .card-exercise-actions {
+    gap: var(--gn-space-sm);
+}
+
+#screen-exercises .btn-exercise-action {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-exercises .btn-exercise-action-video {
+    background: var(--gn-color-accent);
+}
+
+#screen-exercises .btn-exercise-action-share,
+#screen-exercises .btn-exercise-action-history {
+    background: var(--gn-color-info);
+    color: var(--gn-color-info-text);
+}
+
+#screen-exercises .btn-exercise-action-web {
+    background: var(--gn-color-success);
+    color: var(--gn-color-success-text);
+}
+
+#screen-exercises .btn-exercise-action-delete {
+    background: var(--gn-color-danger);
+    color: var(--gn-color-danger-text);
+}
+
+@media (hover: hover) {
+    #screen-exercises .btn-exercise-action:hover:not(:disabled):not([aria-disabled="true"]),
+    #screen-exercises .btn-empty-add:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        filter: brightness(0.98);
+    }
+}
+
+#screen-exercises .btn-exercise-action:active:not(:disabled):not([aria-disabled="true"]),
+#screen-exercises .btn-empty-add:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: none;
+}
+
+#screen-exercises .btn-exercise-action:disabled,
+#screen-exercises .btn-exercise-action[aria-disabled="true"],
+#screen-exercises .btn-empty-add:disabled,
+#screen-exercises .btn-empty-add[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+/* Estados sin ejercicios o sin coincidencias. */
+#screen-exercises .exercises-empty {
+    width: min(calc(100% - (var(--gn-space-lg) * 2)), 48rem);
+    margin: var(--gn-space-xl) auto;
+    padding: var(--gn-space-2xl) var(--gn-space-xl);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-card);
+    background: var(--gn-color-surface);
+    color: var(--gn-color-text-muted);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-exercises .exercises-empty > i {
+    color: var(--gn-color-text-muted);
+}
+
+#screen-exercises .exercises-empty p {
+    color: var(--gn-color-text-muted);
+    line-height: var(--gn-line-height-relaxed);
+}
+
+#screen-exercises .btn-empty-add {
+    min-height: 2.75rem;
+    padding: var(--gn-space-sm) var(--gn-space-lg);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background: var(--gn-color-accent);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+@media (max-width: 30rem) {
+    #screen-exercises .exercises-grid {
+        padding-inline: var(--gn-space-md);
+        gap: var(--gn-space-md);
+    }
+
+    #screen-exercises .card-exercise-header {
+        padding: var(--gn-space-md);
+    }
+
+    #screen-exercises .card-exercise-thumb {
+        width: var(--gn-space-3xl);
+        height: var(--gn-space-3xl);
+    }
+
+    #screen-exercises .btn-exercise-action {
+        min-height: 2.5rem;
+        padding-inline: var(--gn-space-sm);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #screen-exercises .btn-exercises-options,
+    #screen-exercises .exercises-search-wrapper input,
+    #screen-exercises .clear-input-btn,
+    #screen-exercises .exercises-filter-bar select,
+    #screen-exercises .btn-exercise-action,
+    #screen-exercises .btn-empty-add {
+        transition-duration: 0ms;
+    }
+}

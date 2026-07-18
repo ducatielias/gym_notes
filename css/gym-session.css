@@ -1,0 +1,617 @@
+/**
+ * ESTILOS RESTAURADOS Y MEJORADOS: gym-session.css
+ * Devuelve el buscador de ejercicios a su estado original estable,
+ * mantiene el comportamiento elástico con el teclado móvil, y aplica un
+ * rediseño jerárquico de títulos apilados en el Editor de Sesiones.
+ * 
+ * CORRECCIÓN: Solucionado el problema del placeholder de Quill en móviles
+ * que se solapaba con el texto ingresado.
+ * 
+ * CORRECCIÓN: Ajuste de sangría de listas para mejor legibilidad.
+ * 
+ * MODIFICADO: El título de la sesión ahora usa textarea para mostrar
+ * títulos largos completos con ajuste automático de altura.
+ */
+
+/* ==========================================================================
+   CONTENEDOR PRINCIPAL DEL EDITOR (BLOQUEO ABSOLUTO)
+   ========================================================================== */
+#screen-editor {
+    overflow: hidden !important;
+    position: fixed; /* CAMBIO CLAVE: fixed en lugar de absolute evita saltos por scroll heredado */
+    width: 100vw;
+    height: 100dvh; /* Asegura el tamaño exacto del viewport dinámico */
+    top: 0;
+    left: 0;
+    z-index: 999; /* Asegura quedar por encima de las pestañas inferiores u otros modales */
+    display: block;
+}
+
+.editor-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; /* Toma el 100% de su padre fijo, no se estirará de más */
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important; /* Desactiva por completo el scroll en la raíz del modal */
+}
+
+/* ==========================================================================
+   CABECERA INTEGRAL (TOTALMENTE RÍGIDA)
+   ========================================================================== */
+.editor-sticky-header {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0; /* Evita que la cabecera se deforme o aplaste si falta espacio */
+    background-color: #ffffff;
+    z-index: 10;
+    border-bottom: 1px solid #f3f4f6;
+    /* Al estar dentro de un flex vertical sin scroll, no necesita position: sticky; */
+}
+
+/* Fila 1: Barra de navegación superior */
+.editor-nav-top {
+    height: 56px;
+    padding: 0 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    border-bottom: 1px solid #f3f4f6;
+    flex-shrink: 0;
+}
+
+.btn-nav-close {
+    background: #f3f4f6;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--primary-color, #000000);
+    transition: transform 0.1s ease;
+}
+
+.btn-nav-close:active {
+    transform: scale(0.9);
+}
+
+.btn-nav-save {
+    background-color: var(--primary-color, #000000);
+    color: #ffffff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.1s ease, transform 0.1s ease;
+}
+
+.btn-nav-save:active {
+    transform: scale(0.96);
+    background-color: #222222;
+}
+
+/* ==========================================================================
+   FILA DE TÍTULO REDISEÑADA - AHORA CON TEXTAREA AJUSTABLE
+   ========================================================================== */
+.editor-title-row {
+    padding: 5px 8px 5px 8px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #f3f4f6;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.session-label-prefix {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-color, #000000);
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-left: 2px;
+}
+
+/* ============================================================
+   CAMPO DE TÍTULO - TEXTAREA CON AJUSTE AUTOMÁTICO DE ALTURA
+   ============================================================ */
+.session-input-field {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary-color, #000000);
+    outline: none;
+    padding: 2px 2px;
+    margin: 0;
+    letter-spacing: -0.5px;
+    resize: none;
+    overflow: hidden;
+    min-height: 32px;
+    line-height: 1.3;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.session-input-field::placeholder {
+    color: #cbd5e1;
+}
+
+.session-input-field:disabled,
+.session-input-field[readonly] {
+    color: var(--primary-color, #000000);
+    background: transparent;
+    cursor: default;
+}
+
+/* ==========================================================================
+   SELECTORES DE HERRAMIENTAS ADICIONALES
+   ========================================================================== */
+.editor-tools-selectors {
+    display: flex;
+    gap: 10px;
+    padding: 5px 5px;
+    background-color: #ffffff;
+    flex-shrink: 0;
+}
+
+.editor-tools-row {
+    display: flex;
+    gap: 10px;
+    padding: 0px 5px;
+    background-color: #ffffff;
+    flex-shrink: 0;
+}
+
+.editor-tools-row .editor-tools-selectors {
+    flex: 1;
+}
+
+.btn-tool-toggle {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    padding: 9px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4b5563;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-tool-toggle i {
+    font-size: 14px;
+    color: #9ca3af;
+}
+
+.btn-tool-toggle.active {
+    background-color: #f3f4f6;
+    border-color: var(--primary-color, #000000);
+    color: var(--primary-color, #000000);
+}
+
+/* ==========================================================================
+   BOTÓN "INICIAR SESIÓN" PARA MODO LECTURA
+   ========================================================================== */
+
+.btn-start-session {
+    width: 100%;
+    background: var(--accent-color, #ccff00);
+    border: none;
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-color, #000000);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.1s ease, background-color 0.1s ease;
+}
+
+.btn-start-session:active {
+    transform: scale(0.96);
+    filter: brightness(0.9);
+}
+
+/* ==========================================================================
+   BOTÓN DE TRES PUNTOS Y MENÚ DESPLEGABLE
+   ========================================================================== */
+
+.editor-options-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.btn-options-dots {
+    background: none;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: #4b5563;
+    font-size: 18px;
+    transition: background-color 0.1s ease;
+}
+
+.btn-options-dots:active {
+    background-color: #f3f4f6;
+}
+
+.editor-options-dropdown {
+    position: absolute;
+    top: 48px;
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    width: 160px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    animation: fadeInMenu 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.editor-options-dropdown.hidden {
+    display: none;
+}
+
+.editor-option-item {
+    background: none;
+    border: none;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.12s ease;
+    width: 100%;
+}
+
+.editor-option-item i {
+    font-size: 13px;
+    width: 16px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.editor-option-item:active {
+    background-color: #f3f4f6;
+    color: #000000;
+}
+
+/* ==========================================================================
+   ÁREAS DESPLEGABLES CON ANIMACIÓN ELÁSTICA
+   ========================================================================== */
+.expandable-wrapper {
+    max-height: 0;
+    overflow: hidden;
+    background-color: #f9fafb;
+    transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.expandable-wrapper.open {
+    max-height: 240px;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* ==========================================================================
+   CONTENEDORES INTERMEDIOS DE QUILL
+   ========================================================================== */
+#editor-instance {
+    flex: 1; /* Ocupa todo el espacio restante exacto bajo la cabecera */
+    min-height: 0; /* Propiedad crítica anti-desbordamiento en Flexbox */
+    overflow: hidden !important; /* Mantiene el área rígida */
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+.ql-container.ql-snow {
+    border: none !important;
+    font-size: 16px;
+    flex: 1; /* Sigue rellenando el espacio vertical remanente */
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Evita que Quill empuje los límites hacia abajo */
+    overflow: hidden !important; /* Bloquea el scroll aquí */
+}
+
+/* ==========================================================================
+   ZONA ÚNICA DE SCROLL EXCLUSIVO (.ql-editor)
+   ========================================================================== */
+.ql-editor {
+    flex: 1;
+    overflow-y: auto !important; /* Único punto de scroll vertical permitido en toda la pantalla */
+    -webkit-overflow-scrolling: touch !important; /* Inercia nativa ultra suave en iOS */
+    touch-action: pan-y !important; /* Permite solo gestos verticales, evitando scrolls horizontales erráticos */
+    padding: 20px 16px 160px 16px !important;
+    color: #1f2937;
+    line-height: 1.6;
+}
+
+.ql-editor:focus {
+    outline: none;
+}
+
+/* ==========================================================================
+   CORRECCIÓN DEL PLACEHOLDER DE QUILL EN MÓVILES
+   Solución al problema de solapamiento del placeholder en dispositivos móviles
+   ========================================================================== */
+
+/* Estilo base del placeholder - aseguramos que no interfiera con el texto */
+.ql-editor.ql-blank::before {
+    left: 16px !important;
+    color: #9ca3af;
+    font-style: normal;
+    pointer-events: none !important; /* Evita que el placeholder capture eventos táctiles */
+    user-select: none !important; /* Evita que el placeholder sea seleccionable */
+    -webkit-user-select: none !important;
+}
+
+/* Cuando el editor tiene contenido, aseguramos que el placeholder se oculte completamente */
+.ql-editor:not(.ql-blank)::before {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    content: none !important;
+}
+
+/* Forzamos que el placeholder solo sea visible cuando el editor está vacío */
+.ql-editor.ql-blank:empty::before {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Solución específica para móviles: asegurar que el texto ingresado esté siempre por encima del placeholder */
+.ql-editor {
+    position: relative;
+    z-index: 1;
+}
+
+.ql-editor.ql-blank::before {
+    position: absolute;
+    top: 20px;
+    left: 16px;
+    z-index: 0; /* El placeholder está por debajo del contenido */
+}
+
+.ql-editor > * {
+    position: relative;
+    z-index: 1; /* El contenido del editor está por encima del placeholder */
+}
+
+/* Ajuste fino para que el placeholder no se superponga con el padding del editor */
+.ql-editor.ql-blank::before {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* ==========================================================================
+   AJUSTE DE SANGRÍA DE LISTAS EN EL EDITOR
+   ========================================================================== */
+
+/* Sangría general para listas */
+.ql-editor ul,
+.ql-editor ol {
+    padding-left: 20px !important;
+}
+
+/* Sangría para sublistas (listas anidadas) */
+.ql-editor ul ul,
+.ql-editor ol ol,
+.ql-editor ul ol,
+.ql-editor ol ul {
+    padding-left: 24px !important;
+}
+
+/* Espacio entre la viñeta/número y el texto */
+.ql-editor li {
+    padding-left: 8px !important;
+}
+
+/* Para el editor de sesiones - más específico */
+#editor-instance .ql-editor ul,
+#editor-instance .ql-editor ol {
+    padding-left: 20px !important;
+}
+
+#editor-instance .ql-editor ul ul,
+#editor-instance .ql-editor ol ol,
+#editor-instance .ql-editor ul ol,
+#editor-instance .ql-editor ol ul {
+    padding-left: 24px !important;
+}
+
+#editor-instance .ql-editor li {
+    padding-left: 8px !important;
+}
+
+/* ==========================================================================
+   BARRA DE HERRAMIENTAS DE QUILL
+   ========================================================================== */
+
+/* Barra de herramientas original de Quill al 100% de ancho de pantalla */
+.ql-toolbar.ql-snow {
+    border: none !important;
+    padding: 12px 16px !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    background-color: #f9fafb;
+    flex-shrink: 0;
+}
+
+/* Buscador de ejercicios (RESTAURADO) */
+.exercises-content { padding: 14px 16px; }
+
+.search-input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    outline: none;
+    margin-bottom: 10px;
+    background-color: #ffffff;
+}
+
+.search-input:focus { border-color: #000000; }
+
+.exercises-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 160px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+.exercise-item {
+    padding: 12px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+}
+
+.exercise-item:active {
+    background-color: #f3f4f6;
+}
+
+.no-results {
+    padding: 14px;
+    font-size: 14px;
+    color: #9ca3af;
+    text-align: center;
+}
+
+/* ==========================================================================
+   RESPONSIVE: Ajustes adicionales para móviles
+   ========================================================================== */
+
+@media (max-width: 480px) {
+    /* Ajuste del padding del editor en móviles para mejor experiencia táctil */
+    .ql-editor {
+        padding: 20px 14px 180px 14px !important;
+        font-size: 15px;
+    }
+    
+    /* Ajuste de la posición del placeholder en móviles */
+    .ql-editor.ql-blank::before {
+        left: 14px !important;
+        top: 20px !important;
+        font-size: 15px !important;
+    }
+    
+    /* Ajuste del padding de la barra de herramientas en móviles */
+    .ql-toolbar.ql-snow {
+        padding: 8px 10px !important;
+        gap: 4px;
+    }
+    
+    .ql-toolbar.ql-snow .ql-formats {
+        margin-right: 4px !important;
+    }
+    
+    .ql-toolbar.ql-snow button {
+        width: 30px !important;
+        height: 30px !important;
+        padding: 4px !important;
+    }
+    
+    .ql-toolbar.ql-snow .ql-picker-label {
+        padding: 2px 8px !important;
+        font-size: 12px !important;
+    }
+    
+    /* Ajuste de sangría en móviles */
+    .ql-editor ul,
+    .ql-editor ol {
+        padding-left: 16px !important;
+    }
+    
+    .ql-editor ul ul,
+    .ql-editor ol ol,
+    .ql-editor ul ol,
+    .ql-editor ol ul {
+        padding-left: 20px !important;
+    }
+    
+    .ql-editor li {
+        padding-left: 6px !important;
+    }
+    
+    #editor-instance .ql-editor ul,
+    #editor-instance .ql-editor ol {
+        padding-left: 16px !important;
+    }
+    
+    #editor-instance .ql-editor ul ul,
+    #editor-instance .ql-editor ol ol,
+    #editor-instance .ql-editor ul ol,
+    #editor-instance .ql-editor ol ul {
+        padding-left: 20px !important;
+    }
+    
+    #editor-instance .ql-editor li {
+        padding-left: 6px !important;
+    }
+    
+    /* Ajuste del título en móviles */
+    .session-input-field {
+        font-size: 19px;
+        min-height: 28px;
+        padding: 2px 2px;
+    }
+    
+    .editor-title-row {
+        padding: 4px 6px 4px 6px;
+    }
+}
+
+@media (max-width: 360px) {
+    .session-input-field {
+        font-size: 17px;
+        min-height: 24px;
+    }
+}

@@ -1,0 +1,345 @@
+/* ==========================================================================
+   TODAY DASHBOARD - today-dashboard.css
+   Estilos para el calendario y entrenamiento libre en la pantalla "Hoy"
+   ========================================================================== */
+
+/* ==========================================================================
+   CONTENEDOR PRINCIPAL DE LA PANTALLA "HOY"
+   ========================================================================== */
+
+#today-dashboard-content {
+    padding: 16px 20px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#screen-today .screen-header {
+    padding: 16px 20px 15px 20px !important;
+}
+
+/* ==========================================================================
+   CALENDARIO
+   ========================================================================== */
+
+.today-calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.today-calendar-header button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    color: var(--primary-color, #000000);
+    border-radius: 8px;
+    transition: background 0.15s ease;
+    touch-action: manipulation;
+}
+
+.today-calendar-header button:active {
+    background: #f3f4f6;
+}
+
+.today-calendar-month-year {
+    font-size: 17px;
+    font-weight: 700;
+    text-transform: capitalize;
+    color: var(--primary-color, #000000);
+}
+
+.today-calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+
+.today-calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.today-calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--primary-color, #000000);
+    border-radius: 50%;
+    transition: background 0.15s ease, transform 0.15s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
+}
+
+.today-calendar-day.has-workout {
+    background: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.today-calendar-day.has-workout:active {
+    transform: scale(0.92);
+}
+
+/* ============================================================
+   DÍA ACTUAL RESALTADO EN AMARILLO
+   ============================================================ */
+.today-calendar-day.today {
+    outline: 3px solid #fbbf24;
+    outline-offset: -3px;
+    position: relative;
+}
+
+.today-calendar-day.today.has-workout {
+    background: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+    font-weight: 700;
+    outline: 3px solid #fbbf24;
+    outline-offset: -3px;
+}
+
+/* ==========================================================================
+   BOTÓN ENTRENAMIENTO LIBRE
+   ========================================================================== */
+
+.btn-today-entrenamiento-libre {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+    border: none;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.1s ease, background 0.15s ease;
+    box-shadow: 0 2px 8px rgba(204, 255, 0, 0.25);
+}
+
+.btn-today-entrenamiento-libre:active {
+    transform: scale(0.96);
+}
+
+.btn-today-entrenamiento-libre i {
+    font-size: 18px;
+}
+
+/* ==========================================================================
+   ESTADO VACÍO (CUANDO NO HAY HISTORIAL)
+   ========================================================================== */
+
+.today-empty-state i {
+    font-size: 48px;
+    color: #d1d5db;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.today-empty-state .btn-empty-add {
+    cursor: pointer;
+}
+
+.today-empty-state .btn-empty-add:active {
+    transform: scale(0.95);
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 480px) {
+    #today-dashboard-content {
+        padding: 12px 16px 20px 16px;
+        gap: 16px;
+    }
+    
+    .today-calendar-day {
+        font-size: 13px;
+    }
+    
+    .today-calendar-day.today {
+        outline: 2px solid #fbbf24;
+        outline-offset: -3px;
+    }
+    
+    .today-calendar-month-year {
+        font-size: 15px;
+    }
+    
+    .btn-today-entrenamiento-libre {
+        font-size: 15px;
+        padding: 14px;
+    }
+}
+
+@media (max-width: 360px) {
+    .today-calendar-day {
+        font-size: 11px;
+    }
+    
+    .today-calendar-day.today {
+        outline: 2px solid #fbbf24;
+        outline-offset: -3px;
+    }
+    
+    .today-calendar-header button {
+        font-size: 16px;
+        padding: 2px 8px;
+    }
+    
+    .btn-today-entrenamiento-libre {
+        font-size: 14px;
+        padding: 12px;
+    }
+}
+
+/* ==========================================================================
+   BOTONES DE IMPORTAR/EXPORTAR DATOS
+   ========================================================================== */
+
+.today-data-buttons-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.btn-today-data {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.btn-today-data:active {
+    transform: scale(0.96);
+}
+
+.btn-today-data-import:active {
+    background: #e5e7eb;
+}
+
+.btn-today-data-export:active {
+    background: #e5e7eb;
+}
+
+/* ==========================================================================
+   RESPONSIVE PARA BOTONES DE DATOS
+   ========================================================================== */
+
+@media (max-width: 480px) {
+    .today-data-buttons-row {
+        flex-direction: row;
+        gap: 8px;
+    }
+    
+    .btn-today-data {
+        font-size: 13px;
+        padding: 10px 12px;
+        border-radius: 12px;
+    }
+    
+    .btn-today-data i {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 360px) {
+    .today-data-buttons-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .btn-today-data {
+        font-size: 13px;
+        padding: 10px 12px;
+    }
+}
+
+/* ==========================================================================
+   MENÚ DE OPCIONES DE "HOY" (tres puntos)
+   ========================================================================== */
+
+.today-options-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    width: 180px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    animation: fadeInMenu 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.today-options-menu.hidden {
+    display: none !important;
+}
+
+@keyframes fadeInMenu {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.today-options-menu .menu-item {
+    background: none;
+    border: none;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.12s ease, color 0.12s ease;
+    width: 100%;
+}
+
+.today-options-menu .menu-item i {
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.today-options-menu .menu-item:active {
+    background-color: #f3f4f6;
+    color: #000000;
+}

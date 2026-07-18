@@ -1,0 +1,336 @@
+/*
+ * Capa visual de los controles de tiempo del entrenamiento activo.
+ * Se limita a #active-workout y conserva los estados controlados por JavaScript.
+ */
+
+/* Bloques de total, descanso y trabajo. */
+#active-workout .aw-timers-container {
+    max-width: 52rem;
+    margin-inline: auto;
+    gap: var(--gn-space-md);
+}
+
+#active-workout .timer-item {
+    min-width: 6.25rem;
+    padding: var(--gn-space-md) var(--gn-space-lg);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-card);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#active-workout #timer-descanso-area {
+    border-color: var(--gn-color-info-text);
+}
+
+#active-workout #timer-trabajo-area {
+    border-color: var(--gn-color-success-text);
+}
+
+#active-workout .timer-clickable {
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#active-workout .timer-clickable:active {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#active-workout .timer-label {
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-semibold);
+    letter-spacing: 0.04em;
+    line-height: var(--gn-line-height-normal);
+}
+
+#active-workout .timer-value {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-numeric);
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    font-weight: var(--gn-font-weight-bold);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.04em;
+    line-height: var(--gn-line-height-tight);
+}
+
+/* Controles existentes: los IDs y el cambio de visibilidad siguen intactos. */
+#active-workout .timer-controls {
+    gap: var(--gn-space-sm);
+    margin-top: var(--gn-space-sm);
+}
+
+#active-workout .timer-controls button {
+    min-height: 2.75rem;
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#active-workout .timer-controls button i {
+    font-size: var(--gn-font-size-sm);
+}
+
+#active-workout #btn-descanso-play,
+#active-workout #btn-timer-play {
+    background-color: var(--gn-color-accent);
+}
+
+#active-workout #btn-descanso-pause,
+#active-workout #btn-timer-pause {
+    border-color: var(--gn-color-info-text);
+    background-color: var(--gn-color-info);
+    color: var(--gn-color-info-text);
+}
+
+#active-workout .timer-controls .aw-finish-btn-inline {
+    border-color: var(--gn-color-danger-text);
+    background-color: var(--gn-color-danger);
+    color: var(--gn-color-danger-text);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-bold);
+}
+
+@media (hover: hover) {
+    #active-workout .timer-controls button:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        background-color: var(--gn-color-surface);
+    }
+
+    #active-workout #btn-descanso-play:hover:not(:disabled):not([aria-disabled="true"]),
+    #active-workout #btn-timer-play:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-accent);
+    }
+
+    #active-workout #btn-descanso-pause:hover:not(:disabled):not([aria-disabled="true"]),
+    #active-workout #btn-timer-pause:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-info-text);
+        background-color: var(--gn-color-info);
+    }
+
+    #active-workout .timer-controls .aw-finish-btn-inline:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-danger-text);
+        background-color: var(--gn-color-danger);
+    }
+}
+
+#active-workout .timer-controls button:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#active-workout #btn-descanso-play:active:not(:disabled):not([aria-disabled="true"]),
+#active-workout #btn-timer-play:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-accent);
+}
+
+#active-workout #btn-descanso-pause:active:not(:disabled):not([aria-disabled="true"]),
+#active-workout #btn-timer-pause:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-info);
+}
+
+#active-workout .timer-controls .aw-finish-btn-inline:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-danger);
+}
+
+#active-workout .timer-controls button:disabled,
+#active-workout .timer-controls button[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+/* Paneles de configuración ya existentes; display y estilos inline se preservan. */
+#active-workout #descanso-panel,
+#active-workout #timer-panel {
+    max-width: 52rem;
+    margin-inline: auto;
+    outline: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    outline-offset: calc(var(--gn-border-width-thin) * -1);
+    border-radius: var(--gn-radius-md);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#active-workout .preset-buttons {
+    gap: var(--gn-space-sm);
+}
+
+#active-workout .preset-buttons button,
+#active-workout .custom-rest button,
+#active-workout .custom-interval button {
+    min-height: 2.75rem;
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#active-workout .preset-buttons button {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#active-workout .custom-rest button,
+#active-workout .custom-interval button {
+    background-color: var(--gn-color-accent);
+}
+
+@media (hover: hover) {
+    #active-workout .preset-buttons button:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        background-color: var(--gn-color-surface);
+    }
+
+    #active-workout .custom-rest button:hover:not(:disabled):not([aria-disabled="true"]),
+    #active-workout .custom-interval button:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        background-color: var(--gn-color-accent);
+    }
+}
+
+#active-workout .preset-buttons button:active:not(:disabled):not([aria-disabled="true"]),
+#active-workout .custom-rest button:active:not(:disabled):not([aria-disabled="true"]),
+#active-workout .custom-interval button:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#active-workout .custom-rest button:active:not(:disabled):not([aria-disabled="true"]),
+#active-workout .custom-interval button:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-accent);
+}
+
+#active-workout .preset-buttons button:disabled,
+#active-workout .custom-rest button:disabled,
+#active-workout .custom-interval button:disabled,
+#active-workout .preset-buttons button[aria-disabled="true"],
+#active-workout .custom-rest button[aria-disabled="true"],
+#active-workout .custom-interval button[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+#active-workout .custom-rest,
+#active-workout .custom-interval {
+    gap: var(--gn-space-sm);
+}
+
+#active-workout .custom-interval label {
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+}
+
+#active-workout .custom-rest input,
+#active-workout .custom-interval input {
+    min-height: 2.75rem;
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-numeric);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#active-workout .custom-rest input:disabled,
+#active-workout .custom-interval input:disabled,
+#active-workout .custom-rest input[aria-disabled="true"],
+#active-workout .custom-interval input[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+#active-workout .custom-rest input[readonly],
+#active-workout .custom-interval input[readonly] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text-muted);
+}
+
+#active-workout #timer-preset-info {
+    padding: var(--gn-space-xs) var(--gn-space-sm);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-sm);
+    font-family: var(--gn-font-numeric);
+    font-weight: var(--gn-font-weight-medium);
+    line-height: var(--gn-line-height-normal);
+}
+
+/* Foco visible para todos los controles temporales existentes. */
+#active-workout .timer-controls button:focus-visible,
+#active-workout .preset-buttons button:focus-visible,
+#active-workout .custom-rest button:focus-visible,
+#active-workout .custom-interval button:focus-visible,
+#active-workout .custom-rest input:focus-visible,
+#active-workout .custom-interval input:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+@media (max-width: 30rem) {
+    #active-workout .aw-timers-container {
+        gap: var(--gn-space-sm);
+    }
+
+    #active-workout .timer-item {
+        padding: var(--gn-space-sm) var(--gn-space-md);
+    }
+
+    #active-workout .timer-value {
+        font-size: 1.5rem;
+    }
+
+    #active-workout .timer-controls button {
+        padding-inline: var(--gn-space-sm);
+    }
+
+    #active-workout #descanso-panel,
+    #active-workout #timer-panel {
+        border-radius: var(--gn-radius-sm);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #active-workout .timer-clickable,
+    #active-workout .timer-controls button,
+    #active-workout .preset-buttons button,
+    #active-workout .custom-rest button,
+    #active-workout .custom-interval button,
+    #active-workout .custom-rest input,
+    #active-workout .custom-interval input {
+        transition-duration: 0ms;
+    }
+}

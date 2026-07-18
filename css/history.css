@@ -1,0 +1,748 @@
+/**
+ * ESTILOS DE INTERFAZ: history.css
+ * Controla la pantalla de historial: lista de entrenamientos, filtros, búsqueda y detalles.
+ * 
+ * MODIFICADO: Estructura mejorada para animación fluida de tarjetas (solución Gemini)
+ * MODIFICADO: Añadidos estilos para el botón "Editar" en el detalle del historial
+ * MODIFICADO: Añadidos estilos para el modo edición (fecha/hora, editor Quill)
+ * MODIFICADO: Añadido line-height:1 al título del header para alinear icono.
+ */
+
+/* ==========================================================================
+   PÁGINA DE HISTORIAL (SCREEN)
+   ========================================================================== */
+
+.history-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 16px 20px 14px 20px !important;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.history-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.history-header-top h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0;
+    line-height: 1;
+}
+
+.btn-history-options {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 20px;
+    padding: 8px 10px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-history-options:active {
+    background-color: #f3f4f6;
+    color: var(--primary-color, #000000);
+}
+
+/* ==========================================================================
+   BÚSQUEDA Y FILTROS DEL HISTORIAL
+   ========================================================================== */
+
+.history-search-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.history-search-wrapper .icon-search {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 14px;
+    z-index: 1;
+}
+
+.history-search-wrapper .clear-input-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    z-index: 2;
+}
+
+.history-search-wrapper .clear-input-btn:active {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+.history-search-wrapper.has-value .clear-input-btn {
+    display: flex;
+}
+
+.history-search-wrapper input {
+    width: 100%;
+    padding: 12px 40px 12px 40px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.15s ease;
+    color: var(--primary-color, #000000);
+}
+
+.history-search-wrapper input:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+/* ========================================================================== 
+   FILTROS DEL HISTORIAL (dropdowns en fila)
+   ========================================================================== */
+
+.history-filter-bar {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.history-filter-bar select {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+
+.history-filter-bar select:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+.history-filter-bar select option {
+    padding: 8px;
+}
+
+.history-filter-bar .filter-label {
+    display: none;
+}
+
+/* ==========================================================================
+   CONTENEDOR DE TARJETAS DEL HISTORIAL - PADDING BOTTOM AUMENTADO PARA MÓVILES
+   ========================================================================== */
+
+.history-grid {
+    padding: 12px 20px calc(100px + env(safe-area-inset-bottom, 20px)) 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================================================
+   TARJETAS DE HISTORIAL - ESTRUCTURA MEJORADA PARA ANIMACIÓN FLUIDA
+   ========================================================================== */
+
+.card-history {
+    overflow: hidden;
+    transition: border-color 0.15s ease;
+}
+
+.card-history-header {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.card-history-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.card-history-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.card-history-date {
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.card-history-title {
+    margin: 0;
+    word-break: break-word;
+}
+
+.card-history-subtitle {
+    margin-top: 2px;
+}
+
+.card-history-duration {
+    padding: 4px 10px;
+    white-space: nowrap;
+}
+
+.card-history-chevron {
+    font-size: 14px;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    margin-left: 4px;
+}
+
+.card-history.expanded .card-history-chevron {
+    transform: rotate(180deg);
+}
+
+/* ==========================================================================
+   CUERPO DE TARJETA DE HISTORIAL - ANIMACIÓN MEJORADA
+   ========================================================================== */
+
+/* El contenedor que se anima: NUNCA debe tener padding ni margin vertical */
+.card-history-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: #ffffff;
+    /* Sin padding aquí - el padding está en el inner */
+}
+
+/* El contenedor interno: mantiene su padding fijo siempre */
+.card-history-inner {
+    padding: 16px 16px 20px 16px;
+}
+
+/* Cuando la tarjeta está expandida, el body se abre */
+.card-history.expanded .card-history-body {
+    max-height: 500px; /* Valor inicial, luego JS lo sobreescribe */
+    overflow: hidden;
+}
+
+/* Contenido interno de la tarjeta */
+.card-history-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #374151;
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 10px;
+    border: 1px solid #f3f4f6;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.card-history-content a {
+    color: #496bff;
+    text-decoration: underline;
+    word-break: break-word;
+}
+
+/* ==========================================================================
+   BOTONES DE ACCIÓN EN TARJETA DE HISTORIAL
+   ========================================================================== */
+
+.card-history-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-history-action {
+    flex: 1;
+    min-width: 44px;
+    padding: 10px 0;
+    border: none;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+}
+
+.btn-history-action:active {
+    transform: scale(0.94);
+}
+
+.btn-history-action i {
+    font-size: 14px;
+}
+
+.btn-history-action-view {
+    background: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+}
+
+.btn-history-action-share {
+    background: #e8eaf6;
+    color: #3949ab;
+}
+
+.btn-history-action-delete {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+/* ==========================================================================
+   ESTADO VACÍO DEL HISTORIAL
+   ========================================================================== */
+
+.history-empty {
+    text-align: center;
+}
+
+.history-empty i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+}
+
+/* ==========================================================================
+   PANTALLA DE DETALLES DEL HISTORIAL
+   ========================================================================== */
+
+#screen-history-detail {
+    background-color: var(--background-color, #fafafa);
+}
+
+.history-detail-container {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    width: 100%;
+    background-color: #ffffff;
+    overflow: hidden !important;
+}
+
+.history-detail-sticky-header {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    background-color: #ffffff;
+    z-index: 10;
+    border-bottom: 1px solid #f3f4f6;
+    position: sticky;
+    top: 0;
+}
+
+.history-detail-nav-top {
+    height: 56px;
+    padding: 0 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    border-bottom: 1px solid #f3f4f6;
+    flex-shrink: 0;
+}
+
+.btn-history-detail-close {
+    background: #f3f4f6;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--primary-color, #000000);
+    transition: transform 0.1s ease;
+}
+
+.btn-history-detail-close:active {
+    transform: scale(0.9);
+}
+
+.history-detail-title-row {
+    padding: 5px 16px 5px 16px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #f3f4f6;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.history-detail-prefix {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-color, #000000);
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-left: 2px;
+}
+
+.history-detail-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary-color, #000000);
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.history-detail-meta {
+    font-size: 14px;
+    color: var(--text-muted, #666666);
+    margin-top: 2px;
+}
+
+.history-detail-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 16px 16px 100px 16px;
+    background-color: #ffffff;
+}
+
+.history-detail-content {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #1f2937;
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+}
+
+.history-detail-content a {
+    color: var(--accent-color, #ccff00);
+    text-decoration: underline;
+    word-break: break-word;
+}
+
+.history-detail-original {
+    margin-top: 16px;
+    padding: 16px;
+    background: #fef2f2;
+    border-radius: 14px;
+    border: 1px solid #f3f4f6;
+}
+
+.history-detail-original-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #ef4444;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.history-detail-original-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #6b7280;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* ==========================================================================
+   MENÚ DE OPCIONES DEL HISTORIAL (tres puntos)
+   ========================================================================== */
+
+.history-options-menu {
+    position: absolute;
+    top: 50px;
+    right: 16px;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    width: 200px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    animation: fadeInMenu 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.history-options-menu.hidden {
+    display: none !important;
+}
+
+@keyframes fadeInMenu {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.history-options-menu .menu-item {
+    background: none;
+    border: none;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.12s ease, color 0.12s ease;
+    width: 100%;
+}
+
+.history-options-menu .menu-item i {
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.history-options-menu .menu-item:active {
+    background-color: #f3f4f6;
+    color: #000000;
+}
+
+.history-options-menu .menu-divider {
+    height: 1px;
+    background-color: #f3f4f6;
+    margin: 4px 6px;
+}
+
+/* ==========================================================================
+   ESTILOS PARA EDICIÓN DEL HISTORIAL
+   ========================================================================== */
+
+/* Botón Editar en el header del detalle del historial */
+.btn-history-detail-edit {
+    background-color: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.1s ease, transform 0.1s ease;
+}
+
+.btn-history-detail-edit:active {
+    transform: scale(0.96);
+    filter: brightness(0.9);
+}
+
+/* Botón Guardar en el header del detalle */
+.btn-history-detail-save {
+    background-color: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.1s ease, transform 0.1s ease;
+}
+
+.btn-history-detail-save:active {
+    transform: scale(0.96);
+    filter: brightness(0.9);
+}
+
+/* Fila de fecha y hora en edición */
+.history-edit-datetime-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.history-edit-field {
+    flex: 1;
+    min-width: 120px;
+}
+
+.history-edit-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 4px;
+}
+
+.history-edit-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    font-size: 15px;
+    outline: none;
+    background-color: #ffffff;
+    transition: border-color 0.15s ease;
+    font-family: inherit;
+    color: var(--primary-color, #000000);
+    box-sizing: border-box;
+}
+
+.history-edit-input:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+/* Editor Quill en el historial */
+#history-edit-editor-container .ql-toolbar {
+    border: none !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    background: #f9fafb;
+    border-radius: 12px 12px 0 0;
+}
+
+#history-edit-editor-container .ql-container {
+    border: none !important;
+    border-radius: 0 0 12px 12px;
+    background: white;
+    height: calc(100% - 42px);
+}
+
+#history-edit-editor-container .ql-editor {
+    padding: 16px !important;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #1f2937;
+    min-height: 200px;
+}
+
+#history-edit-editor-container .ql-editor.ql-blank::before {
+    left: 16px !important;
+    color: #9ca3af;
+    font-style: normal;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 480px) {
+    .card-history-actions {
+        gap: 6px;
+    }
+    
+    .btn-history-action {
+        font-size: 11px;
+        padding: 8px 0;
+        min-width: 36px;
+    }
+    
+    .btn-history-action i {
+        font-size: 12px;
+    }
+    
+    .card-history-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 15px;
+    }
+    
+    .card-history-title {
+        font-size: 15px;
+    }
+    
+    .history-header-top h1 {
+        font-size: 24px;
+    }
+    
+    .history-filter-bar select {
+        font-size: 12px;
+        padding: 8px 10px;
+        min-width: 60px;
+    }
+    
+    .history-detail-body {
+        padding: 12px 12px 100px 12px;
+    }
+    
+    .history-grid {
+        padding: 12px 12px calc(100px + env(safe-area-inset-bottom, 20px)) 12px;
+    }
+
+    /* Responsive para edición */
+    .history-edit-datetime-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .history-edit-field {
+        min-width: auto;
+    }
+    
+    .btn-history-detail-edit,
+    .btn-history-detail-save {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    #history-edit-editor-container {
+        height: 220px !important;
+    }
+}
+
+@media (max-width: 360px) {
+    #history-edit-editor-container {
+        height: 180px !important;
+    }
+}

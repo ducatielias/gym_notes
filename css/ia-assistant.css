@@ -1,0 +1,872 @@
+/**
+ * ESTILOS DE INTERFAZ: ia-assistant.css
+ * Controla la pantalla de Asistente IA para creación de rutinas y sesiones.
+ * 
+ * DISEÑO: Estilo app nativa (iOS/Android)
+ * - Fondo gris claro
+ * - Secciones con fondo blanco y bordes sutiles
+ * - Sin sombras ni efectos de elevación
+ * - Sin efectos de click en contenedores
+ * 
+ * MODIFICADO: Título del header alineado a la derecha
+ * MODIFICADO: Listas de ejercicios, material y tipos en una sola columna
+ * MODIFICADO: Material con altura fija y scroll
+ * MODIFICADO: Tipo de entrenamiento con altura fija y scroll
+ * MODIFICADO: Tipo de entrenamiento como expandible
+ * MODIFICADO: SOLUCIÓN DEFINITIVA - Contenedor se expande con texto largo
+ * MODIFICADO: Checkbox centrado verticalmente en el contenedor
+ * MODIFICADO: Scroll restaurado en la lista de ejercicios
+ */
+
+/* ==========================================================================
+   PANTALLA PRINCIPAL DEL ASISTENTE IA
+   ========================================================================== */
+
+#screen-ia-assistant {
+    background-color: var(--background-color, #f5f5f5);
+}
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
+.ia-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--background-color, #f5f5f5);
+    padding: 16px 20px 14px 20px !important;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+/* ==========================================================================
+   Header con título a la derecha
+   ========================================================================== */
+.ia-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.ia-header-top h1 {
+    flex: 0 1 auto;
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    order: 2;
+}
+
+.ia-header-top h1 i {
+    color: #000000;
+    font-size: 22px;
+}
+
+.ia-header p {
+    font-size: 14px;
+    color: var(--text-muted, #666666);
+    margin: 0;
+}
+
+.btn-ia-back {
+    background: none;
+    border: none;
+    color: var(--primary-color, #000000);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+    flex-shrink: 0;
+    order: 1;
+}
+
+.btn-ia-back:active {
+    opacity: 0.6;
+}
+
+/* ==========================================================================
+   CONTENEDOR PRINCIPAL - ESTILO APP NATIVA
+   ========================================================================== */
+
+.ia-container {
+    padding: 12px 16px calc(80px + env(safe-area-inset-bottom, 20px)) 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ==========================================================================
+   SECCIONES - BLOQUES CON FONDO BLANCO
+   ========================================================================== */
+
+.ia-section {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    padding: 16px 18px;
+}
+
+.ia-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #9ca3af;
+    margin: 0 0 10px 0;
+}
+
+.ia-section-title:not(:first-child) {
+    margin-top: 0;
+}
+
+/* ==========================================================================
+   GRUPO DE OPCIONES (botones tipo chip)
+   ========================================================================== */
+
+.ia-option-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ia-option-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1.5px solid #e5e7eb;
+    background: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.ia-option-btn:active {
+    transform: scale(0.95);
+}
+
+.ia-option-btn.selected {
+    background: var(--accent-color, #ccff00);
+    border-color: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+}
+
+.ia-option-btn.ia-type-btn {
+    flex: 1;
+    min-width: 60px;
+    text-align: center;
+    padding: 10px 12px;
+    font-size: 13px;
+}
+
+.ia-option-btn.ia-type-btn i {
+    margin-right: 6px;
+}
+
+.ia-option-btn.ia-type-btn.selected {
+    background: var(--primary-color, #000000);
+    border-color: var(--primary-color, #000000);
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   EXPANDIBLES (Ejercicios, Material y Tipo de entrenamiento)
+   ========================================================================== */
+
+.ia-expand-toggle {
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+}
+
+.ia-expand-toggle:active {
+    opacity: 0.6;
+}
+
+.ia-expand-toggle i {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.ia-expand-toggle .ia-expand-icon {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ia-expand-toggle .ia-expand-icon.open {
+    transform: rotate(90deg);
+}
+
+.ia-expand-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #f9fafb;
+    border-radius: 10px;
+    margin-top: 0;
+}
+
+.ia-expand-container.open {
+    max-height: none !important;
+    padding: 4px 0;
+    margin-top: 8px;
+    overflow: visible !important;
+}
+
+.ia-expand-container .ia-expand-content {
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* ==========================================================================
+   EJERCICIOS - LISTA DE UNA SOLA COLUMNA CON SCROLL
+   ========================================================================== */
+
+.ia-exercises-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    max-height: 200px;          /* Restauramos altura máxima para scroll */
+    overflow-y: auto;           /* Restauramos scroll vertical */
+    padding-right: 4px;
+    height: auto !important;
+    min-height: auto !important;
+}
+
+/* Personalización de la barra de scroll */
+.ia-exercises-grid::-webkit-scrollbar,
+.ia-material-grid::-webkit-scrollbar,
+.ia-tipos-grid::-webkit-scrollbar {
+    width: 4px;
+}
+
+.ia-exercises-grid::-webkit-scrollbar-track,
+.ia-material-grid::-webkit-scrollbar-track,
+.ia-tipos-grid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.ia-exercises-grid::-webkit-scrollbar-thumb,
+.ia-material-grid::-webkit-scrollbar-thumb,
+.ia-tipos-grid::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.ia-exercises-grid::-webkit-scrollbar-thumb:hover,
+.ia-material-grid::-webkit-scrollbar-thumb:hover,
+.ia-tipos-grid::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ============================================================
+   CORRECCIÓN DEFINITIVA - Contenedor expande con texto largo
+   ============================================================ */
+
+/* El ítem completo (Fila) - DEBE PODER CRECER Y CENTRAR CHECKBOX */
+.ia-exercise-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 10px;
+    border-bottom: 1px solid #f3f4f6;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    width: 100%;
+    box-sizing: border-box;
+    
+    min-height: 44px;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    flex-shrink: 0;
+}
+
+.ia-exercise-item:active {
+    background-color: #f3f4f6;
+}
+
+/* Checkbox - centrado vertical por el padre */
+.ia-exercise-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    accent-color: var(--accent-color, #ccff00);
+    cursor: pointer;
+}
+
+/* Imagen thumb - centrada vertical por el padre */
+.ia-exercise-item .exercise-thumb {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+    background: #f3f4f6;
+}
+
+/* Contenedor de información - DEBE PODER CRECER */
+.ia-exercise-item .exercise-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 4px;
+    
+    flex: 1 1 auto;
+    min-width: 0;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* Nombre del ejercicio - PUEDE OCUPAR VARIAS LÍNEAS */
+.ia-exercise-item .exercise-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.4;
+    display: block;
+    width: 100%;
+    height: auto !important;
+    max-height: none !important;
+    
+    white-space: normal !important;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Badge del grupo muscular */
+.ia-exercise-item .exercise-group-badge {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #9ca3af;
+    background: #f3f4f6;
+    padding: 2px 10px;
+    border-radius: 10px;
+    
+    display: inline-block;
+    width: fit-content;
+    max-width: 100%;
+    height: auto !important;
+    margin-top: 0px;
+    flex-shrink: 0;
+}
+
+/* Buscador dentro del expandible */
+.ia-exercise-search {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    outline: none;
+    margin-bottom: 6px;
+    background: #ffffff;
+    color: var(--primary-color, #000000);
+    box-sizing: border-box;
+}
+
+.ia-exercise-search:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+.ia-exercise-search::placeholder {
+    color: #9ca3af;
+}
+
+/* Botones de selección masiva */
+.ia-select-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.ia-select-actions button {
+    padding: 4px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    color: #4b5563;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.ia-select-actions button:active {
+    background: #f3f4f6;
+}
+
+/* ==========================================================================
+   MATERIAL - LISTA DE UNA SOLA COLUMNA CON SCROLL
+   ========================================================================== */
+
+.ia-material-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.ia-material-check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 6px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #374151;
+    border-radius: 6px;
+    transition: background-color 0.15s ease;
+}
+
+.ia-material-check-item:active {
+    background-color: #f3f4f6;
+}
+
+.ia-material-check-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    accent-color: var(--accent-color, #ccff00);
+    cursor: pointer;
+}
+
+.ia-material-check-item .material-label {
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.3;
+}
+
+/* ==========================================================================
+   TIPO DE ENTRENAMIENTO - LISTA DE UNA SOLA COLUMNA CON SCROLL
+   ========================================================================== */
+
+.ia-tipos-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.ia-tipo-check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 6px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #374151;
+    border-radius: 6px;
+    transition: background-color 0.15s ease;
+}
+
+.ia-tipo-check-item:active {
+    background-color: #f3f4f6;
+}
+
+.ia-tipo-check-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    accent-color: var(--accent-color, #ccff00);
+    cursor: pointer;
+}
+
+.ia-tipo-check-item .tipo-label {
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.3;
+}
+
+/* ==========================================================================
+   TEXTAREA DE NOTAS
+   ========================================================================== */
+
+.ia-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    font-size: 15px;
+    outline: none;
+    background: #ffffff;
+    transition: border-color 0.15s ease;
+    font-family: inherit;
+    color: var(--primary-color, #000000);
+    box-sizing: border-box;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.ia-textarea:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+.ia-textarea::placeholder {
+    color: #9ca3af;
+}
+
+/* ==========================================================================
+   BOTONES PRINCIPALES
+   ========================================================================== */
+
+.ia-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.ia-btn:active {
+    transform: scale(0.97);
+}
+
+.ia-btn-primary {
+    background: var(--accent-color, #ccff00);
+    color: var(--primary-color, #000000);
+}
+
+.ia-btn-primary:active {
+    filter: brightness(0.9);
+}
+
+.ia-btn-secondary {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.ia-btn-secondary:active {
+    background: #e5e7eb;
+}
+
+.ia-btn-import {
+    background: transparent;
+    color: #4b5563;
+    border: 1.5px dashed #d1d5db;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.ia-btn-import:active {
+    background: #f3f4f6;
+}
+
+/* ==========================================================================
+   SEPARADOR
+   ========================================================================== */
+
+.ia-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.ia-divider::before,
+.ia-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+}
+
+/* ==========================================================================
+   PANTALLA DE PROMPT / RESPUESTA
+   ========================================================================== */
+
+.ia-prompt-textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    outline: none;
+    background: #f9fafb;
+    resize: vertical;
+    box-sizing: border-box;
+    line-height: 1.6;
+    color: #1f2937;
+}
+
+.ia-prompt-textarea:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+.ia-prompt-textarea::placeholder {
+    color: #9ca3af;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ==========================================================================
+   VISTA PREVIA
+   ========================================================================== */
+
+.ia-preview-content {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid #e5e7eb;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #374151;
+}
+
+.ia-preview-badge {
+    display: inline-block;
+    font-size: 12px;
+    color: #9ca3af;
+    background: #f3f4f6;
+    padding: 4px 12px;
+    border-radius: 12px;
+}
+
+.ia-preview-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.ia-preview-actions .ia-btn {
+    flex: 1;
+}
+
+/* ==========================================================================
+   MODAL DE IMPORTACIÓN
+   ========================================================================== */
+
+.ia-import-json {
+    width: 100%;
+    min-height: 150px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    outline: none;
+    background: #fafafa;
+    resize: vertical;
+    box-sizing: border-box;
+    line-height: 1.6;
+    color: #1f2937;
+}
+
+.ia-import-json:focus {
+    border-color: var(--primary-color, #000000);
+}
+
+.ia-import-json::placeholder {
+    color: #9ca3af;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ==========================================================================
+   FORMATO DE EJEMPLO (código)
+   ========================================================================== */
+
+.ia-code-block {
+    background: #f3f4f6;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #6b7280;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: 'Courier New', monospace;
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 480px) {
+    .ia-header-top h1 {
+        font-size: 20px;
+    }
+    
+    .ia-header-top h1 i {
+        font-size: 18px;
+    }
+    
+    .ia-section {
+        padding: 14px 14px;
+        border-radius: 10px;
+    }
+    
+    .ia-container {
+        padding: 10px 12px calc(80px + env(safe-area-inset-bottom, 20px)) 12px;
+        gap: 10px;
+    }
+    
+    .ia-option-btn {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    .ia-option-btn.ia-type-btn {
+        font-size: 12px;
+        padding: 8px 10px;
+        min-width: 50px;
+    }
+    
+    .ia-exercises-grid {
+        max-height: 180px;
+    }
+    
+    .ia-exercise-item {
+        padding: 8px 8px;
+        min-height: 40px;
+        gap: 10px;
+    }
+    
+    .ia-exercise-item .exercise-name {
+        font-size: 12px;
+        line-height: 1.3;
+    }
+    
+    .ia-exercise-item .exercise-group-badge {
+        font-size: 8px;
+        padding: 2px 8px;
+    }
+    
+    .ia-exercise-item .exercise-thumb {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .ia-exercise-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .ia-material-grid {
+        max-height: 130px;
+    }
+    
+    .ia-tipos-grid {
+        max-height: 130px;
+    }
+    
+    .ia-preview-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .ia-preview-actions .ia-btn {
+        padding: 12px;
+        font-size: 14px;
+    }
+    
+    .ia-textarea {
+        min-height: 80px;
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+}
+
+@media (max-width: 360px) {
+    .ia-option-btn.ia-type-btn {
+        font-size: 11px;
+        padding: 6px 8px;
+        min-width: 44px;
+    }
+    
+    .ia-exercises-grid {
+        max-height: 160px;
+    }
+    
+    .ia-exercise-item {
+        padding: 6px 6px;
+        min-height: 36px;
+        gap: 8px;
+    }
+    
+    .ia-exercise-item .exercise-name {
+        font-size: 11px;
+    }
+    
+    .ia-exercise-item .exercise-group-badge {
+        font-size: 7px;
+        padding: 1px 6px;
+    }
+    
+    .ia-exercise-item .exercise-thumb {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .ia-exercise-item input[type="checkbox"] {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .ia-material-grid {
+        max-height: 160px;
+    }
+    
+    .ia-tipos-grid {
+        max-height: 160px;
+    }
+}

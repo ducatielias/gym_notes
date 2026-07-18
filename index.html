@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Gym Notes</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Gym Notes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <meta name="application-name" content="Gym Notes">
+    
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="stylesheet" href="css/index-core.css">
+    <link rel="stylesheet" href="css/design/tokens.css">
+    <link rel="stylesheet" href="css/index-components.css">
+    <link rel="stylesheet" href="css/index-modals.css">
+    <link rel="stylesheet" href="css/design/components/buttons.css">
+    <link rel="stylesheet" href="css/design/components/forms.css">
+    <link rel="stylesheet" href="css/design/components/modals.css">
+    <link rel="stylesheet" href="css/index-workout.css">
+    <link rel="stylesheet" href="css/gym-session.css">
+    <link rel="stylesheet" href="css/gym-exercises.css">
+    <link rel="stylesheet" href="css/gym-plan.css">
+    <link rel="stylesheet" href="css/design/components/cards.css">
+    <link rel="stylesheet" href="css/design/components/menus.css">
+    <link rel="stylesheet" href="css/design/components/headers.css">
+    <link rel="stylesheet" href="css/design/components/navigation.css">
+    <link rel="stylesheet" href="css/history.css">
+    <link rel="stylesheet" href="css/exercise-viewer.css">
+    <link rel="stylesheet" href="css/ia-assistant.css">
+    <link rel="stylesheet" href="css/today-dashboard.css">
+    <link rel="stylesheet" href="css/design/pages/today.css">
+    <link rel="stylesheet" href="css/design/pages/today-progress.css">
+    <link rel="stylesheet" href="css/design/pages/exercises.css">
+    <link rel="stylesheet" href="css/design/pages/exercise-editor.css">
+    <link rel="stylesheet" href="css/design/pages/exercise-viewer.css">
+    <link rel="stylesheet" href="css/design/pages/history.css">
+    <link rel="stylesheet" href="css/design/pages/history-detail.css">
+    <link rel="stylesheet" href="css/design/pages/active-workout.css">
+    <link rel="stylesheet" href="css/design/pages/workout-timers.css">
+    <link rel="stylesheet" href="css/design/pages/ia-assistant.css">
+</head>
+<body>
+
+    <main id="main-content">
+        
+        <section id="screen-today" class="screen">
+            <header class="screen-header">
+                <h1>Gym Notes</h1>
+            </header>
+            <div class="empty-state">
+                <p>📅 Tu actividad de hoy aparecerá aquí.</p>
+            </div>
+        </section>
+
+        <section id="screen-plan" class="screen hidden">
+            <div id="plan-container"></div>
+            <input type="file" id="file-import-routine-list" style="display:none" accept=".json,.txt" onchange="importRoutinesFromFile(event)">
+            <input type="file" id="file-import-session-list" style="display:none" accept=".json,.txt" onchange="importSessionsFromFile(event)">
+        </section>
+
+        <section id="screen-history" class="screen hidden">
+            <div id="history-container"></div>
+        </section>
+
+        <section id="screen-exercises" class="screen hidden">
+            <div id="exercises-container"></div>
+        </section>
+
+        <section id="screen-editor" class="screen hidden">
+            <div id="session-editor-ui"></div>
+        </section>
+
+        <section id="screen-exercise-editor" class="screen hidden">
+            <div id="exercise-editor-ui"></div>
+        </section>
+
+        <section id="screen-history-detail" class="screen hidden">
+            <div id="history-detail-ui"></div>
+        </section>
+        
+        <section id="screen-exercise-viewer" class="screen hidden">
+        </section>
+
+        <section id="screen-ia-assistant" class="screen hidden">
+            <div id="ia-assistant-ui"></div>
+        </section>
+
+    </main>
+
+    <button id="globalScrollTopBtn" class="btn-scroll-top" onclick="scrollToTopGlobal()" title="Volver al inicio">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <nav class="bottom-nav">
+    <button class="nav-item active" onclick="navigateAndSwitch('today')">
+        <i class="fa-solid fa-calendar-day"></i>
+        <span>Hoy</span>
+    </button>
+    <button class="nav-item" onclick="navigateAndSwitch('plan')">
+        <i class="fa-solid fa-dumbbell"></i>
+        <span>Plan</span>
+    </button>
+    <button class="nav-item" onclick="navigateAndSwitch('history')">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span>Historial</span>
+    </button>
+    <button class="nav-item" onclick="navigateAndSwitch('exercises')">
+        <i class="fa-solid fa-list-check"></i>
+        <span>Ejercicios</span>
+    </button>
+</nav>
+
+    <!-- MODAL DE ENTRENAMIENTO ACTIVO -->
+    <div id="active-workout" class="modal-overlay" style="display:none; align-items: stretch; justify-content: stretch; background: var(--background-color);">
+        <div class="aw-container">
+            <div class="aw-header">
+                <div class="aw-header-top">
+                    <div id="aw-title-small" class="aw-title">Entrenando: <span id="aw-session-title"></span></div>
+                    <button id="aw-history-btn" class="aw-history-btn" title="Historial de esta sesión" style="position: relative; z-index: 10; pointer-events: auto;">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </button>
+                    <button onclick="cerrarEntrenamiento()" class="aw-close-btn" title="Cerrar (sin guardar)">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="aw-timers-container">
+                    <div class="timer-item">
+                        <span class="timer-label">TOTAL</span>
+                        <span class="timer-value" id="aw-timer-total">00:00</span>
+                        <div class="timer-controls">
+                            <button class="aw-finish-btn-inline" onclick="finalizarEntrenamiento()">Terminar</button>
+                        </div>
+                    </div>
+                    <div class="timer-item timer-clickable" id="timer-descanso-area">
+                        <span class="timer-label">DESCANSO</span>
+                        <span class="timer-value" id="aw-timer-descanso">01:00</span>
+                        <div class="timer-controls">
+                            <button id="btn-descanso-play" onclick="iniciarDescanso()"><i class="fa-solid fa-play"></i></button>
+                            <button id="btn-descanso-pause" onclick="pausarDescanso()" style="display:none;"><i class="fa-solid fa-pause"></i></button>
+                            <button onclick="resetearDescanso()"><i class="fa-solid fa-rotate-left"></i></button>
+                        </div>
+                    </div>
+                    <div class="timer-item timer-clickable" id="timer-trabajo-area">
+                        <span class="timer-label">TIMER</span>
+                        <span class="timer-value" id="aw-timer-trabajo">00:00</span>
+                        <div class="timer-controls">
+                            <button id="btn-timer-play" onclick="iniciarTimer()"><i class="fa-solid fa-play"></i></button>
+                            <button id="btn-timer-pause" onclick="pausarTimer()" style="display:none;"><i class="fa-solid fa-pause"></i></button>
+                            <button onclick="resetearTimer()"><i class="fa-solid fa-rotate-left"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="descanso-panel" class="timer-panel aw-rest-panel" style="display:none; flex-wrap: wrap; align-items: center; gap: 10px; background: white; padding: 10px 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+                    <div class="preset-buttons">
+                        <button onclick="setTiempoDescanso(30)">30s</button>
+                        <button onclick="setTiempoDescanso(45)">45s</button>
+                        <button onclick="setTiempoDescanso(60)">60s</button>
+                        <button onclick="setTiempoDescanso(90)">90s</button>
+                        <button onclick="setTiempoDescanso(120)">120s</button>
+                    </div>
+                    <div class="custom-rest">
+                        <input type="number" id="custom-descanso-input" value="60" min="5" max="300">
+                        <button onclick="setTiempoDescanso(parseInt(document.getElementById('custom-descanso-input').value) || 60)">Aplicar</button>
+                    </div>
+                </div>
+
+                <div id="timer-panel" class="timer-panel aw-rest-panel" style="display:none; flex-wrap: wrap; align-items: center; gap: 10px; background: white; padding: 10px 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+                    <div class="preset-buttons">
+                        <button onclick="aplicarPresetTimer('tabata')">Tabata</button>
+                        <button onclick="aplicarPresetTimer('emom')">EMOM</button>
+                    </div>
+                    <div class="custom-interval">
+                        <label>Trabajo: <input type="number" id="interval-trabajo" value="20" min="1" max="300"></label>
+                        <label>Descanso: <input type="number" id="interval-descanso" value="10" min="0" max="300"></label>
+                        <label>Rondas: <input type="number" id="interval-rondas" value="8" min="1" max="99"></label>
+                        <button onclick="iniciarIntervaloPersonalizado()">Iniciar</button>
+                    </div>
+                    <span id="timer-preset-info" class="timer-preset-info" style="font-size:0.7rem; color:#666; margin-left:auto;">Tabata: 20" trabajo / 10" descanso x8</span>
+                </div>
+
+            </div>
+
+            <div class="aw-tools-row">
+                <button class="aw-tool-toggle" id="aw-format-btn" data-type="format" onclick="toggleSectionEntrenamiento('format')">
+                    <i class="fa-solid fa-sliders"></i> Formato
+                </button>
+                <button class="aw-tool-toggle" id="aw-exercises-btn" data-type="exercises" onclick="toggleSectionEntrenamiento('exercises')">
+                    <i class="fa-solid fa-dumbbell"></i> Ejercicios Gym
+                </button>
+            </div>
+
+            <div class="expandable-wrapper" id="aw-toolbar-wrapper">
+                <div id="aw-toolbar-container">
+                    <span class="ql-formats">
+                        <button class="ql-bold"></button>
+                        <button class="ql-italic"></button>
+                        <button class="ql-underline"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-list" value="ordered"></button>
+                        <button class="ql-list" value="bullet"></button>
+                    </span>
+                </div>
+            </div>
+
+            <div class="expandable-wrapper" id="aw-exercises-wrapper">
+                <div class="aw-exercises-content">
+                    <input type="search" class="search-input" id="aw-search-exercise" placeholder="Busca un ejercicio..." oninput="filtrarEjerciciosEntrenamiento()" onsearch="filtrarEjerciciosEntrenamiento()">
+                    <ul class="exercises-list" id="aw-exercises-list"></ul>
+                </div>
+            </div>
+
+            <div class="aw-content" id="aw-content-area">
+                <div id="aw-editor-container" class="aw-editor-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PERSONALIZADO -->
+    <div id="customModal" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalMessage" tabindex="-1">
+            <div class="modal-header">
+                <span id="modalIcon" class="modal-icon"></span>
+                <h3 id="modalTitle">Aviso</h3>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage"></p>
+                <input type="text" id="modalInput" class="modal-input hidden" autocomplete="off">
+            </div>
+            <div class="modal-footer">
+                <button id="modalCancelBtn" class="modal-btn modal-btn-secondary hidden">Cancelar</button>
+                <button id="modalConfirmBtn" class="modal-btn modal-btn-primary">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIGURACIÓN DEL ASISTENTE IA -->
+    <div id="iaConfigModal" class="ia-config-modal"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    
+    <!-- JS - CORE -->
+    <script src="js/index.js"></script>
+    <script src="js/safe-render.js"></script>
+    <script src="js/storage-service.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/ui-helpers.js"></script>
+    <script src="js/back-handler.js"></script>
+    <script src="js/wake-lock.js"></script>
+    <script src="js/data-import-export.js"></script>
+    <script src="js/sw-update.js"></script>
+    
+    <!-- JS - PLAN -->
+    <script src="js/plan-state.js"></script>
+    <script src="js/plan-menus.js"></script>
+    <script src="js/plan-routines.js"></script>
+    <script src="js/plan-sessions.js"></script>
+    <script src="js/plan.js"></script>
+    
+    <!-- JS - EXERCISES -->
+    <script src="js/exercises-state.js"></script>
+    <script src="js/exercises-render.js"></script>
+    <script src="js/exercises-crud.js"></script>
+    <script src="js/exercises-import-export.js"></script>
+    <script src="js/exercises-share.js"></script>
+    <script src="js/exercises.js"></script>
+    
+    <!-- JS - HISTORY -->
+    <script src="js/history-state.js"></script>
+    <script src="js/history-filters.js"></script>
+    <script src="js/history-render.js"></script>
+    <script src="js/history-export.js"></script>
+    <script src="js/history-edit.js"></script>
+    <script src="js/history.js"></script>
+    
+    <!-- JS - WORKOUT & SESSION -->
+    <script src="js/workout-state.js"></script>
+    <script src="js/workout-timers.js"></script>
+    <script src="js/workout-editor.js"></script>
+    <script src="js/workout.js"></script>
+    <script src="js/gym-session.js"></script>
+    
+    <!-- JS - EXERCISE VIEWER -->
+    <script src="js/exercise-viewer.js"></script>
+    
+    <!-- JS - ASISTENTE IA -->
+    <script src="js/ia-assistant.js"></script>
+    
+    <!-- JS - TODAY DASHBOARD -->
+    <script src="js/today-progress.js"></script>
+    <script src="js/today-dashboard.js"></script>
+
+    <!-- ============================================================
+    REGISTRO DEL SERVICE WORKER (CON RUTA DINÁMICA)
+    ============================================================ -->
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            console.log('[PWA] Iniciando registro del Service Worker...');
+            
+            // Obtener la ruta base dinámica (ej: '/' o '/gym-notes/')
+            const pathname = window.location.pathname;
+            const base = pathname.substring(0, pathname.lastIndexOf('/') + 1);
+            const swPath = base + 'sw.js';
+            
+            console.log('[PWA] Ruta base detectada:', base);
+            console.log('[PWA] Ruta del Service Worker:', swPath);
+            
+            navigator.serviceWorker.register(swPath)
+                .then(function(registration) {
+                    console.log('[PWA] Service Worker registrado con éxito en el scope:', registration.scope);
+                    
+                    // Escuchar actualizaciones
+                    registration.addEventListener('updatefound', function() {
+                        const newWorker = registration.installing;
+                        console.log('[PWA] Nueva versión del Service Worker detectada.');
+                        
+                        newWorker.addEventListener('statechange', function() {
+                            console.log('[PWA] Estado del nuevo worker:', newWorker.state);
+                            
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('[PWA] Nueva versión instalada. Mostrando modal de actualización...');
+                                if (typeof window.showUpdateModal === 'function') {
+                                    setTimeout(function() {
+                                        window.showUpdateModal();
+                                    }, 500);
+                                }
+                            }
+                        });
+                    });
+                })
+                .catch(function(error) {
+                    console.warn('[PWA] Error al registrar el Service Worker:', error);
+                });
+            
+            // Comprobar actualizaciones cada hora
+            setInterval(function() {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    registration.update();
+                    console.log('[PWA] Comprobando actualizaciones...');
+                });
+            }, 60 * 60 * 1000);
+        });
+    }
+
+    // ============================================================
+    // GENERADOR DE ICONOS PARA PWA (OPCIONAL)
+    // ============================================================
+    function generatePWAicons() {
+        console.log('[PWA] Generando iconos...');
+        const iconSizes = [72, 96, 128, 144, 152, 192, 256, 384, 512];
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        iconSizes.forEach(size => {
+            canvas.width = size;
+            canvas.height = size;
+            
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, size, size);
+            
+            const margin = size * 0.08;
+            const radius = (size / 2) - margin;
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#ccff00';
+            ctx.fill();
+            
+            ctx.fillStyle = '#000000';
+            ctx.font = `${size * 0.55}px "Font Awesome 6 Free", Arial, sans-serif`;
+            ctx.fontWeight = '900';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('💪', size/2, size/2 + size * 0.04);
+            
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            console.log(`[PWA] Icono ${size}x${size} descargado`);
+        });
+        
+        console.log('[PWA] Todos los iconos generados.');
+    }
+
+    window.generatePWAicons = generatePWAicons;
+    console.log('[PWA] Para generar iconos, ejecuta generatePWAicons() en la consola');
+    </script>
+    
+</body>
+</html>

@@ -1,0 +1,97 @@
+/*
+ * Componente base de botones de GymNotes.
+ * Fase 3C: la migración activa se limita al modal común (#customModal).
+ */
+
+/* Base reutilizable para futuras migraciones, aún sin usos fuera del modal común. */
+.gn-button,
+#customModal .modal-btn {
+    appearance: none;
+    flex: 1;
+    min-inline-size: 0;
+    padding: var(--gn-space-md) var(--gn-space-lg);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    text-align: center;
+    cursor: pointer;
+    transition:
+        transform var(--gn-motion-fast) var(--gn-ease-standard),
+        background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+.gn-button,
+#customModal .modal-btn:not(.hidden) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gn-space-sm);
+}
+
+/* Conserva el contrato actual de modal.js, que muestra y oculta estos botones con .hidden. */
+#customModal .modal-btn.hidden {
+    display: none;
+}
+
+/* Variante primaria: acción principal del diálogo. */
+.gn-button--primary,
+#customModal .modal-btn-primary {
+    background-color: var(--gn-color-accent);
+    color: var(--gn-color-text);
+}
+
+/* Variante secundaria: cancelación o acción de menor prioridad. */
+.gn-button--secondary,
+#customModal .modal-btn-secondary {
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+}
+
+@media (hover: hover) {
+    .gn-button:hover,
+    #customModal .modal-btn:hover {
+        background-color: var(--gn-color-surface-secondary);
+    }
+
+    .gn-button--primary:hover,
+    #customModal .modal-btn-primary:hover {
+        background-color: var(--gn-color-accent);
+        border-color: var(--gn-color-text);
+    }
+}
+
+.gn-button:active,
+#customModal .modal-btn:active {
+    transform: translateY(1px);
+}
+
+.gn-button:focus-visible,
+#customModal .modal-btn:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
+    outline-offset: var(--gn-space-xs);
+}
+
+.gn-button:disabled,
+.gn-button[aria-disabled="true"],
+#customModal .modal-btn:disabled,
+#customModal .modal-btn[aria-disabled="true"] {
+    background-color: var(--gn-color-disabled);
+    border-color: var(--gn-color-border-muted);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gn-button,
+    #customModal .modal-btn {
+        transition-duration: 1ms;
+    }
+}
