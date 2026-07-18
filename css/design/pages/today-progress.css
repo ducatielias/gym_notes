@@ -105,6 +105,9 @@
 
 #screen-today .today-progress__period-button[aria-pressed="true"] {
     background-color: var(--gn-color-border);
+    box-shadow:
+        inset 0 0 0 var(--gn-border-width) var(--gn-color-surface),
+        0 var(--today-period-shadow-offset) 0 var(--gn-color-border);
     color: var(--gn-color-text-inverse);
 }
 
