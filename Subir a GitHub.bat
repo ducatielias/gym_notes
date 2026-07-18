@@ -4,37 +4,38 @@ echo ===================================================
 echo   INICIANDO AUTOMATIZACION DE GYMNOTES...
 echo ===================================================
 
-:: 1. Sincronizar con GitHub por si hay cambios en la nube
-echo Actualizando repositorio...
+:: 1. Sincronizar con GitHub para prevenir bloqueos de subida
+echo [1/4] Sincronizando con la nube...
 git pull origin main --allow-unrelated-histories
 
-:: 2. Añadir ABSOLUTAMENTE TODOS los archivos de la carpeta
-echo Escaneando archivos nuevos y modificados...
+:: 2. Añadir absolutamente todos los archivos (nuevos, modificados, carpetas)
+echo [2/4] Escaneando todos los archivos de GymNotes...
 git add -A
 
-:: 3. DETECTAR LA CACHÉ AUTOMÁTICAMENTE
-set "CACHE_VERSION=Cambios Generales"
+:: 3. DETECTAR TU CACHE_VERSION DESDE SW.JS
+set "DETECTED_VERSION="
 
-:: Busca en sw.js cualquier linea que tenga la version (ej: v1, v2, gym-v1)
 if exist sw.js (
-    for /f "tokens=2 delims==" %%a in ('findstr /I "CACHE_NAME cache version v" sw.js 2^>nul') do (
-        set "CACHE_VERSION=Cache: %%a"
+    :: Busca la linea que tenga CACHE_VERSION y extrae el texto entre las comillas simples
+    for /f "tokens=2 delims='" %%a in ('findstr "CACHE_VERSION" sw.js 2^>nul') do (
+        set "DETECTED_VERSION=%%a"
     )
 )
 
-:: Limpiar comillas, espacios o puntos y comas del texto encontrado
-set "CACHE_VERSION=%CACHE_VERSION:"=%"
-set "CACHE_VERSION=%CACHE_VERSION:;=%"
-set "CACHE_VERSION=%CACHE_VERSION:'=%"
+:: Si por algun motivo se borra el archivo o no encuentra la linea, usa un respaldo
+if "!DETECTED_VERSION!"=="" (
+    set "COMMIT_MESSAGE=Auto-Update - Cambios Generales"
+) else (
+    set "COMMIT_MESSAGE=Version SW: !DETECTED_VERSION!"
+)
 
-echo [Info] Identificador detectado: %CACHE_VERSION%
+echo [Info] Identificador encontrado -> !COMMIT_MESSAGE!
 
-:: 4. Hacer el commit con el nombre de la caché
-echo Guardando cambios en Git...
-git commit -m "Auto-Update - %CACHE_VERSION%"
+:: 4. Hacer commit y subir todo a GitHub
+echo [3/4] Guardando cambios en Git...
+git commit -m "!COMMIT_MESSAGE!"
 
-:: 5. Subir todo a GitHub
-echo Subiendo archivos a GitHub...
+echo [4/4] Subiendo archivos a GitHub...
 git push origin main
 
 echo ===================================================
