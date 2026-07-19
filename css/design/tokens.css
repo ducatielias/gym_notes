@@ -6,14 +6,14 @@
 
 :root {
     /* Colores */
-    --gn-color-background: #F6F0E3;
-    --gn-color-surface: #FFFDF8;
-    --gn-color-surface-secondary: #EEE6D6;
-    --gn-color-text: #25241E;
-    --gn-color-text-muted: #6D685E;
-    --gn-color-text-inverse: #FFFDF8;
-    --gn-color-border: #2B2A24;
-    --gn-color-border-muted: #CFC6B6;
+    --gn-color-background: #E9DDC4;
+    --gn-color-surface: #F5EBD8;
+    --gn-color-surface-secondary: #DDD0B7;
+    --gn-color-text: #302A25;
+    --gn-color-text-muted: #62594F;
+    --gn-color-text-inverse: #F5EBD8;
+    --gn-color-border: #302A25;
+    --gn-color-border-muted: #B9AA91;
     --gn-color-accent: #B8DF4A;
     --gn-color-success: #DCECCF;
     --gn-color-success-text: #315D32;
@@ -23,8 +23,8 @@
     --gn-color-danger-text: #8A3028;
     --gn-color-info: #DCE9F2;
     --gn-color-info-text: #31536A;
-    --gn-color-disabled: #DDD7CB;
-    --gn-color-disabled-text: #918A7F;
+    --gn-color-disabled: #DED1BA;
+    --gn-color-disabled-text: #62594F;
 
     /* Tipografía */
     --gn-font-title: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
