@@ -28,7 +28,6 @@
     border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
 }
 
-#screen-exercise-editor .btn-exercise-nav-close,
 #screen-exercise-editor .btn-exercise-nav-save {
     appearance: none;
     display: inline-flex;
@@ -48,14 +47,6 @@
         color var(--gn-motion-fast) var(--gn-ease-standard);
 }
 
-#screen-exercise-editor .btn-exercise-nav-close {
-    width: 2.75rem;
-    min-width: 2.75rem;
-    padding: 0;
-    border-radius: var(--gn-radius-circle);
-    background-color: var(--gn-color-surface-secondary);
-}
-
 #screen-exercise-editor .btn-exercise-nav-save {
     gap: var(--gn-space-sm);
     padding-inline: var(--gn-space-lg);
@@ -64,23 +55,16 @@
 }
 
 @media (hover: hover) {
-    #screen-exercise-editor .btn-exercise-nav-close:hover:not(:disabled):not([aria-disabled="true"]) {
-        background-color: var(--gn-color-surface);
-        border-color: var(--gn-color-text);
-    }
-
     #screen-exercise-editor .btn-exercise-nav-save:hover:not(:disabled):not([aria-disabled="true"]) {
         border-color: var(--gn-color-text);
         filter: brightness(0.98);
     }
 }
 
-#screen-exercise-editor .btn-exercise-nav-close:active:not(:disabled):not([aria-disabled="true"]),
 #screen-exercise-editor .btn-exercise-nav-save:active:not(:disabled):not([aria-disabled="true"]) {
     transform: none;
 }
 
-#screen-exercise-editor .btn-exercise-nav-close:focus-visible,
 #screen-exercise-editor .btn-exercise-nav-save:focus-visible,
 #screen-exercise-editor .exercise-editor-title-input:focus-visible,
 #screen-exercise-editor .exercise-editor-body > input:not([type="hidden"]):focus-visible,
@@ -92,8 +76,6 @@
     outline-offset: var(--gn-space-xs);
 }
 
-#screen-exercise-editor .btn-exercise-nav-close:disabled,
-#screen-exercise-editor .btn-exercise-nav-close[aria-disabled="true"],
 #screen-exercise-editor .btn-exercise-nav-save:disabled,
 #screen-exercise-editor .btn-exercise-nav-save[aria-disabled="true"] {
     border-color: var(--gn-color-border-muted);
@@ -322,7 +304,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #screen-exercise-editor .btn-exercise-nav-close,
     #screen-exercise-editor .btn-exercise-nav-save,
     #screen-exercise-editor .exercise-editor-body > input:not([type="hidden"]),
     #screen-exercise-editor .exercise-editor-body > select,

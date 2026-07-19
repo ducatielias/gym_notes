@@ -136,6 +136,23 @@ body #screen-exercises .exercises-header {
     min-inline-size: 0;
 }
 
+/* El detalle de Rutinas conserva su flujo, con la misma huella del control de retroceso común. */
+#plan-container > .screen-header.routine-detail-header {
+    padding: 0 !important;
+    gap: 0;
+}
+
+#plan-container > .screen-header.routine-detail-header .header-nav-row {
+    min-height: 3.5rem;
+    padding-inline: var(--gn-space-lg);
+}
+
+@media (max-width: 22.5rem) {
+    #plan-container > .screen-header.routine-detail-header .header-nav-row {
+        padding-inline: var(--gn-space-md);
+    }
+}
+
 /* Solo Rutinas tiene un div inicial con marca y título; Sesiones empieza con volver. */
 #plan-container > .screen-header .header-nav-row > div:first-child {
     flex: 1 1 auto;

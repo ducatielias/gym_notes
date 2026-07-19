@@ -253,7 +253,7 @@ function viewHistoryDetail(id) {
         <div class="history-detail-container">
             <div class="history-detail-sticky-header">
                 <div class="history-detail-nav-top">
-                    <button class="btn-history-detail-close" onclick="closeHistoryDetail()" title="Volver">
+                    <button class="btn-history-detail-close gn-back-button" type="button" aria-label="Volver" onclick="closeHistoryDetail()" title="Volver">
                         <i class="fa-solid fa-chevron-left"></i>
                     </button>
                     <button class="btn-history-detail-edit" onclick="openHistoryEditFromDetail('${itemIdHandler}')" title="Editar">

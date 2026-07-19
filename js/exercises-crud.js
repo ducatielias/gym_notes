@@ -43,7 +43,7 @@ function openExerciseModal(id = null) {
         <div class="exercise-editor-container">
             <div class="exercise-editor-sticky-header">
                 <div class="exercise-editor-nav-top">
-                    <button class="btn-exercise-nav-close" onclick="closeExerciseModal()" title="Volver">
+                    <button class="btn-exercise-nav-close gn-back-button" type="button" aria-label="Volver" onclick="closeExerciseModal()" title="Volver">
                         <i class="fa-solid fa-chevron-left"></i>
                     </button>
                     <button class="btn-exercise-nav-save" onclick="saveExerciseFromEditor()">

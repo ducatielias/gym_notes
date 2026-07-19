@@ -389,6 +389,109 @@ function openImportDataModal() {
     fileInput.click();
 }
 
+/**
+ * Identifica el tipo de intercambio por su estructura mínima, no por el
+ * nombre del archivo. Esta función no valida los datos de dominio: esa
+ * responsabilidad sigue perteneciendo a cada importador existente.
+ */
+function detectUniversalImportType(data) {
+    const isObject = data !== null && typeof data === 'object' && !Array.isArray(data);
+    const detectedTypes = [];
+
+    if (isObject && data.datos !== null && typeof data.datos === 'object' && !Array.isArray(data.datos)) {
+        detectedTypes.push('backup');
+    }
+
+    if (Array.isArray(data) && data.length > 0) {
+        const firstItem = data[0];
+        const isItemObject = firstItem !== null && typeof firstItem === 'object' && !Array.isArray(firstItem);
+
+        if (isItemObject && firstItem.fecha && firstItem.nombre_sesion && firstItem.nombre_rutina) {
+            detectedTypes.push('historial');
+        }
+
+        if (isItemObject && firstItem.nombre) {
+            detectedTypes.push('ejercicios');
+        }
+
+        if (isItemObject && firstItem.name) {
+            detectedTypes.push('rutinas');
+        }
+    }
+
+    if (isObject && data.tipo === 'ejercicios_export' && Array.isArray(data.ejercicios)) {
+        detectedTypes.push('ejercicios');
+    }
+
+    if (isObject && data.ejercicio && typeof data.ejercicio === 'object' && data.ejercicio.nombre) {
+        detectedTypes.push('ejercicios');
+    }
+
+    if (isObject && Array.isArray(data.rutinas)) {
+        detectedTypes.push('rutinas');
+    }
+
+    const uniqueTypes = [...new Set(detectedTypes)];
+    if (uniqueTypes.length === 1) {
+        return { ok: true, type: uniqueTypes[0] };
+    }
+
+    if (uniqueTypes.length > 1) {
+        return {
+            ok: false,
+            error: 'El archivo contiene estructuras de importación incompatibles entre sí. No se ha importado ningún dato.'
+        };
+    }
+
+    return {
+        ok: false,
+        error: 'El archivo no corresponde a un backup, historial, ejercicios ni rutinas compatibles con GymNotes.'
+    };
+}
+
+/**
+ * Conserva los importadores de cada dominio sin crear un segundo flujo de
+ * validación o persistencia. Cada uno sigue leyendo y tratando el archivo
+ * con sus confirmaciones, selectores y reglas actuales.
+ */
+function delegateUniversalImport(file, importType) {
+    const importHandlers = {
+        historial: window.importHistoryFromFile,
+        ejercicios: window.importExercisesFromFile,
+        rutinas: window.procesarArchivoImportacionRutinas
+    };
+    const importHandler = importHandlers[importType];
+
+    if (typeof importHandler !== 'function') {
+        throw new Error('El importador seleccionado no está disponible. Recarga la aplicación e inténtalo de nuevo.');
+    }
+
+    importHandler({
+        target: {
+            files: [file],
+            value: ''
+        }
+    });
+}
+
+/** Prepara el backup global con la misma validación y selector previos. */
+function processGlobalBackupImport(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data) || !data.datos || typeof data.datos !== 'object' || Array.isArray(data.datos)) {
+        throw new Error('El archivo no tiene el formato esperado. Falta la propiedad "datos".');
+    }
+
+    const hasRutinas = Array.isArray(data.datos.rutinas) && data.datos.rutinas.length > 0;
+    const hasHistorial = Array.isArray(data.datos.historial) && data.datos.historial.length > 0;
+    const hasEjercicios = Array.isArray(data.datos.ejercicios) && data.datos.ejercicios.length > 0;
+
+    if (!hasRutinas && !hasHistorial && !hasEjercicios) {
+        throw new Error('El archivo no contiene datos válidos (rutinas, historial o ejercicios).');
+    }
+
+    importFileData = data.datos;
+    showImportSelectionModal(data.datos, data.fecha_exportacion || '');
+}
+
 function processImportFile(file) {
     console.log('[data-import-export] Procesando archivo:', file.name);
     
@@ -396,24 +499,18 @@ function processImportFile(file) {
     reader.onload = function(e) {
         try {
             const data = JSON.parse(e.target.result);
-            
-            // Validar el formato del archivo
-            if (!data || typeof data !== 'object' || Array.isArray(data) || !data.datos || typeof data.datos !== 'object' || Array.isArray(data.datos)) {
-                throw new Error('El archivo no tiene el formato esperado. Falta la propiedad "datos".');
+            const detection = detectUniversalImportType(data);
+
+            if (!detection.ok) {
+                throw new Error(detection.error);
             }
-            
-            // Verificar que al menos hay un tipo de dato
-            const hasRutinas = Array.isArray(data.datos.rutinas) && data.datos.rutinas.length > 0;
-            const hasHistorial = Array.isArray(data.datos.historial) && data.datos.historial.length > 0;
-            const hasEjercicios = Array.isArray(data.datos.ejercicios) && data.datos.ejercicios.length > 0;
-            
-            if (!hasRutinas && !hasHistorial && !hasEjercicios) {
-                throw new Error('El archivo no contiene datos válidos (rutinas, historial o ejercicios).');
+
+            if (detection.type === 'backup') {
+                processGlobalBackupImport(data);
+                return;
             }
-            
-            importFileData = data.datos;
-            showImportSelectionModal(data.datos, data.fecha_exportacion || '');
-            
+
+            delegateUniversalImport(file, detection.type);
         } catch (error) {
             importFileData = null;
             console.error('[data-import-export] Error al leer el archivo:', error);

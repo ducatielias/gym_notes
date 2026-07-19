@@ -42,6 +42,10 @@ function handleHeaderOptionsMenuOutsideClick(event) {
     const target = event.target instanceof Element ? event.target : null;
     if (!target) return;
 
+    // Los menús activan sus inputs de archivo mediante click(). Ese segundo
+    // evento debe conservar su acción predeterminada para abrir el selector.
+    if (target.matches('input[type="file"]')) return;
+
     const openMenus = getOpenVisibleHeaderOptionsMenus();
     if (openMenus.length === 0) return;
 

@@ -80,7 +80,19 @@ function importExercisesFromFile(event) {
                 throw new Error('El archivo no tiene un formato de ejercicios válido.');
             }
 
+            const hasInvalidExercise = exercisesToImport.length === 0 || exercisesToImport.some(exercise => (
+                !exercise ||
+                Array.isArray(exercise) ||
+                typeof exercise !== 'object' ||
+                typeof exercise.nombre !== 'string' ||
+                exercise.nombre.trim() === ''
+            ));
+            if (hasInvalidExercise) {
+                throw new Error('El archivo contiene ejercicios sin un nombre válido.');
+            }
+
             const currentExercises = getExercises();
+            const nextExercises = [...currentExercises];
             const existingNames = new Set(currentExercises.map(ex => ex.nombre.toLowerCase().trim()));
 
             const duplicates = exercisesToImport.filter(ex => 
@@ -95,27 +107,33 @@ function importExercisesFromFile(event) {
                 
                 if (action) {
                     exercisesToImport.forEach(imported => {
-                        const idx = currentExercises.findIndex(ex => 
+                        const idx = nextExercises.findIndex(ex =>
                             ex.nombre.toLowerCase().trim() === imported.nombre.toLowerCase().trim()
                         );
                         if (idx >= 0) {
-                            currentExercises[idx] = { ...imported, id: currentExercises[idx].id };
+                            nextExercises[idx] = { ...imported, id: nextExercises[idx].id };
                         } else {
-                            currentExercises.push({ ...imported, id: generateExerciseId() });
+                            nextExercises.push({ ...imported, id: generateExerciseId() });
                         }
                     });
                 } else {
                     exercisesToImport.forEach(imported => {
-                        currentExercises.push({ ...imported, id: generateExerciseId() });
+                        nextExercises.push({ ...imported, id: generateExerciseId() });
                     });
                 }
             } else {
                 exercisesToImport.forEach(imported => {
-                    currentExercises.push({ ...imported, id: generateExerciseId() });
+                    nextExercises.push({ ...imported, id: generateExerciseId() });
                 });
             }
 
-            setExercises(currentExercises);
+            const persistenceResult = setExercises(nextExercises);
+            if (!persistenceResult.ok) {
+                console.error('[exercises-import-export] No se pudieron importar los ejercicios.', persistenceResult);
+                window.showAlert(`No se pudieron importar los ejercicios: ${persistenceResult.error || persistenceResult.status}.`, 'Error');
+                return;
+            }
+
             renderExercises();
             window.showAlert(`Se importaron ${exercisesToImport.length} ejercicios.`, 'Importación completada');
 

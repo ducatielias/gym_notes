@@ -428,10 +428,21 @@ function procesarArchivoImportacionRutinas(event) {
                 return;
             }
 
-            // Detectar qué rutinas ya existen en la aplicación
+            // Validar toda la selección antes de mostrar acciones que puedan persistirla.
+            const routinesValidation = validateAppDataStructure({ routines: routinesToImport });
+            const invalidSessionIndex = routinesToImport.findIndex(routine => (
+                routine && Array.isArray(routine.sessions) && routine.sessions.some(session => (
+                    !session || Array.isArray(session) || typeof session !== 'object'
+                ))
+            ));
+            if (!routinesValidation.valid || invalidSessionIndex >= 0) {
+                throw new Error('El archivo contiene una estructura de rutinas o sesiones no válida.');
+            }
+
+            // Detectar qué rutinas ya existen en la aplicación.
             const nombresExistentes = new Set(appData.routines.map(r => r.name.toLowerCase().trim()));
             const rutinasConDuplicados = routinesToImport.filter(r => 
-                nombresExistentes.has(r.name.toLowerCase().trim())
+                nombresExistentes.has(String(r.name || 'Rutina sin nombre').toLowerCase().trim())
             );
 
             // Guardar las rutinas del archivo para usarlas en el modal
@@ -585,6 +596,7 @@ function importarRutinasSeleccionadas() {
     const rutinasConConflicto = rutinasSeleccionadas.filter(r => 
         nombresExistentes.has((r.name || 'Rutina sin nombre').toLowerCase().trim())
     );
+    const nextRoutines = [...appData.routines];
     
     // Añadir las rutinas seleccionadas a la aplicación
     let importadas = 0;
@@ -592,14 +604,16 @@ function importarRutinasSeleccionadas() {
     
     rutinasSeleccionadas.forEach(imported => {
         const nombreRutina = imported.name || 'Rutina importada';
-        const nombreExistente = appData.routines.find(r => r.name.toLowerCase().trim() === nombreRutina.toLowerCase().trim());
+        const nombreExistente = nextRoutines.find(r => r.name.toLowerCase().trim() === nombreRutina.toLowerCase().trim());
         
         if (nombreExistente) {
             // Si existe, añadir con un sufijo "(copia)"
             const newRoutine = {
+                ...imported,
                 id: 'r-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
                 name: nombreRutina + ' (copia)',
                 sessions: (imported.sessions || []).map(session => ({
+                    ...session,
                     id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
                     title: session.title || 'Sesión sin título',
                     content: session.content || '',
@@ -607,13 +621,15 @@ function importarRutinasSeleccionadas() {
                     createdAt: session.createdAt || Date.now()
                 }))
             };
-            appData.routines.push(newRoutine);
+            nextRoutines.push(newRoutine);
             importadas++;
         } else {
             const newRoutine = {
+                ...imported,
                 id: 'r-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
                 name: nombreRutina,
                 sessions: (imported.sessions || []).map(session => ({
+                    ...session,
                     id: 's-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
                     title: session.title || 'Sesión sin título',
                     content: session.content || '',
@@ -621,12 +637,23 @@ function importarRutinasSeleccionadas() {
                     createdAt: session.createdAt || Date.now()
                 }))
             };
-            appData.routines.push(newRoutine);
+            nextRoutines.push(newRoutine);
             importadas++;
         }
     });
 
-    saveData();
+    const previousRoutines = appData.routines;
+    appData.routines = nextRoutines;
+    const persistenceResult = saveData();
+    if (!persistenceResult.ok) {
+        appData.routines = previousRoutines;
+        window.appData = appData;
+        console.error('[plan-routines] No se pudieron importar las rutinas.', persistenceResult);
+        window.showAlert(`No se pudieron importar las rutinas: ${persistenceResult.error || persistenceResult.status}.`, 'Error');
+        return persistenceResult;
+    }
+
+    window.appData = appData;
     renderRoutineList();
     cerrarImportarRutinas();
     
@@ -635,6 +662,7 @@ function importarRutinasSeleccionadas() {
         mensaje += `\n\n⚠️ ${rutinasConConflicto.length} rutina(s) ya existían y se han importado como copias.`;
     }
     window.showAlert(mensaje, 'Importación completada');
+    return persistenceResult;
 }
 
 // ==========================================================================

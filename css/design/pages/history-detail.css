@@ -29,7 +29,7 @@
 }
 
 /* Acciones de cabecera existentes: volver/cancelar, editar y guardar. */
-#screen-history-detail .btn-history-detail-close,
+#screen-history-detail .btn-history-detail-close:not(.gn-back-button),
 #screen-history-detail .btn-history-detail-edit,
 #screen-history-detail .btn-history-detail-save {
     appearance: none;
@@ -50,7 +50,7 @@
         color var(--gn-motion-fast) var(--gn-ease-standard);
 }
 
-#screen-history-detail .btn-history-detail-close {
+#screen-history-detail .btn-history-detail-close:not(.gn-back-button) {
     padding: 0;
     background: var(--gn-color-surface);
 }
@@ -62,7 +62,7 @@
 }
 
 @media (hover: hover) {
-    #screen-history-detail .btn-history-detail-close:hover:not(:disabled):not([aria-disabled="true"]) {
+    #screen-history-detail .btn-history-detail-close:not(.gn-back-button):hover:not(:disabled):not([aria-disabled="true"]) {
         background: var(--gn-color-surface-secondary);
         border-color: var(--gn-color-text);
     }
@@ -73,7 +73,7 @@
     }
 }
 
-#screen-history-detail .btn-history-detail-close:active:not(:disabled):not([aria-disabled="true"]),
+#screen-history-detail .btn-history-detail-close:not(.gn-back-button):active:not(:disabled):not([aria-disabled="true"]),
 #screen-history-detail .btn-history-detail-edit:active:not(:disabled):not([aria-disabled="true"]),
 #screen-history-detail .btn-history-detail-save:active:not(:disabled):not([aria-disabled="true"]) {
     background: var(--gn-color-surface-secondary);
@@ -86,10 +86,10 @@
     background: var(--gn-color-accent);
 }
 
-#screen-history-detail .btn-history-detail-close:disabled,
+#screen-history-detail .btn-history-detail-close:not(.gn-back-button):disabled,
 #screen-history-detail .btn-history-detail-edit:disabled,
 #screen-history-detail .btn-history-detail-save:disabled,
-#screen-history-detail .btn-history-detail-close[aria-disabled="true"],
+#screen-history-detail .btn-history-detail-close:not(.gn-back-button)[aria-disabled="true"],
 #screen-history-detail .btn-history-detail-edit[aria-disabled="true"],
 #screen-history-detail .btn-history-detail-save[aria-disabled="true"] {
     border-color: var(--gn-color-border-muted);
@@ -346,7 +346,7 @@
 }
 
 /* Foco visible de los controles propios de estas dos vistas. */
-#screen-history-detail .btn-history-detail-close:focus-visible,
+#screen-history-detail .btn-history-detail-close:not(.gn-back-button):focus-visible,
 #screen-history-detail .btn-history-detail-edit:focus-visible,
 #screen-history-detail .btn-history-detail-save:focus-visible,
 #screen-history-detail .history-edit-input:focus-visible {
@@ -386,7 +386,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #screen-history-detail .btn-history-detail-close,
+    #screen-history-detail .btn-history-detail-close:not(.gn-back-button),
     #screen-history-detail .btn-history-detail-edit,
     #screen-history-detail .btn-history-detail-save,
     #screen-history-detail .history-edit-input {

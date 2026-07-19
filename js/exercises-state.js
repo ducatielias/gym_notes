@@ -136,8 +136,16 @@ function getExercises() {
 }
 
 function setExercises(exercises) {
+    const previousExercises = exercisesData.exercises;
     exercisesData.exercises = exercises;
-    return saveExercises();
+    const persistenceResult = saveExercises();
+
+    if (!persistenceResult.ok) {
+        exercisesData.exercises = previousExercises;
+    }
+
+    window.exercisesData = exercisesData;
+    return persistenceResult;
 }
 
 function getExerciseGroups() {

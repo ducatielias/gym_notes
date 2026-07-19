@@ -89,9 +89,62 @@
     transform: none;
 }
 
+/* Botón circular de retroceso reutilizado por pantallas de detalle. */
+.gn-back-button {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-circle);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    cursor: pointer;
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+@media (hover: hover) {
+    .gn-back-button:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-surface);
+        border-color: var(--gn-color-text);
+    }
+}
+
+.gn-back-button:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: none;
+}
+
+.gn-back-button:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+.gn-back-button:disabled,
+.gn-back-button[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .gn-button,
     #customModal .modal-btn {
         transition-duration: 1ms;
+    }
+
+    .gn-back-button {
+        transition-duration: 0ms;
     }
 }
