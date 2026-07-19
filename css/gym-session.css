@@ -64,7 +64,7 @@
     flex-shrink: 0;
 }
 
-.btn-nav-close {
+.btn-nav-close:not(.gn-close-button) {
     background: #f3f4f6;
     border: none;
     width: 36px;
@@ -79,7 +79,7 @@
     transition: transform 0.1s ease;
 }
 
-.btn-nav-close:active {
+.btn-nav-close:not(.gn-close-button):active {
     transform: scale(0.9);
 }
 

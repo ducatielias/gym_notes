@@ -95,7 +95,8 @@
  * y comparte exactamente esta única definición visual.
  */
 .gn-options-button,
-.gn-back-button {
+.gn-back-button,
+.gn-close-button {
     appearance: none;
     box-sizing: border-box;
     display: inline-grid;
@@ -122,14 +123,16 @@
 
 @media (hover: hover) {
     .gn-options-button:hover:not(:disabled):not([aria-disabled="true"]),
-    .gn-back-button:hover:not(:disabled):not([aria-disabled="true"]) {
+    .gn-back-button:hover:not(:disabled):not([aria-disabled="true"]),
+    .gn-close-button:hover:not(:disabled):not([aria-disabled="true"]) {
         background-color: var(--gn-color-surface);
         border-color: var(--gn-color-text);
     }
 }
 
 .gn-options-button:active:not(:disabled):not([aria-disabled="true"]),
-.gn-back-button:active:not(:disabled):not([aria-disabled="true"]) {
+.gn-back-button:active:not(:disabled):not([aria-disabled="true"]),
+.gn-close-button:active:not(:disabled):not([aria-disabled="true"]) {
     transform: none;
     border-color: var(--gn-color-border);
     background-color: var(--gn-color-accent);
@@ -137,7 +140,8 @@
 }
 
 .gn-options-button:focus-visible,
-.gn-back-button:focus-visible {
+.gn-back-button:focus-visible,
+.gn-close-button:focus-visible {
     outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-text);
     outline-offset: var(--gn-space-xs);
 }
@@ -145,7 +149,9 @@
 .gn-options-button:disabled,
 .gn-options-button[aria-disabled="true"],
 .gn-back-button:disabled,
-.gn-back-button[aria-disabled="true"] {
+.gn-back-button[aria-disabled="true"],
+.gn-close-button:disabled,
+.gn-close-button[aria-disabled="true"] {
     border-color: var(--gn-color-border-muted);
     background-color: var(--gn-color-disabled);
     color: var(--gn-color-disabled-text);
@@ -159,7 +165,8 @@
     }
 
     .gn-options-button,
-    .gn-back-button {
+    .gn-back-button,
+    .gn-close-button {
         transition-duration: 0ms;
     }
 }

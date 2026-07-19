@@ -273,6 +273,10 @@
 #exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn {
     top: max(var(--gn-space-lg), env(safe-area-inset-top));
     right: max(var(--gn-space-lg), env(safe-area-inset-right));
+    z-index: 1;
+}
+
+#exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn:not(.gn-close-button) {
     width: 2.75rem;
     height: 2.75rem;
     border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-surface);
@@ -284,20 +288,19 @@
     transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
         border-color var(--gn-motion-fast) var(--gn-ease-standard),
         color var(--gn-motion-fast) var(--gn-ease-standard);
-    z-index: 1;
 }
 
-#exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn:active {
+#exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn:not(.gn-close-button):active {
     transform: none;
 }
 
-#exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn:focus-visible {
+#exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn:not(.gn-close-button):focus-visible {
     outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
     outline-offset: var(--gn-space-xs);
 }
 
 @media (hover: hover) {
-    #exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn:hover {
+    #exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn:not(.gn-close-button):hover {
         border-color: var(--gn-color-border);
         background-color: var(--gn-color-surface-secondary);
     }
@@ -385,7 +388,7 @@
     #screen-exercise-viewer .exercise-viewer-full-image-container,
     #screen-exercise-viewer .exercise-viewer-full-btn,
     #exerciseLightboxOverlay.exercise-lightbox-overlay,
-    #exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn,
+    #exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-close-btn:not(.gn-close-button),
     #exerciseLightboxOverlay.exercise-lightbox-overlay .lightbox-image {
         transition-duration: 0ms;
         animation-duration: 0ms;

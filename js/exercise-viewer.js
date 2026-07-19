@@ -398,7 +398,7 @@ function openExerciseLightbox(src, nombre) {
     
     // Contenido del lightbox
     overlay.innerHTML = `
-        <button class="lightbox-close-btn" onclick="closeExerciseLightbox()" aria-label="Cerrar imagen">
+        <button class="lightbox-close-btn gn-close-button" type="button" onclick="closeExerciseLightbox()" aria-label="Cerrar imagen">
             <i class="fa-solid fa-xmark"></i>
         </button>
         <img class="lightbox-image" src="${safeSourceAttribute}" alt="${safeName}" onerror="this.src='${placeholderHandler}'">

@@ -43,7 +43,7 @@
 
 /* Acciones existentes de historial y cierre. */
 #active-workout .aw-history-btn,
-#active-workout .aw-close-btn {
+#active-workout .aw-close-btn:not(.gn-close-button) {
     box-sizing: border-box;
     width: 2.75rem;
     min-width: 2.75rem;
@@ -62,7 +62,7 @@
     background-color: var(--gn-color-surface-secondary);
 }
 
-#active-workout .aw-close-btn {
+#active-workout .aw-close-btn:not(.gn-close-button) {
     border-color: var(--gn-color-danger-text);
     background-color: var(--gn-color-danger);
     color: var(--gn-color-danger-text);
@@ -74,20 +74,20 @@
         background-color: var(--gn-color-accent);
     }
 
-    #active-workout .aw-close-btn:hover:not(:disabled):not([aria-disabled="true"]) {
+    #active-workout .aw-close-btn:not(.gn-close-button):hover:not(:disabled):not([aria-disabled="true"]) {
         background-color: var(--gn-color-surface-secondary);
     }
 }
 
 #active-workout .aw-history-btn:active:not(:disabled):not([aria-disabled="true"]),
-#active-workout .aw-close-btn:active:not(:disabled):not([aria-disabled="true"]) {
+#active-workout .aw-close-btn:not(.gn-close-button):active:not(:disabled):not([aria-disabled="true"]) {
     transform: none;
 }
 
 #active-workout .aw-history-btn:disabled,
-#active-workout .aw-close-btn:disabled,
+#active-workout .aw-close-btn:not(.gn-close-button):disabled,
 #active-workout .aw-history-btn[aria-disabled="true"],
-#active-workout .aw-close-btn[aria-disabled="true"] {
+#active-workout .aw-close-btn:not(.gn-close-button)[aria-disabled="true"] {
     border-color: var(--gn-color-border-muted);
     background-color: var(--gn-color-disabled);
     color: var(--gn-color-disabled-text);
@@ -307,7 +307,7 @@
 
 /* Indicadores de foco para los controles que ya existen en esta vista. */
 #active-workout .aw-history-btn:focus-visible,
-#active-workout .aw-close-btn:focus-visible,
+#active-workout .aw-close-btn:not(.gn-close-button):focus-visible,
 #active-workout .aw-tool-toggle:focus-visible,
 #active-workout .aw-exercises-content .search-input:focus-visible,
 #active-workout #aw-toolbar-container.ql-toolbar button:focus-visible,
@@ -326,7 +326,7 @@
     }
 
     #active-workout .aw-history-btn,
-    #active-workout .aw-close-btn {
+    #active-workout .aw-close-btn:not(.gn-close-button) {
         width: 2.5rem;
         min-width: 2.5rem;
         min-height: 2.5rem;
@@ -349,7 +349,7 @@
 
 @media (prefers-reduced-motion: reduce) {
     #active-workout .aw-history-btn,
-    #active-workout .aw-close-btn,
+    #active-workout .aw-close-btn:not(.gn-close-button),
     #active-workout .aw-tool-toggle,
     #active-workout .aw-exercises-content .search-input {
         transition-duration: 0ms;

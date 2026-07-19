@@ -44,7 +44,7 @@ function openSessionEditor(sessionId, forceEditMode = false) {
         <div class="editor-container">
             <div class="editor-sticky-header">
                 <div class="editor-nav-top">
-                    <button class="btn-nav-close" onclick="closeEditorAndReturn()" title="Cancelar">
+                    <button class="btn-nav-close gn-close-button" type="button" aria-label="Cancelar edición" onclick="closeEditorAndReturn()" title="Cancelar">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                     

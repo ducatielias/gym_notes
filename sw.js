@@ -8,7 +8,7 @@
  * MODIFICADO: Soporte para mensaje "getVersion" que devuelve CACHE_VERSION
  */
 
-const CACHE_VERSION = 'gym-notes-v1-31';
+const CACHE_VERSION = 'gym-notes-v1-32';
 const CACHE_NAME = CACHE_VERSION;
 
 // ============================================================
