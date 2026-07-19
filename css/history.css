@@ -37,7 +37,7 @@
     line-height: 1;
 }
 
-.btn-history-options {
+.btn-history-options:not(.gn-options-button) {
     background: none;
     border: none;
     color: #9ca3af;
@@ -51,7 +51,7 @@
     justify-content: center;
 }
 
-.btn-history-options:active {
+.btn-history-options:not(.gn-options-button):active {
     background-color: #f3f4f6;
     color: var(--primary-color, #000000);
 }

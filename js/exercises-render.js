@@ -65,7 +65,7 @@ function renderExercises() {
                         <h1 class="exercises-header__title">Ejercicios</h1>
                     </div>
                     <div style="position:relative;">
-                        <button class="btn-exercises-options" onclick="toggleExercisesOptionsMenu(event)" title="Opciones">
+                        <button class="btn-exercises-options gn-options-button" type="button" aria-label="Opciones" onclick="toggleExercisesOptionsMenu(event)" title="Opciones">
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
                         <div class="exercises-options-menu hidden" id="exercisesOptionsMenu" onclick="event.stopPropagation()">

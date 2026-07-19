@@ -260,7 +260,7 @@ function renderTodayDashboard() {
                     <h1 class="today-header__title">Gym Notes</h1>
                 </div>
                 <div style="position: relative;">
-                    <button class="btn-header-options" onclick="toggleTodayOptionsMenu(event)" title="Opciones">
+                    <button class="btn-header-options gn-options-button" type="button" aria-label="Opciones" onclick="toggleTodayOptionsMenu(event)" title="Opciones">
                         <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>
                     <div class="today-options-menu hidden" id="todayOptionsMenu" onclick="event.stopPropagation()" style="top: calc(100% + 8px); right: 0;">

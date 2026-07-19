@@ -35,7 +35,7 @@ function renderRoutineList() {
                         <i class="fa-solid fa-robot"></i>
                     </button>
                     <div style="position:relative;">
-                        <button class="btn-header-options" onclick="toggleRoutineListOptionsMenu(event)" title="Opciones">
+                        <button class="btn-header-options gn-options-button" type="button" aria-label="Opciones" onclick="toggleRoutineListOptionsMenu(event)" title="Opciones">
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
                         <div class="routine-list-options-menu hidden" id="routineListOptionsMenu" onclick="event.stopPropagation()">

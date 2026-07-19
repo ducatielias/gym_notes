@@ -75,7 +75,7 @@ function openSessionEditor(sessionId, forceEditMode = false) {
                         </button>
                     </div>
                     <div class="editor-options-wrapper">
-                        <button class="btn-options-dots" id="editorOptionsBtn" onclick="toggleSessionOptionsMenu(event)">
+                        <button class="btn-options-dots gn-options-button" id="editorOptionsBtn" type="button" aria-label="Opciones" onclick="toggleSessionOptionsMenu(event)" title="Opciones">
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
                         <div class="editor-options-dropdown hidden" id="editorOptionsMenu" onclick="event.stopPropagation()">
@@ -367,7 +367,7 @@ function saveCurrentSession() {
                         </button>
                     </div>
                     <div class="editor-options-wrapper">
-                        <button class="btn-options-dots" id="editorOptionsBtn" onclick="toggleSessionOptionsMenu(event)">
+                        <button class="btn-options-dots gn-options-button" id="editorOptionsBtn" type="button" aria-label="Opciones" onclick="toggleSessionOptionsMenu(event)" title="Opciones">
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
                         <div class="editor-options-dropdown hidden" id="editorOptionsMenu" onclick="event.stopPropagation()">

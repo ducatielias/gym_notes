@@ -29,7 +29,7 @@
     font-family: var(--gn-font-body);
 }
 
-#screen-history .btn-history-options {
+#screen-history .btn-history-options:not(.gn-options-button) {
     display: inline-grid;
     width: 2.75rem;
     min-width: 2.75rem;
@@ -47,13 +47,13 @@
 }
 
 @media (hover: hover) {
-    #screen-history .btn-history-options:hover {
+    #screen-history .btn-history-options:not(.gn-options-button):hover {
         background: var(--gn-color-surface);
         border-color: var(--gn-color-text);
     }
 }
 
-#screen-history .btn-history-options:active {
+#screen-history .btn-history-options:not(.gn-options-button):active {
     background: var(--gn-color-accent);
     border-color: var(--gn-color-border);
     color: var(--gn-color-text);
@@ -318,7 +318,7 @@
 
 /* Estados de foco perceptibles sin modificar la lógica de interacción. */
 #screen-history .history-header .btn-back:focus-visible,
-#screen-history .btn-history-options:focus-visible,
+#screen-history .btn-history-options:not(.gn-options-button):focus-visible,
 #screen-history .history-search-wrapper input:focus-visible,
 #screen-history .history-search-wrapper .clear-input-btn:focus-visible,
 #screen-history .history-filter-bar select:focus-visible,
@@ -356,7 +356,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #screen-history .btn-history-options,
+    #screen-history .btn-history-options:not(.gn-options-button),
     #screen-history .history-search-wrapper input,
     #screen-history .history-search-wrapper .clear-input-btn,
     #screen-history .history-filter-bar select,

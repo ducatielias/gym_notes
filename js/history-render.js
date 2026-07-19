@@ -96,7 +96,7 @@ function renderHistory() {
                     `}
                 </div>
                 <div style="position:relative;">
-                    <button class="btn-history-options" onclick="toggleHistoryOptionsMenu(event)" title="Opciones">
+                    <button class="btn-history-options gn-options-button" type="button" aria-label="Opciones" onclick="toggleHistoryOptionsMenu(event)" title="Opciones">
                         <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>
                     <div class="history-options-menu hidden" id="historyOptionsMenu" onclick="event.stopPropagation()">

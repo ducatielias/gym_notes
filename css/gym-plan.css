@@ -61,7 +61,7 @@
 }
 
 /* Botón de opciones (tres puntos) en lugar del botón "+" */
-.btn-header-options {
+.btn-header-options:not(.gn-options-button) {
     background: none;
     border: none;
     color: #9ca3af;
@@ -75,7 +75,7 @@
     justify-content: center;
 }
 
-.btn-header-options:active {
+.btn-header-options:not(.gn-options-button):active {
     background-color: #f3f4f6;
     color: var(--primary-color, #000000);
 }

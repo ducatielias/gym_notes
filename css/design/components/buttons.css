@@ -89,22 +89,28 @@
     transform: none;
 }
 
-/* Botón circular de retroceso reutilizado por pantallas de detalle. */
+/*
+ * Contenedor visual canónico para acciones de cabecera solo-icono.
+ * Opciones es el componente de referencia; volver conserva su clase semántica
+ * y comparte exactamente esta única definición visual.
+ */
+.gn-options-button,
 .gn-back-button {
     appearance: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    box-sizing: border-box;
+    display: inline-grid;
+    place-items: center;
     width: 2.75rem;
+    height: 2.75rem;
     min-width: 2.75rem;
     min-height: 2.75rem;
     padding: 0;
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-circle);
-    background-color: var(--gn-color-surface-secondary);
+    background-color: var(--gn-color-surface);
     color: var(--gn-color-text);
     font-family: var(--gn-font-body);
-    font-size: var(--gn-font-size-sm);
+    font-size: var(--gn-font-size-lg);
     font-weight: var(--gn-font-weight-semibold);
     line-height: var(--gn-line-height-normal);
     cursor: pointer;
@@ -115,21 +121,29 @@
 }
 
 @media (hover: hover) {
+    .gn-options-button:hover:not(:disabled):not([aria-disabled="true"]),
     .gn-back-button:hover:not(:disabled):not([aria-disabled="true"]) {
         background-color: var(--gn-color-surface);
         border-color: var(--gn-color-text);
     }
 }
 
+.gn-options-button:active:not(:disabled):not([aria-disabled="true"]),
 .gn-back-button:active:not(:disabled):not([aria-disabled="true"]) {
     transform: none;
+    border-color: var(--gn-color-border);
+    background-color: var(--gn-color-accent);
+    color: var(--gn-color-text);
 }
 
+.gn-options-button:focus-visible,
 .gn-back-button:focus-visible {
-    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-text);
     outline-offset: var(--gn-space-xs);
 }
 
+.gn-options-button:disabled,
+.gn-options-button[aria-disabled="true"],
 .gn-back-button:disabled,
 .gn-back-button[aria-disabled="true"] {
     border-color: var(--gn-color-border-muted);
@@ -144,6 +158,7 @@
         transition-duration: 1ms;
     }
 
+    .gn-options-button,
     .gn-back-button {
         transition-duration: 0ms;
     }

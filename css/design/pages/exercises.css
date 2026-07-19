@@ -39,7 +39,7 @@
     letter-spacing: -0.03125rem;
 }
 
-#screen-exercises .btn-exercises-options {
+#screen-exercises .btn-exercises-options:not(.gn-options-button) {
     display: inline-grid;
     width: 2.75rem;
     min-width: 2.75rem;
@@ -56,21 +56,21 @@
 }
 
 @media (hover: hover) {
-    #screen-exercises .btn-exercises-options:hover {
+    #screen-exercises .btn-exercises-options:not(.gn-options-button):hover {
         border-color: var(--gn-color-text);
         background: var(--gn-color-surface);
     }
 }
 
-#screen-exercises .btn-exercises-options:active,
-#screen-exercises .btn-exercises-options.active {
+#screen-exercises .btn-exercises-options:not(.gn-options-button):active,
+#screen-exercises .btn-exercises-options:not(.gn-options-button).active {
     transform: none;
     border-color: var(--gn-color-border);
     background: var(--gn-color-accent);
     color: var(--gn-color-text);
 }
 
-#screen-exercises .btn-exercises-options:focus-visible,
+#screen-exercises .btn-exercises-options:not(.gn-options-button):focus-visible,
 #screen-exercises .exercises-search-wrapper input:focus-visible,
 #screen-exercises .exercises-filter-bar select:focus-visible,
 #screen-exercises .clear-input-btn:focus-visible,
@@ -355,7 +355,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #screen-exercises .btn-exercises-options,
+    #screen-exercises .btn-exercises-options:not(.gn-options-button),
     #screen-exercises .exercises-search-wrapper input,
     #screen-exercises .clear-input-btn,
     #screen-exercises .exercises-filter-bar select,

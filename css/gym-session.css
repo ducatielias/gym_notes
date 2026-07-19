@@ -247,7 +247,7 @@
     align-items: center;
 }
 
-.btn-options-dots {
+.btn-options-dots:not(.gn-options-button) {
     background: none;
     border: none;
     width: 44px;
@@ -262,7 +262,7 @@
     transition: background-color 0.1s ease;
 }
 
-.btn-options-dots:active {
+.btn-options-dots:not(.gn-options-button):active {
     background-color: #f3f4f6;
 }
 

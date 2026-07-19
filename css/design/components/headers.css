@@ -55,8 +55,8 @@
 
 /* Rutinas y Hoy reutilizan el botón de cabecera; Sesiones conserva su botón actual. */
 .gn-header__button,
-#plan-container > .screen-header .btn-header-ia + div .btn-header-options,
-#screen-today .screen-header .btn-header-options {
+#plan-container > .screen-header .btn-header-ia + div .btn-header-options:not(.gn-options-button),
+#screen-today .screen-header .btn-header-options:not(.gn-options-button) {
     appearance: none;
     box-sizing: border-box;
     display: inline-grid;
@@ -79,16 +79,16 @@
 }
 
 .gn-header__button:focus-visible,
-#plan-container > .screen-header .btn-header-ia + div .btn-header-options:focus-visible,
-#screen-today .screen-header .btn-header-options:focus-visible {
+#plan-container > .screen-header .btn-header-ia + div .btn-header-options:not(.gn-options-button):focus-visible,
+#screen-today .screen-header .btn-header-options:not(.gn-options-button):focus-visible {
     outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-text);
     outline-offset: 2px;
 }
 
 @media (hover: hover) {
     .gn-header__button:hover:not(:disabled):not([aria-disabled="true"]),
-    #plan-container > .screen-header .btn-header-ia + div .btn-header-options:hover:not(:disabled):not([aria-disabled="true"]),
-    #screen-today .screen-header .btn-header-options:hover:not(:disabled):not([aria-disabled="true"]) {
+    #plan-container > .screen-header .btn-header-ia + div .btn-header-options:not(.gn-options-button):hover:not(:disabled):not([aria-disabled="true"]),
+    #screen-today .screen-header .btn-header-options:not(.gn-options-button):hover:not(:disabled):not([aria-disabled="true"]) {
         background-color: var(--gn-color-surface);
         border-color: var(--gn-color-text);
     }
@@ -96,10 +96,10 @@
 
 .gn-header__button:disabled,
 .gn-header__button[aria-disabled="true"],
-#plan-container > .screen-header .btn-header-ia + div .btn-header-options:disabled,
-#plan-container > .screen-header .btn-header-ia + div .btn-header-options[aria-disabled="true"],
-#screen-today .screen-header .btn-header-options:disabled,
-#screen-today .screen-header .btn-header-options[aria-disabled="true"] {
+#plan-container > .screen-header .btn-header-ia + div .btn-header-options:not(.gn-options-button):disabled,
+#plan-container > .screen-header .btn-header-ia + div .btn-header-options:not(.gn-options-button)[aria-disabled="true"],
+#screen-today .screen-header .btn-header-options:not(.gn-options-button):disabled,
+#screen-today .screen-header .btn-header-options:not(.gn-options-button)[aria-disabled="true"] {
     background-color: var(--gn-color-disabled);
     border-color: var(--gn-color-border-muted);
     color: var(--gn-color-disabled-text);
@@ -107,8 +107,8 @@
 }
 
 .gn-header__button:active:not(:disabled):not([aria-disabled="true"]),
-#plan-container > .screen-header .btn-header-ia + div .btn-header-options:active:not(:disabled):not([aria-disabled="true"]),
-#screen-today .screen-header .btn-header-options:active:not(:disabled):not([aria-disabled="true"]) {
+#plan-container > .screen-header .btn-header-ia + div .btn-header-options:not(.gn-options-button):active:not(:disabled):not([aria-disabled="true"]),
+#screen-today .screen-header .btn-header-options:not(.gn-options-button):active:not(:disabled):not([aria-disabled="true"]) {
     transform: none;
     border-color: var(--gn-color-border);
     background-color: var(--gn-color-accent);
@@ -274,8 +274,8 @@ body #screen-exercises .exercises-header {
 
 @media (prefers-reduced-motion: reduce) {
     .gn-header__button,
-    #plan-container > .screen-header .btn-header-ia + div .btn-header-options,
-    #screen-today .screen-header .btn-header-options,
+    #plan-container > .screen-header .btn-header-ia + div .btn-header-options:not(.gn-options-button),
+    #screen-today .screen-header .btn-header-options:not(.gn-options-button),
     #plan-container > .screen-header .btn-back,
     #plan-container > .screen-header .btn-header-ia {
         transition-duration: 0ms;

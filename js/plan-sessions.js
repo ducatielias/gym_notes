@@ -36,7 +36,7 @@ function openRoutine(id) {
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
                 <div style="position:relative;">
-                    <button class="btn-header-options" onclick="toggleSessionListOptionsMenu(event)" title="Opciones">
+                    <button class="btn-header-options gn-options-button" type="button" aria-label="Opciones" onclick="toggleSessionListOptionsMenu(event)" title="Opciones">
                         <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>
                     <div class="session-list-options-menu hidden" id="sessionListOptionsMenu" onclick="event.stopPropagation()">
