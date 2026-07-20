@@ -253,9 +253,10 @@ function renderTodayDashboard() {
         header.innerHTML = `
             <div class="gn-screen-header__row">
                 <div class="gn-header__leading">
-                    <img class="today-header__brand-icon"
+                    <img class="gn-app-icon"
                          src="icons/icon-192x192.png" 
-                         alt="Gym Notes"
+                         alt=""
+                         aria-hidden="true"
                          onerror="this.style.display='none'">
                     <h1 class="today-header__title">Gym Notes</h1>
                 </div>

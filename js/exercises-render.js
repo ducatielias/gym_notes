@@ -58,9 +58,10 @@ function renderExercises() {
             <header class="exercises-header gn-screen-header">
                 <div class="exercises-header-top gn-screen-header__row">
                     <div class="gn-header__leading">
-                        <img class="exercises-header__brand-icon"
+                        <img class="gn-app-icon"
                              src="icons/icon-192x192.png" 
-                             alt="Gym Notes"
+                             alt=""
+                             aria-hidden="true"
                              onerror="this.style.display='none'">
                         <h1 class="exercises-header__title">Ejercicios</h1>
                     </div>

@@ -27,7 +27,7 @@ function renderRoutineList() {
         <header class="screen-header gn-screen-header">
             <div class="header-nav-row gn-screen-header__row">
                 <div class="gn-header__leading">
-                    <img class="gn-header__brand-icon" src="icons/icon-192x192.png" alt="Gym Notes" onerror="this.style.display='none'">
+                    <img class="gn-app-icon" src="icons/icon-192x192.png" alt="" aria-hidden="true" onerror="this.style.display='none'">
                     <h1>Rutinas</h1>
                 </div>
                 <div class="gn-header-actions">

@@ -88,8 +88,9 @@ function renderHistory() {
                             <i class="fa-solid fa-chevron-left"></i> ${backButtonLabel}
                         </button>
                     ` : `
-                        <img class="gn-header__brand-icon" src="icons/icon-192x192.png"
-                             alt="Gym Notes"
+                        <img class="gn-app-icon" src="icons/icon-192x192.png"
+                             alt=""
+                             aria-hidden="true"
                              onerror="this.style.display='none'">
                         <h1>Historial</h1>
                     `}

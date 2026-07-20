@@ -186,8 +186,8 @@
 
 .btn-scroll-top {
     position: fixed;
-    /* Coincide con los 16 px / 20 px del botón de opciones de cada cabecera. */
-    top: var(--gn-space-lg);
+    /* Ajuste óptico: eleva 2 px el control respecto a la fila unificada. */
+    top: calc(var(--gn-space-lg) - 2px);
     right: calc(var(--gn-space-xl) - var(--gn-space-xs));
     bottom: auto;
     background-color: rgba(0, 0, 0, 0.85);

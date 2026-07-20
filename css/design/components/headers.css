@@ -24,7 +24,7 @@
     flex-direction: column;
     align-items: stretch;
     width: 100%;
-    padding-inline: var(--gn-space-lg);
+    padding-inline: calc(var(--gn-space-xl) - var(--gn-space-xs));
     background-color: var(--gn-color-background);
     border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
     box-shadow: var(--gn-shadow-none);
@@ -38,23 +38,25 @@
     gap: var(--gn-space-md);
     width: 100%;
     min-width: 0;
-    min-height: 3.5rem;
+    min-height: calc(var(--gn-space-lg) + 2.75rem + var(--gn-space-lg) - var(--gn-border-width));
 }
 
 .gn-screen-header__row > .gn-header__leading {
     flex: 1 1 auto;
 }
 
-.gn-header__brand-icon {
-    inline-size: var(--gn-space-2xl);
-    block-size: var(--gn-space-2xl);
-    border-radius: var(--gn-space-sm);
-}
-
-@media (max-width: 22.5rem) {
-    .gn-screen-header {
-        padding-inline: var(--gn-space-md);
-    }
+/* Marca decorativa común de las pantallas principales. */
+.gn-app-icon {
+    box-sizing: border-box;
+    display: block;
+    flex: 0 0 2.75rem;
+    inline-size: 2.75rem;
+    min-inline-size: 2.75rem;
+    block-size: 2.75rem;
+    min-block-size: 2.75rem;
+    overflow: hidden;
+    border-radius: var(--gn-radius-circle);
+    object-fit: cover;
 }
 
 .gn-header__leading,
