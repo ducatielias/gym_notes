@@ -73,6 +73,87 @@
     gap: var(--gn-space-sm);
 }
 
+/* Geometría común de las acciones de cabecera solo-icono con color semántico local. */
+.gn-header-action-button {
+    appearance: none;
+    box-sizing: border-box;
+    display: inline-grid;
+    flex: 0 0 2.75rem;
+    inline-size: 2.75rem;
+    min-inline-size: 2.75rem;
+    block-size: 2.75rem;
+    min-block-size: 2.75rem;
+    padding: 0;
+    place-items: center;
+    border-radius: var(--gn-radius-circle);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-lg);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard),
+        transform var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+.gn-header-action-button > i {
+    line-height: 1;
+}
+
+.gn-header-action-button:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+/* Variantes semánticas compartidas para acciones solo-icono de cabecera. */
+.gn-header-action-button--accent {
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    background-color: var(--gn-color-accent);
+    color: var(--gn-color-text);
+}
+
+.gn-header-action-button--success {
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-success-text);
+    background-color: var(--gn-color-success);
+    color: var(--gn-color-success-text);
+}
+
+@media (hover: hover) {
+    .gn-header-action-button--accent:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+    }
+
+    .gn-header-action-button--success:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-success-text);
+        filter: brightness(0.98);
+    }
+}
+
+.gn-header-action-button--accent:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-accent);
+    color: var(--gn-color-text);
+    transform: none;
+}
+
+.gn-header-action-button--success:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-success);
+    color: var(--gn-color-success-text);
+    filter: brightness(0.96);
+    transform: none;
+}
+
+.gn-header-action-button--accent:disabled,
+.gn-header-action-button--success:disabled,
+.gn-header-action-button--accent[aria-disabled="true"],
+.gn-header-action-button--success[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
 .gn-header__content {
     flex: 1 1 auto;
 }
@@ -273,6 +354,7 @@
 
 @media (prefers-reduced-motion: reduce) {
     .gn-header__button,
+    .gn-header-action-button,
     #plan-container > .screen-header .btn-header-ia + div .btn-header-options:not(.gn-options-button),
     #screen-today .screen-header .btn-header-options:not(.gn-options-button),
     #plan-container > .screen-header .btn-back,

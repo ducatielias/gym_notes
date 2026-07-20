@@ -52,18 +52,6 @@
     /* Al estar dentro de un flex vertical sin scroll, no necesita position: sticky; */
 }
 
-/* Fila 1: Barra de navegación superior */
-.editor-nav-top {
-    height: 56px;
-    padding: 0 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #ffffff;
-    border-bottom: 1px solid #f3f4f6;
-    flex-shrink: 0;
-}
-
 .btn-nav-close:not(.gn-close-button) {
     background: #f3f4f6;
     border: none;
@@ -81,26 +69,6 @@
 
 .btn-nav-close:not(.gn-close-button):active {
     transform: scale(0.9);
-}
-
-.btn-nav-save {
-    background-color: var(--primary-color, #000000);
-    color: #ffffff;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: background-color 0.1s ease, transform 0.1s ease;
-}
-
-.btn-nav-save:active {
-    transform: scale(0.96);
-    background-color: #222222;
 }
 
 /* ==========================================================================

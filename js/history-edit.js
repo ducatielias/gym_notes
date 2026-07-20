@@ -59,13 +59,17 @@ function renderHistoryEdit(container, item) {
     container.innerHTML = `
         <div class="history-detail-container">
             <div class="history-detail-sticky-header">
-                <div class="history-detail-nav-top">
-                    <button class="btn-history-detail-close" onclick="cancelHistoryEdit()" title="Cancelar">
-                        <i class="fa-solid fa-chevron-left"></i>
-                    </button>
-                    <button class="btn-history-detail-save" onclick="saveHistoryEdit()" title="Guardar cambios">
-                        <i class="fa-solid fa-floppy-disk"></i> Guardar
-                    </button>
+                <div class="gn-screen-header">
+                    <div class="history-detail-nav-top gn-screen-header__row">
+                        <button class="btn-history-detail-close gn-back-button" type="button" aria-label="Cancelar edición" onclick="cancelHistoryEdit()" title="Cancelar">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div class="gn-header-actions">
+                            <button class="btn-history-detail-save gn-header-action-button gn-header-action-button--accent" type="button" aria-label="Guardar cambios" onclick="saveHistoryEdit()" title="Guardar">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="history-detail-title-row">

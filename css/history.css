@@ -342,37 +342,33 @@
 
 #screen-history-detail {
     background-color: var(--background-color, #fafafa);
+    overflow: hidden;
+    padding-bottom: 0;
+}
+
+#screen-history-detail > #history-detail-ui {
+    height: 100%;
+    min-height: 0;
 }
 
 .history-detail-container {
     display: flex;
     flex-direction: column;
-    height: 100dvh;
+    height: 100%;
+    min-height: 0;
     width: 100%;
     background-color: #ffffff;
-    overflow: hidden !important;
+    overflow: hidden;
 }
 
 .history-detail-sticky-header {
     display: flex;
     flex-direction: column;
-    flex-shrink: 0;
+    flex: 0 0 auto;
     background-color: #ffffff;
     z-index: 10;
     border-bottom: 1px solid #f3f4f6;
-    position: sticky;
-    top: 0;
-}
-
-.history-detail-nav-top {
-    height: 56px;
-    padding: 0 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #ffffff;
-    border-bottom: 1px solid #f3f4f6;
-    flex-shrink: 0;
+    position: relative;
 }
 
 .btn-history-detail-close:not(.gn-back-button) {
@@ -430,9 +426,9 @@
 }
 
 .history-detail-body {
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
-    overflow-y: auto !important;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch !important;
     padding: 16px 16px 100px 16px;
     background-color: #ffffff;
@@ -554,48 +550,6 @@
 /* ==========================================================================
    ESTILOS PARA EDICIÓN DEL HISTORIAL
    ========================================================================== */
-
-/* Botón Editar en el header del detalle del historial */
-.btn-history-detail-edit {
-    background-color: var(--accent-color, #ccff00);
-    color: var(--primary-color, #000000);
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: background-color 0.1s ease, transform 0.1s ease;
-}
-
-.btn-history-detail-edit:active {
-    transform: scale(0.96);
-    filter: brightness(0.9);
-}
-
-/* Botón Guardar en el header del detalle */
-.btn-history-detail-save {
-    background-color: var(--accent-color, #ccff00);
-    color: var(--primary-color, #000000);
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: background-color 0.1s ease, transform 0.1s ease;
-}
-
-.btn-history-detail-save:active {
-    transform: scale(0.96);
-    filter: brightness(0.9);
-}
 
 /* Fila de fecha y hora en edición */
 .history-edit-datetime-row {
@@ -720,12 +674,6 @@
     
     .history-edit-field {
         min-width: auto;
-    }
-    
-    .btn-history-detail-edit,
-    .btn-history-detail-save {
-        font-size: 12px;
-        padding: 6px 12px;
     }
     
     #history-edit-editor-container {

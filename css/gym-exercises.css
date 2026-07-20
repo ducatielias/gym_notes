@@ -416,17 +416,6 @@
     border-bottom: 1px solid #f3f4f6;
 }
 
-.exercise-editor-nav-top {
-    height: 56px;
-    padding: 0 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #ffffff;
-    border-bottom: 1px solid #f3f4f6;
-    flex-shrink: 0;
-}
-
 .btn-exercise-nav-close:not(.gn-back-button) {
     background: #f3f4f6;
     border: none;
@@ -450,15 +439,8 @@
     background-color: var(--accent-color, #ccff00);
     color: var(--primary-color, #000000);
     border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: background-color 0.1s ease, transform 0.1s ease;
 }
 
 .btn-exercise-nav-save:active {

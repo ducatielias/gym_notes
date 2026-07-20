@@ -21,17 +21,14 @@
     box-shadow: var(--gn-shadow-none);
 }
 
-#screen-history-detail .history-detail-nav-top {
-    min-height: 3.5rem;
-    padding-inline: var(--gn-space-lg);
-    background: var(--gn-color-background);
-    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+/* El detalle usa una cabecera rígida: el scroll pertenece solo al cuerpo. */
+#screen-history-detail .history-detail-sticky-header > .gn-screen-header {
+    position: relative;
+    top: auto;
 }
 
-/* Acciones de cabecera existentes: volver/cancelar, editar y guardar. */
-#screen-history-detail .btn-history-detail-close:not(.gn-back-button),
-#screen-history-detail .btn-history-detail-edit,
-#screen-history-detail .btn-history-detail-save {
+/* Fallback local para volver o cancelar cuando no usa gn-back-button. */
+#screen-history-detail .btn-history-detail-close:not(.gn-back-button) {
     appearance: none;
     box-sizing: border-box;
     min-width: 2.75rem;
@@ -55,43 +52,21 @@
     background: var(--gn-color-surface);
 }
 
-#screen-history-detail .btn-history-detail-edit,
-#screen-history-detail .btn-history-detail-save {
-    padding: var(--gn-space-sm) var(--gn-space-lg);
-    background: var(--gn-color-accent);
-}
-
 @media (hover: hover) {
     #screen-history-detail .btn-history-detail-close:not(.gn-back-button):hover:not(:disabled):not([aria-disabled="true"]) {
         background: var(--gn-color-surface-secondary);
         border-color: var(--gn-color-text);
     }
-
-    #screen-history-detail .btn-history-detail-edit:hover:not(:disabled):not([aria-disabled="true"]),
-    #screen-history-detail .btn-history-detail-save:hover:not(:disabled):not([aria-disabled="true"]) {
-        border-color: var(--gn-color-text);
-    }
 }
 
-#screen-history-detail .btn-history-detail-close:not(.gn-back-button):active:not(:disabled):not([aria-disabled="true"]),
-#screen-history-detail .btn-history-detail-edit:active:not(:disabled):not([aria-disabled="true"]),
-#screen-history-detail .btn-history-detail-save:active:not(:disabled):not([aria-disabled="true"]) {
+#screen-history-detail .btn-history-detail-close:not(.gn-back-button):active:not(:disabled):not([aria-disabled="true"]) {
     background: var(--gn-color-surface-secondary);
     color: var(--gn-color-text);
     transform: none;
 }
 
-#screen-history-detail .btn-history-detail-edit:active:not(:disabled):not([aria-disabled="true"]),
-#screen-history-detail .btn-history-detail-save:active:not(:disabled):not([aria-disabled="true"]) {
-    background: var(--gn-color-accent);
-}
-
 #screen-history-detail .btn-history-detail-close:not(.gn-back-button):disabled,
-#screen-history-detail .btn-history-detail-edit:disabled,
-#screen-history-detail .btn-history-detail-save:disabled,
-#screen-history-detail .btn-history-detail-close:not(.gn-back-button)[aria-disabled="true"],
-#screen-history-detail .btn-history-detail-edit[aria-disabled="true"],
-#screen-history-detail .btn-history-detail-save[aria-disabled="true"] {
+#screen-history-detail .btn-history-detail-close:not(.gn-back-button)[aria-disabled="true"] {
     border-color: var(--gn-color-border-muted);
     background: var(--gn-color-disabled);
     color: var(--gn-color-disabled-text);
@@ -347,18 +322,12 @@
 
 /* Foco visible de los controles propios de estas dos vistas. */
 #screen-history-detail .btn-history-detail-close:not(.gn-back-button):focus-visible,
-#screen-history-detail .btn-history-detail-edit:focus-visible,
-#screen-history-detail .btn-history-detail-save:focus-visible,
 #screen-history-detail .history-edit-input:focus-visible {
     outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
     outline-offset: var(--gn-space-xs);
 }
 
 @media (max-width: 30rem) {
-    #screen-history-detail .history-detail-nav-top {
-        padding-inline: var(--gn-space-md);
-    }
-
     #screen-history-detail .history-detail-title-row,
     #screen-history-detail .history-detail-body {
         padding-inline: var(--gn-space-md);
@@ -378,17 +347,10 @@
         gap: var(--gn-space-sm);
     }
 
-    #screen-history-detail .btn-history-detail-edit,
-    #screen-history-detail .btn-history-detail-save {
-        min-height: 2.5rem;
-        padding-inline: var(--gn-space-md);
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {
     #screen-history-detail .btn-history-detail-close:not(.gn-back-button),
-    #screen-history-detail .btn-history-detail-edit,
-    #screen-history-detail .btn-history-detail-save,
     #screen-history-detail .history-edit-input {
         transition-duration: 0ms;
     }

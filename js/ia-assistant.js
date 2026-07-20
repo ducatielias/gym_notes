@@ -164,9 +164,9 @@ function renderConfigScreen(container) {
     const exercises = typeof window.getExercises === 'function' ? window.getExercises() : [];
 
     container.innerHTML = `
-        <header class="ia-header">
-            <div class="ia-header-top">
-                <button class="btn-ia-back" onclick="goBackFromIA()">
+        <header class="ia-header gn-screen-header">
+            <div class="ia-header-top gn-screen-header__row">
+                <button class="btn-ia-back" type="button" onclick="goBackFromIA()">
                     <i class="fa-solid fa-chevron-left"></i> Volver
                 </button>
                 <h1><i class="fa-solid fa-robot"></i> Asistente IA</h1>
@@ -811,9 +811,9 @@ function renderPromptScreen(container) {
     const isMedia = params.mode === 'media';
 
     container.innerHTML = `
-        <header class="ia-header">
-            <div class="ia-header-top">
-                <button class="btn-ia-back" onclick="goBackToConfig()">
+        <header class="ia-header gn-screen-header">
+            <div class="ia-header-top gn-screen-header__row">
+                <button class="btn-ia-back" type="button" onclick="goBackToConfig()">
                     <i class="fa-solid fa-chevron-left"></i> Volver
                 </button>
                 <h1><i class="fa-solid fa-robot"></i> Asistente IA</h1>
@@ -1079,9 +1079,9 @@ function renderPreviewScreen(container) {
     });
 
     container.innerHTML = `
-        <header class="ia-header">
-            <div class="ia-header-top">
-                <button class="btn-ia-back" onclick="goBackToPrompt()">
+        <header class="ia-header gn-screen-header">
+            <div class="ia-header-top gn-screen-header__row">
+                <button class="btn-ia-back" type="button" onclick="goBackToPrompt()">
                     <i class="fa-solid fa-chevron-left"></i> Volver
                 </button>
                 <h1><i class="fa-solid fa-robot"></i> Asistente IA</h1>
@@ -1122,9 +1122,9 @@ function cancelarPreview() {
 
 function renderImportScreen(container) {
     container.innerHTML = `
-        <header class="ia-header">
-            <div class="ia-header-top">
-                <button class="btn-ia-back" onclick="goBackToConfig()">
+        <header class="ia-header gn-screen-header">
+            <div class="ia-header-top gn-screen-header__row">
+                <button class="btn-ia-back" type="button" onclick="goBackToConfig()">
                     <i class="fa-solid fa-chevron-left"></i> Volver
                 </button>
                 <h1><i class="fa-solid fa-file-import"></i> Asistente IA</h1>

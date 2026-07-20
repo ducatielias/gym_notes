@@ -43,14 +43,18 @@ function openSessionEditor(sessionId, forceEditMode = false) {
     editorUI.innerHTML = `
         <div class="editor-container">
             <div class="editor-sticky-header">
-                <div class="editor-nav-top">
-                    <button class="btn-nav-close gn-close-button" type="button" aria-label="Cancelar edición" onclick="closeEditorAndReturn()" title="Cancelar">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                    
-                    <button class="btn-nav-save" id="editorMainActionBtn">
-                        <i class="fa-solid fa-pen"></i> Editar
-                    </button>
+                <div class="gn-screen-header">
+                    <div class="editor-nav-top gn-screen-header__row">
+                        <button class="btn-nav-close gn-close-button" type="button" aria-label="Cancelar edición" onclick="closeEditorAndReturn()" title="Cancelar">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+
+                        <div class="gn-header-actions">
+                            <button class="gn-header-action-button gn-header-action-button--accent" id="editorMainActionBtn" type="button" aria-label="Editar sesión" title="Editar">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="editor-title-row">
@@ -149,7 +153,11 @@ function enableSessionEditing() {
 
     if (!actionBtn || !window.quillInstance) return;
 
-    actionBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Guardar`;
+    actionBtn.classList.remove('gn-header-action-button--accent');
+    actionBtn.classList.add('gn-header-action-button--success');
+    actionBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i>`;
+    actionBtn.setAttribute('aria-label', 'Guardar sesión');
+    actionBtn.setAttribute('title', 'Guardar');
     actionBtn.onclick = saveCurrentSession;
 
     if (titleInput) {
@@ -345,7 +353,11 @@ function saveCurrentSession() {
     const editorStickyHeader = document.querySelector('.editor-sticky-header');
 
     if (actionBtn) {
-        actionBtn.innerHTML = `<i class="fa-solid fa-pen"></i> Editar`;
+        actionBtn.classList.remove('gn-header-action-button--success');
+        actionBtn.classList.add('gn-header-action-button--accent');
+        actionBtn.innerHTML = `<i class="fa-solid fa-pen"></i>`;
+        actionBtn.setAttribute('aria-label', 'Editar sesión');
+        actionBtn.setAttribute('title', 'Editar');
         actionBtn.onclick = enableSessionEditing;
     }
 

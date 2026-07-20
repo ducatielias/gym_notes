@@ -14,19 +14,6 @@
     background-color: var(--gn-color-background);
 }
 
-/* Cabecera existente: conserva sticky, top y z-index de la capa heredada. */
-#screen-ia-assistant .ia-header {
-    box-sizing: border-box;
-    background-color: var(--gn-color-surface);
-    border-bottom: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border-muted);
-    color: var(--gn-color-text);
-    box-shadow: var(--gn-shadow-none);
-}
-
-#screen-ia-assistant .ia-header-top {
-    gap: var(--gn-space-sm);
-}
-
 #screen-ia-assistant .ia-header-top h1 {
     min-width: 0;
     overflow-wrap: anywhere;
@@ -141,18 +128,8 @@
 }
 
 @media (max-width: 30rem) {
-    #screen-ia-assistant .ia-header-top {
-        align-items: flex-start;
-    }
-
     #screen-ia-assistant .ia-header-top h1 {
         font-size: var(--gn-font-size-lg);
-    }
-
-    #screen-ia-assistant .btn-ia-back {
-        min-width: 2.5rem;
-        min-height: 2.5rem;
-        padding-inline: var(--gn-space-sm);
     }
 
     #screen-ia-assistant .ia-container {

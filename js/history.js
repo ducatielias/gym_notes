@@ -252,13 +252,17 @@ function viewHistoryDetail(id) {
     container.innerHTML = `
         <div class="history-detail-container">
             <div class="history-detail-sticky-header">
-                <div class="history-detail-nav-top">
-                    <button class="btn-history-detail-close gn-back-button" type="button" aria-label="Volver" onclick="closeHistoryDetail()" title="Volver">
-                        <i class="fa-solid fa-chevron-left"></i>
-                    </button>
-                    <button class="btn-history-detail-edit" onclick="openHistoryEditFromDetail('${itemIdHandler}')" title="Editar">
-                        <i class="fa-solid fa-pen"></i> Editar
-                    </button>
+                <div class="gn-screen-header">
+                    <div class="history-detail-nav-top gn-screen-header__row">
+                        <button class="btn-history-detail-close gn-back-button" type="button" aria-label="Volver" onclick="closeHistoryDetail()" title="Volver">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div class="gn-header-actions">
+                            <button class="btn-history-detail-edit gn-header-action-button gn-header-action-button--accent" type="button" aria-label="Editar historial" onclick="openHistoryEditFromDetail('${itemIdHandler}')" title="Editar">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="history-detail-title-row">

@@ -14,43 +14,15 @@
     color: var(--gn-color-text);
 }
 
-/* Cabecera persistente y acciones locales del editor. */
 #screen-exercise-editor .exercise-editor-sticky-header {
     background-color: var(--gn-color-surface);
     border-bottom: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border-muted);
     box-shadow: var(--gn-shadow-none);
 }
 
-#screen-exercise-editor .exercise-editor-nav-top {
-    min-height: 3.5rem;
-    padding-inline: var(--gn-space-lg);
-    background-color: var(--gn-color-surface);
-    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
-}
-
 #screen-exercise-editor .btn-exercise-nav-save {
-    appearance: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 2.75rem;
     border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
     color: var(--gn-color-text);
-    font-family: var(--gn-font-body);
-    font-size: var(--gn-font-size-sm);
-    font-weight: var(--gn-font-weight-semibold);
-    line-height: var(--gn-line-height-normal);
-    cursor: pointer;
-    box-shadow: var(--gn-shadow-none);
-    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
-        border-color var(--gn-motion-fast) var(--gn-ease-standard),
-        color var(--gn-motion-fast) var(--gn-ease-standard);
-}
-
-#screen-exercise-editor .btn-exercise-nav-save {
-    gap: var(--gn-space-sm);
-    padding-inline: var(--gn-space-lg);
-    border-radius: var(--gn-radius-md);
     background-color: var(--gn-color-accent);
 }
 
@@ -290,15 +262,7 @@
 }
 
 @media (max-width: 22.5rem) {
-    #screen-exercise-editor .exercise-editor-nav-top {
-        padding-inline: var(--gn-space-md);
-    }
-
     #screen-exercise-editor .exercise-editor-body {
-        padding-inline: var(--gn-space-md);
-    }
-
-    #screen-exercise-editor .btn-exercise-nav-save {
         padding-inline: var(--gn-space-md);
     }
 }

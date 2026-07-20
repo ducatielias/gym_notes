@@ -42,13 +42,17 @@ function openExerciseModal(id = null) {
     container.innerHTML = `
         <div class="exercise-editor-container">
             <div class="exercise-editor-sticky-header">
-                <div class="exercise-editor-nav-top">
-                    <button class="btn-exercise-nav-close gn-back-button" type="button" aria-label="Volver" onclick="closeExerciseModal()" title="Volver">
-                        <i class="fa-solid fa-chevron-left"></i>
-                    </button>
-                    <button class="btn-exercise-nav-save" onclick="saveExerciseFromEditor()">
-                        <i class="fa-solid fa-floppy-disk"></i> Guardar
-                    </button>
+                <div class="gn-screen-header">
+                    <div class="exercise-editor-nav-top gn-screen-header__row">
+                        <button class="btn-exercise-nav-close gn-back-button" type="button" aria-label="Volver" onclick="closeExerciseModal()" title="Volver">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div class="gn-header-actions">
+                            <button class="btn-exercise-nav-save gn-header-action-button" type="button" aria-label="Guardar ejercicio" onclick="saveExerciseFromEditor()" title="Guardar">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="exercise-editor-title-row">
