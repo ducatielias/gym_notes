@@ -10,14 +10,6 @@
 }
 
 /* Cabecera, búsqueda y filtro de la lista principal. */
-#screen-exercises .exercises-header {
-    gap: var(--gn-space-md);
-    background: var(--gn-color-background);
-    border-bottom: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border-muted);
-    color: var(--gn-color-text);
-    box-shadow: var(--gn-shadow-none);
-}
-
 #screen-exercises .exercises-header-top h1 {
     color: var(--gn-color-text);
     font-family: var(--gn-font-title);

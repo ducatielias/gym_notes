@@ -16,20 +16,12 @@
    ========================================================================== */
 
 .exercises-header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    padding: 16px 20px 14px 20px !important;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
+    gap: var(--gn-space-md);
+    padding-block-end: calc(var(--gn-space-lg) - var(--gn-border-width));
 }
 
-.exercises-header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
+.exercises-header__options {
+    position: relative;
 }
 
 .btn-exercises-options:not(.gn-options-button) {

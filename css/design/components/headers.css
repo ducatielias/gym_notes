@@ -1,6 +1,6 @@
 /*
  * Encabezados base del Design System de GymNotes.
- * Fase 3H: el puente visual se limita a las cabeceras de Rutinas y Sesiones.
+ * RC-17A: consolida la fila sticky de las listas principales.
  */
 
 /* Base reutilizable para futuras migraciones. */
@@ -14,6 +14,49 @@
     font-family: var(--gn-font-body);
 }
 
+/* Fila sticky canónica de las pantallas principales. */
+.gn-screen-header {
+    box-sizing: border-box;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    padding-inline: var(--gn-space-lg);
+    background-color: var(--gn-color-background);
+    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    box-shadow: var(--gn-shadow-none);
+    color: var(--gn-color-text);
+}
+
+.gn-screen-header__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gn-space-md);
+    width: 100%;
+    min-width: 0;
+    min-height: 3.5rem;
+}
+
+.gn-screen-header__row > .gn-header__leading {
+    flex: 1 1 auto;
+}
+
+.gn-header__brand-icon {
+    inline-size: var(--gn-space-2xl);
+    block-size: var(--gn-space-2xl);
+    border-radius: var(--gn-space-sm);
+}
+
+@media (max-width: 22.5rem) {
+    .gn-screen-header {
+        padding-inline: var(--gn-space-md);
+    }
+}
+
 .gn-header__leading,
 .gn-header__content,
 .gn-header__actions {
@@ -21,7 +64,8 @@
 }
 
 .gn-header__leading,
-.gn-header__actions {
+.gn-header__actions,
+.gn-header-actions {
     display: flex;
     align-items: center;
     gap: var(--gn-space-sm);
@@ -115,55 +159,8 @@
     color: var(--gn-color-text);
 }
 
-/* Mantiene el divisor fino de Rutinas sin depender del orden de carga posterior. */
-body #screen-today .screen-header,
-body #screen-history .history-header,
-body #screen-exercises .exercises-header {
-    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
-}
-
-/* Puente de Plan: conserva sticky, top y z-index heredados de gym-plan.css. */
-#plan-container > .screen-header {
-    background-color: var(--gn-color-background);
-    border-bottom-color: var(--gn-color-border-muted);
-    box-shadow: var(--gn-shadow-none);
-    color: var(--gn-color-text);
-    gap: var(--gn-space-md);
-}
-
-#plan-container > .screen-header .header-nav-row {
-    gap: var(--gn-space-md);
-    min-inline-size: 0;
-}
-
-/* El detalle de Rutinas conserva su flujo, con la misma huella del control de retroceso común. */
-#plan-container > .screen-header.routine-detail-header {
-    padding: 0 !important;
-    gap: 0;
-}
-
-#plan-container > .screen-header.routine-detail-header .header-nav-row {
-    min-height: 3.5rem;
-    padding-inline: var(--gn-space-lg);
-}
-
-@media (max-width: 22.5rem) {
-    #plan-container > .screen-header.routine-detail-header .header-nav-row {
-        padding-inline: var(--gn-space-md);
-    }
-}
-
-/* Solo Rutinas tiene un div inicial con marca y título; Sesiones empieza con volver. */
-#plan-container > .screen-header .header-nav-row > div:first-child {
-    flex: 1 1 auto;
-    min-inline-size: 0;
-}
-
-#plan-container > .screen-header .header-nav-row > div:last-child {
-    flex: 0 0 auto;
-}
-
-#plan-container > .screen-header .header-nav-row h1 {
+/* Plan conserva el título de Rutinas y el nombre de Sesiones fuera de la fila común. */
+#plan-container > .gn-screen-header .gn-screen-header__row h1 {
     max-inline-size: 100%;
     min-inline-size: 0;
     overflow-wrap: anywhere;

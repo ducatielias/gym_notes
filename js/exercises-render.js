@@ -55,16 +55,16 @@ function renderExercises() {
     if (!header) {
         // Si no hay header, crear la estructura completa
         container.innerHTML = `
-            <header class="exercises-header">
-                <div class="exercises-header-top">
-                    <div style="display: flex; align-items: center; gap: 10px;">
+            <header class="exercises-header gn-screen-header">
+                <div class="exercises-header-top gn-screen-header__row">
+                    <div class="gn-header__leading">
                         <img class="exercises-header__brand-icon"
                              src="icons/icon-192x192.png" 
                              alt="Gym Notes"
                              onerror="this.style.display='none'">
                         <h1 class="exercises-header__title">Ejercicios</h1>
                     </div>
-                    <div style="position:relative;">
+                    <div class="gn-header-actions exercises-header__options">
                         <button class="btn-exercises-options gn-options-button" type="button" aria-label="Opciones" onclick="toggleExercisesOptionsMenu(event)" title="Opciones">
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>

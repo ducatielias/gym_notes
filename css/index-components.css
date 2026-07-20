@@ -6,14 +6,6 @@
    ENCABEZADOS Y BOTONES DE NAVEGACIÓN
    ========================================================================== */
 
-.screen-header {
-    padding: 16px 20px 14px 20px !important;
-    background-color: var(--background-color);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
 .screen-header h1 {
     font-size: 28px;
     font-weight: 800;

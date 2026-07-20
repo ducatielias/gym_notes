@@ -19,27 +19,7 @@
 /* ==========================================================================
    ENCABEZADOS SUPERIORES FIJOS MODIFICADOS (DOS LÍNEAS)
    ========================================================================== */
-.screen-header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background-color: var(--background-color, #fafafa);
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    width: 100%;
-}
-
 /* Fila superior para los controles de navegación rápidos */
-.header-nav-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-
 /* Reducción y adaptación del título de la rutina en la segunda línea */
 .screen-header h2.routine-detail-title {
     font-size: 22px;
@@ -386,4 +366,9 @@
     height: 1px;
     background-color: #f3f4f6;
     margin: 4px 6px;
+}
+
+.routine-list-header__options,
+.session-list-header__options {
+    position: relative;
 }

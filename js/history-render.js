@@ -80,22 +80,21 @@ function renderHistory() {
     // Encabezado
     if (shouldRenderHeader) {
         html += `
-        <header class="history-header" data-history-mode="${headerMode}">
-            <div class="history-header-top">
-                <div style="display: flex; align-items: center; gap: 10px; flex:1;">
+        <header class="history-header gn-screen-header" data-history-mode="${headerMode}">
+            <div class="history-header-top gn-screen-header__row">
+                <div class="gn-header__leading">
                     ${showBackButton ? `
                         <button class="btn-back" onclick="goBackFromHistory()" style="background:none; border:none; color:var(--primary-color); font-size:16px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; padding:4px 0;">
                             <i class="fa-solid fa-chevron-left"></i> ${backButtonLabel}
                         </button>
                     ` : `
-                        <img src="icons/icon-192x192.png" 
-                             alt="Gym Notes" 
-                             style="height: 32px; width: 32px; border-radius: 8px;"
+                        <img class="gn-header__brand-icon" src="icons/icon-192x192.png"
+                             alt="Gym Notes"
                              onerror="this.style.display='none'">
-                        <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0;">Historial</h1>
+                        <h1>Historial</h1>
                     `}
                 </div>
-                <div style="position:relative;">
+                <div class="gn-header-actions history-header__options">
                     <button class="btn-history-options gn-options-button" type="button" aria-label="Opciones" onclick="toggleHistoryOptionsMenu(event)" title="Opciones">
                         <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>

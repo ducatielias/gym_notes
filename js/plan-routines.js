@@ -24,17 +24,17 @@ function renderRoutineList() {
     if (!planUI) return;
 
     planUI.innerHTML = `
-        <header class="screen-header">
-            <div class="header-nav-row">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="icons/icon-192x192.png" alt="Gym Notes" style="height:32px; width:32px; border-radius:8px;" onerror="this.style.display='none'">
-                    <h1 style="font-size:28px; font-weight:800; letter-spacing:-0.5px; margin:0;">Rutinas</h1>
+        <header class="screen-header gn-screen-header">
+            <div class="header-nav-row gn-screen-header__row">
+                <div class="gn-header__leading">
+                    <img class="gn-header__brand-icon" src="icons/icon-192x192.png" alt="Gym Notes" onerror="this.style.display='none'">
+                    <h1>Rutinas</h1>
                 </div>
-                <div style="display:flex; align-items:center; gap:8px;">
+                <div class="gn-header-actions">
                     <button class="btn-header-ia" onclick="openIAAssistant()" title="Asistente IA">
                         <i class="fa-solid fa-robot"></i>
                     </button>
-                    <div style="position:relative;">
+                    <div class="routine-list-header__options">
                         <button class="btn-header-options gn-options-button" type="button" aria-label="Opciones" onclick="toggleRoutineListOptionsMenu(event)" title="Opciones">
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>

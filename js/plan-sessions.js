@@ -30,12 +30,12 @@ function openRoutine(id) {
     const routineName = GymNotesSafe.escapeText(routine.name);
 
     planUI.innerHTML = `
-        <header class="screen-header routine-detail-header">
-            <div class="header-nav-row">
+        <header class="screen-header gn-screen-header routine-detail-header">
+            <div class="header-nav-row gn-screen-header__row">
                 <button class="gn-back-button" type="button" aria-label="Volver" onclick="renderRoutineList()" title="Volver">
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
-                <div style="position:relative;">
+                <div class="gn-header-actions session-list-header__options">
                     <button class="btn-header-options gn-options-button" type="button" aria-label="Opciones" onclick="toggleSessionListOptionsMenu(event)" title="Opciones">
                         <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>

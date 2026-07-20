@@ -10,13 +10,6 @@
 }
 
 /* Cabecera, búsqueda y filtros de la lista. */
-#screen-history .history-header {
-    gap: var(--gn-space-md);
-    background: var(--gn-color-background);
-    border-bottom: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border-muted);
-    box-shadow: var(--gn-shadow-none);
-}
-
 #screen-history .history-header-top h1 {
     color: var(--gn-color-text);
     font-family: var(--gn-font-title);

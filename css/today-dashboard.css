@@ -14,8 +14,8 @@
     gap: 20px;
 }
 
-#screen-today .screen-header {
-    padding: 16px 20px 15px 20px !important;
+.today-header__options {
+    position: relative;
 }
 
 /* ==========================================================================
