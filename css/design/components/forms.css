@@ -86,15 +86,21 @@
     }
 }
 
+.gn-input:focus,
 .gn-input:focus-visible,
+.gn-textarea:focus,
 .gn-textarea:focus-visible,
+.gn-select:focus,
 .gn-select:focus-visible,
-#customModal .modal-input:focus-visible,
+#customModal input:focus,
+#customModal input:focus-visible,
+#customModal textarea:focus,
 #customModal textarea:focus-visible,
+#customModal select:focus,
 #customModal select:focus-visible {
     border-color: var(--gn-color-border);
-    outline: var(--gn-border-width-strong) solid var(--gn-color-accent);
-    outline-offset: var(--gn-space-xs);
+    outline: none;
+    background-color: var(--gn-color-surface-secondary);
 }
 
 .gn-input:disabled,

@@ -97,7 +97,7 @@
     gap: var(--gn-space-lg);
     padding: var(--gn-space-lg) var(--gn-space-xl);
     overflow: visible;
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-card);
     background-color: var(--gn-color-surface);
     box-shadow: var(--gn-shadow-none);

@@ -97,11 +97,11 @@
     align-items: center;
     justify-content: center;
     gap: var(--gn-space-sm);
+    border-width: var(--gn-border-width-strong);
 }
 
 #screen-today .today-dashboard__quick-actions .btn-today-entrenamiento-libre {
-    border-width: var(--gn-border-width-strong);
-    box-shadow: 0 var(--today-action-shadow-offset) 0 var(--gn-color-border);
+    box-shadow: var(--gn-shadow-none);
     margin-block-end: var(--today-action-shadow-offset);
 }
 
@@ -172,7 +172,7 @@
 }
 
 #screen-today .today-dashboard__quick-actions .btn-today-entrenamiento-libre:active:not(:disabled):not([aria-disabled="true"]) {
-    box-shadow: 0 var(--gn-border-width-thin) 0 var(--gn-color-border);
+    box-shadow: var(--gn-shadow-none);
 }
 
 #screen-today .today-data-buttons-row--single .btn-today-entrenamiento-libre:focus-visible {
@@ -184,6 +184,15 @@
     border-color: var(--gn-color-border-muted);
     background-color: var(--gn-color-disabled);
     color: var(--gn-color-text);
+}
+
+#screen-today .today-progress .today-progress__period-button,
+#screen-today .today-progress .today-progress__period-button:active {
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-today .today-progress .today-progress__period-button[aria-pressed="true"] {
+    box-shadow: inset 0 0 0 var(--gn-border-width) var(--gn-color-surface);
 }
 
 #screen-today .today-dashboard__quick-actions .btn-today-entrenamiento-libre:disabled,
@@ -205,7 +214,7 @@
     inline-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
     min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
     padding: 0;
-    border: var(--gn-border-width-thin) var(--gn-border-style) transparent;
+    border: var(--gn-border-width-strong) var(--gn-border-style) transparent;
     border-radius: var(--gn-radius-md);
     background-color: transparent;
     color: var(--gn-color-text);
@@ -309,7 +318,7 @@
     box-sizing: border-box;
     min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
     padding: var(--gn-space-sm) var(--gn-space-md);
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-md);
     background-color: var(--gn-color-surface-secondary);
     box-shadow: var(--gn-shadow-none);

@@ -63,7 +63,7 @@
 #screen-history .history-search-wrapper input {
     min-height: 2.75rem;
     padding: var(--gn-space-md) 2.75rem var(--gn-space-md) 2.75rem;
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-md);
     background-color: var(--gn-color-surface);
     color: var(--gn-color-text);
@@ -102,7 +102,7 @@
 #screen-history .history-filter-bar select {
     min-height: 2.75rem;
     padding: var(--gn-space-md) 2.75rem var(--gn-space-md) var(--gn-space-lg);
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-md);
     background-color: var(--gn-color-surface);
     color: var(--gn-color-text);
@@ -132,7 +132,7 @@
 }
 
 #screen-history .card-history {
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-card);
     background: var(--gn-color-surface);
     color: var(--gn-color-text);
@@ -239,7 +239,7 @@
     min-width: 2.75rem;
     min-height: 2.75rem;
     padding: var(--gn-space-sm) var(--gn-space-md);
-    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-md);
     background: var(--gn-color-surface-secondary);
     color: var(--gn-color-text);
@@ -312,13 +312,20 @@
 /* Estados de foco perceptibles sin modificar la lógica de interacción. */
 #screen-history .history-header .btn-back:focus-visible,
 #screen-history .btn-history-options:not(.gn-options-button):focus-visible,
-#screen-history .history-search-wrapper input:focus-visible,
 #screen-history .history-search-wrapper .clear-input-btn:focus-visible,
-#screen-history .history-filter-bar select:focus-visible,
 #screen-history .card-history-header:focus-visible,
 #screen-history .btn-history-action:focus-visible {
     outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-text);
     outline-offset: 2px;
+}
+
+#screen-history .history-search-wrapper input:focus,
+#screen-history .history-search-wrapper input:focus-visible,
+#screen-history .history-filter-bar select:focus,
+#screen-history .history-filter-bar select:focus-visible {
+    border-color: var(--gn-color-border);
+    outline: none;
+    background-color: var(--gn-color-surface-secondary);
 }
 
 @media (max-width: 30rem) {

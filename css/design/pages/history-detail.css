@@ -321,10 +321,20 @@
 }
 
 /* Foco visible de los controles propios de estas dos vistas. */
-#screen-history-detail .btn-history-detail-close:not(.gn-back-button):focus-visible,
-#screen-history-detail .history-edit-input:focus-visible {
+#screen-history-detail .btn-history-detail-close:not(.gn-back-button):focus-visible {
     outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
     outline-offset: var(--gn-space-xs);
+}
+
+#screen-history-detail .history-edit-input:focus,
+#screen-history-detail .history-edit-input:focus-visible {
+    outline: none;
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#screen-history-detail .history-edit-input:not([readonly]):not([aria-invalid="true"]):focus,
+#screen-history-detail .history-edit-input:not([readonly]):not([aria-invalid="true"]):focus-visible {
+    border-color: var(--gn-color-border);
 }
 
 @media (max-width: 30rem) {

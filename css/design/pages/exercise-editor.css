@@ -38,10 +38,6 @@
 }
 
 #screen-exercise-editor .btn-exercise-nav-save:focus-visible,
-#screen-exercise-editor .exercise-editor-title-input:focus-visible,
-#screen-exercise-editor .exercise-editor-body > input:not([type="hidden"]):focus-visible,
-#screen-exercise-editor .exercise-editor-body > select:focus-visible,
-#screen-exercise-editor .exercise-editor-body > textarea:focus-visible,
 #screen-exercise-editor .exercise-muscles-toggle:focus-visible,
 #screen-exercise-editor .muscle-check input[type="checkbox"]:focus-visible {
     outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
@@ -87,6 +83,7 @@
     font-weight: var(--gn-font-weight-bold);
     letter-spacing: 0;
     line-height: var(--gn-line-height-tight);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard);
 }
 
 #screen-exercise-editor .exercise-editor-title-input::placeholder {
@@ -94,7 +91,9 @@
     opacity: 1;
 }
 
+#screen-exercise-editor .exercise-editor-title-input:focus,
 #screen-exercise-editor .exercise-editor-title-input:focus-visible {
+    outline: none;
     background-color: var(--gn-color-surface-secondary);
 }
 
@@ -160,10 +159,15 @@
     }
 }
 
+#screen-exercise-editor .exercise-editor-body > input:not([type="hidden"]):focus,
 #screen-exercise-editor .exercise-editor-body > input:not([type="hidden"]):focus-visible,
+#screen-exercise-editor .exercise-editor-body > select:focus,
 #screen-exercise-editor .exercise-editor-body > select:focus-visible,
+#screen-exercise-editor .exercise-editor-body > textarea:focus,
 #screen-exercise-editor .exercise-editor-body > textarea:focus-visible {
     border-color: var(--gn-color-border);
+    outline: none;
+    background-color: var(--gn-color-surface-secondary);
 }
 
 #screen-exercise-editor .exercise-editor-body > input:not([type="hidden"]):disabled,

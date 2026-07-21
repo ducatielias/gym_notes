@@ -502,9 +502,20 @@
 }
 
 /* Foco visible de controles sin cambiar la semántica ni los eventos. */
-#screen-ia-assistant :is(.ia-option-btn, .ia-expand-toggle, .ia-exercise-search, .ia-textarea, .ia-prompt-textarea, .ia-import-json, .ia-exercise-check, .ia-material-check, .ia-tipo-check, .ia-select-actions button, .ia-btn, button[onclick="copiarPrompt()"], button[onclick^="procesarRespuesta"]):focus-visible {
+#screen-ia-assistant :is(.ia-option-btn, .ia-expand-toggle, .ia-exercise-check, .ia-material-check, .ia-tipo-check, .ia-select-actions button, .ia-btn, button[onclick="copiarPrompt()"], button[onclick^="procesarRespuesta"]):focus-visible {
     outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
     outline-offset: var(--gn-space-xs);
+}
+
+#screen-ia-assistant :is(.ia-exercise-search, .ia-textarea, .ia-prompt-textarea, .ia-import-json):focus,
+#screen-ia-assistant :is(.ia-exercise-search, .ia-textarea, .ia-prompt-textarea, .ia-import-json):focus-visible {
+    outline: none;
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#screen-ia-assistant :is(.ia-exercise-search, .ia-textarea, .ia-prompt-textarea, .ia-import-json):not([readonly]):not([aria-invalid="true"]):focus,
+#screen-ia-assistant :is(.ia-exercise-search, .ia-textarea, .ia-prompt-textarea, .ia-import-json):not([readonly]):not([aria-invalid="true"]):focus-visible {
+    border-color: var(--gn-color-border);
 }
 
 @media (max-width: 30rem) {

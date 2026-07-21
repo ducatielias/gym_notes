@@ -219,7 +219,7 @@
 #screen-exercise-viewer .exercise-viewer-full-btn {
     min-height: 2.75rem;
     padding: var(--gn-space-sm) var(--gn-space-md);
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-md);
     color: var(--gn-color-text);
     font-family: var(--gn-font-body);
