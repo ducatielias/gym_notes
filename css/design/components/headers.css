@@ -85,6 +85,7 @@
     min-block-size: 2.75rem;
     padding: 0;
     place-items: center;
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-circle);
     font-family: var(--gn-font-body);
     font-size: var(--gn-font-size-lg);
@@ -109,13 +110,12 @@
 
 /* Variantes semánticas compartidas para acciones solo-icono de cabecera. */
 .gn-header-action-button--accent {
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
     background-color: var(--gn-color-accent);
     color: var(--gn-color-text);
 }
 
 .gn-header-action-button--success {
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-success-text);
+    border-color: var(--gn-color-success-text);
     background-color: var(--gn-color-success);
     color: var(--gn-color-success-text);
 }

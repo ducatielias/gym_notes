@@ -21,7 +21,7 @@
 }
 
 #screen-exercise-editor .btn-exercise-nav-save {
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-color: var(--gn-color-border);
     color: var(--gn-color-text);
     background-color: var(--gn-color-accent);
 }

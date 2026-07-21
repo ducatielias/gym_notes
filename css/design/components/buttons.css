@@ -10,7 +10,7 @@
     flex: 1;
     min-inline-size: 0;
     padding: var(--gn-space-md) var(--gn-space-lg);
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-md);
     background-color: var(--gn-color-surface);
     color: var(--gn-color-text);
@@ -106,7 +106,7 @@
     min-width: 2.75rem;
     min-height: 2.75rem;
     padding: 0;
-    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-circle);
     background-color: var(--gn-color-surface);
     color: var(--gn-color-text);

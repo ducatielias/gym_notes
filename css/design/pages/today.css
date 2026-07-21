@@ -66,7 +66,7 @@
     border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-modal);
     background-color: var(--gn-color-surface);
-    box-shadow: 0 var(--gn-space-sm) 0 var(--gn-color-border);
+    box-shadow: var(--gn-shadow-none);
     margin-block-end: var(--gn-space-sm);
 }
 

@@ -44,7 +44,7 @@
     min-width: 2.75rem;
     min-height: 2.75rem;
     padding: var(--gn-space-sm) var(--gn-space-md);
-    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-md);
     background-color: var(--gn-color-surface-secondary);
     color: var(--gn-color-text);
@@ -156,7 +156,7 @@
 #screen-ia-assistant .ia-option-btn {
     min-height: 2.75rem;
     padding: var(--gn-space-sm) var(--gn-space-lg);
-    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-pill);
     background-color: var(--gn-color-surface);
     color: var(--gn-color-text);
@@ -221,7 +221,7 @@
 #screen-ia-assistant .ia-expand-toggle {
     min-height: 2.75rem;
     padding: var(--gn-space-sm) var(--gn-space-md);
-    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border-muted);
     border-radius: var(--gn-radius-md);
     background-color: var(--gn-color-surface-secondary);
     color: var(--gn-color-text);
@@ -404,7 +404,7 @@
 #screen-ia-assistant .ia-select-actions button,
 #screen-ia-assistant .ia-btn {
     min-height: 2.75rem;
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-md);
     color: var(--gn-color-text);
     font-family: var(--gn-font-body);
@@ -459,9 +459,10 @@
     cursor: not-allowed;
 }
 
-/* Acciones generadas con estilos inline: se conserva su apariencia base. */
+/* Acciones generadas con estilos inline: el borde común permanece en CSS. */
 #screen-ia-assistant :is(button[onclick="copiarPrompt()"], button[onclick^="procesarRespuesta"]) {
     min-height: 2.75rem;
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
     font-family: var(--gn-font-body);
     line-height: var(--gn-line-height-normal);
 }

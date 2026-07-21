@@ -826,7 +826,7 @@ function renderPromptScreen(container) {
                 <div style="margin-bottom:12px;">
                     <div class="ia-section-title">📋 Prompt generado</div>
                     <textarea id="iaPromptTextarea" class="ia-prompt-textarea" readonly>${GymNotesSafe.escapeText(prompt)}</textarea>
-                    <button onclick="copiarPrompt()" style="margin-top:8px; padding:8px 16px; background:var(--accent-color, #ccff00); color:var(--primary-color, #000000); border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px;">
+                    <button onclick="copiarPrompt()" style="margin-top:8px; padding:8px 16px; background:var(--accent-color, #ccff00); color:var(--primary-color, #000000); border-radius:8px; font-weight:600; cursor:pointer; font-size:13px;">
                         <i class="fa-solid fa-copy"></i> Copiar prompt
                     </button>
                 </div>
@@ -834,7 +834,7 @@ function renderPromptScreen(container) {
                 <div style="border-top:1px solid #f3f4f6; padding-top:16px; margin-top:8px;">
                     <div class="ia-section-title">📥 Pega aquí la respuesta de tu IA</div>
                     <textarea id="iaRespuestaTextarea" class="ia-prompt-textarea" style="min-height:120px; background:#fafafa;" placeholder='Pega aquí el JSON que te devuelva la IA...'></textarea>
-                    <button onclick="${isMedia ? 'procesarRespuestaMedia()' : 'procesarRespuestaDesdePantalla()'}" style="margin-top:8px; width:100%; padding:12px; background:var(--accent-color, #ccff00); color:var(--primary-color, #000000); border:none; border-radius:12px; font-weight:700; cursor:pointer; font-size:14px;">
+                    <button onclick="${isMedia ? 'procesarRespuestaMedia()' : 'procesarRespuestaDesdePantalla()'}" style="margin-top:8px; width:100%; padding:12px; background:var(--accent-color, #ccff00); color:var(--primary-color, #000000); border-radius:12px; font-weight:700; cursor:pointer; font-size:14px;">
                         <i class="fa-solid fa-wand-magic-sparkles"></i> Procesar respuesta
                     </button>
                 </div>
