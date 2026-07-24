@@ -25,15 +25,16 @@
     left: 0;
     z-index: 999; /* Asegura quedar por encima de las pestañas inferiores u otros modales */
     display: block;
+    background-color: var(--gn-color-background);
 }
 
-.editor-container {
+#screen-editor .editor-container {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%; /* Toma el 100% de su padre fijo, no se estirará de más */
-    background: #ffffff;
+    background-color: var(--gn-color-background);
     display: flex;
     flex-direction: column;
     overflow: hidden !important; /* Desactiva por completo el scroll en la raíz del modal */
@@ -42,14 +43,20 @@
 /* ==========================================================================
    CABECERA INTEGRAL (TOTALMENTE RÍGIDA)
    ========================================================================== */
-.editor-sticky-header {
+#screen-editor .editor-sticky-header {
     display: flex;
     flex-direction: column;
     flex-shrink: 0; /* Evita que la cabecera se deforme o aplaste si falta espacio */
-    background-color: #ffffff;
+    background-color: var(--gn-color-surface);
     z-index: 10;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 0;
+    box-shadow: var(--gn-shadow-none);
     /* Al estar dentro de un flex vertical sin scroll, no necesita position: sticky; */
+}
+
+/* La fila compartida conserva su geometría; solo recibe la superficie del editor. */
+#screen-editor .editor-sticky-header > .gn-screen-header {
+    background-color: var(--gn-color-surface);
 }
 
 .btn-nav-close:not(.gn-close-button) {
@@ -74,59 +81,70 @@
 /* ==========================================================================
    FILA DE TÍTULO REDISEÑADA - AHORA CON TEXTAREA AJUSTABLE
    ========================================================================== */
-.editor-title-row {
-    padding: 5px 8px 5px 8px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #f3f4f6;
+#screen-editor .editor-title-row {
+    padding: var(--gn-space-sm) calc(var(--gn-space-xl) - var(--gn-space-xs)) var(--gn-space-md);
+    background-color: var(--gn-color-surface);
+    border-bottom: 0;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 2px;
+    gap: var(--gn-space-xs);
 }
 
-.session-label-prefix {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--primary-color, #000000);
-    opacity: 0.5;
+#screen-editor .session-label-prefix {
+    padding-left: 0;
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-xs);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    opacity: 1;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding-left: 2px;
+    letter-spacing: 0.04em;
 }
 
 /* ============================================================
    CAMPO DE TÍTULO - TEXTAREA CON AJUSTE AUTOMÁTICO DE ALTURA
    ============================================================ */
-.session-input-field {
+#screen-editor .session-input-field {
     width: 100%;
-    border: none;
+    border: 0;
     background: transparent;
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--primary-color, #000000);
+    color: var(--gn-color-text);
     outline: none;
-    padding: 2px 2px;
+    padding: 0;
     margin: 0;
-    letter-spacing: -0.5px;
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-lg);
+    font-weight: var(--gn-font-weight-semibold);
+    letter-spacing: 0;
     resize: none;
     overflow: hidden;
-    min-height: 32px;
-    line-height: 1.3;
-    font-family: inherit;
+    min-height: var(--gn-space-2xl);
+    line-height: var(--gn-line-height-tight);
     box-sizing: border-box;
-    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard);
+    transition:
+        background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        box-shadow var(--gn-motion-fast) var(--gn-ease-standard);
 }
 
-.session-input-field::placeholder {
-    color: #cbd5e1;
+#screen-editor .session-input-field::placeholder {
+    color: var(--gn-color-text-muted);
+    opacity: 1;
 }
 
-.session-input-field:disabled,
-.session-input-field[readonly] {
-    color: var(--primary-color, #000000);
+#screen-editor .session-input-field:disabled,
+#screen-editor .session-input-field[readonly] {
+    color: var(--gn-color-text);
     background: transparent;
     cursor: default;
+}
+
+#screen-editor .session-input-field:not([readonly]):focus,
+#screen-editor .session-input-field:not([readonly]):focus-visible {
+    background-color: var(--gn-color-surface-secondary);
+    box-shadow: inset 0 0 0 var(--gn-border-width-thin) var(--gn-color-border-muted);
 }
 
 /* ==========================================================================
@@ -483,6 +501,7 @@
 #screen-editor .search-input:focus,
 #screen-editor .search-input:focus-visible {
     border-color: var(--gn-color-border-muted);
+    box-shadow: inset 0 0 0 var(--gn-border-width-thin) var(--gn-color-border-muted);
 }
 
 .exercises-list {
@@ -513,6 +532,471 @@
     font-size: 14px;
     color: #9ca3af;
     text-align: center;
+}
+
+/* ===========================================================================
+   CONTROLES AUXILIARES DEL EDITOR DE SESIONES
+   Capa local: los selectores legacy equivalentes también sirven a Entrenamiento.
+   ========================================================================== */
+
+#screen-editor .editor-tools-selectors,
+#screen-editor .editor-tools-row {
+    gap: var(--gn-space-sm);
+    padding: var(--gn-space-sm) calc(var(--gn-space-xl) - var(--gn-space-xs)) var(--gn-space-md);
+    background-color: var(--gn-color-surface);
+}
+
+#screen-editor .editor-tools-row {
+    align-items: center;
+}
+
+#screen-editor .editor-tools-row .editor-tools-selectors {
+    padding: 0;
+}
+
+#screen-editor .btn-tool-toggle,
+#screen-editor .btn-start-session {
+    box-sizing: border-box;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-normal);
+    box-shadow: var(--gn-shadow-none);
+    transition:
+        background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-editor .btn-tool-toggle {
+    min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-sm));
+    padding: var(--gn-space-xs) var(--gn-space-sm);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-sm);
+    background-color: var(--gn-color-surface);
+    font-weight: var(--gn-font-weight-medium);
+}
+
+#screen-editor .btn-tool-toggle i {
+    color: var(--gn-color-text-muted);
+    font-size: var(--gn-font-size-sm);
+}
+
+#screen-editor .btn-tool-toggle.active {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-success);
+    color: var(--gn-color-text);
+}
+
+#screen-editor .btn-tool-toggle.active i {
+    color: currentColor;
+}
+
+#screen-editor .btn-start-session {
+    min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-accent);
+    font-weight: var(--gn-font-weight-semibold);
+}
+
+@media (hover: hover) {
+    #screen-editor .btn-tool-toggle:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-surface-secondary);
+    }
+
+    #screen-editor .btn-start-session:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        background-color: var(--gn-color-accent);
+        filter: brightness(0.98);
+    }
+}
+
+#screen-editor .btn-tool-toggle:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: none;
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-success);
+    color: var(--gn-color-text);
+    filter: none;
+}
+
+#screen-editor .btn-start-session:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: none;
+    border-color: var(--gn-color-border);
+    background-color: var(--gn-color-accent);
+    color: var(--gn-color-text);
+    filter: none;
+}
+
+#screen-editor .btn-tool-toggle:focus-visible,
+#screen-editor .btn-start-session:focus-visible {
+    outline: 0;
+    box-shadow: inset 0 0 0 var(--gn-border-width-thin) var(--gn-color-border);
+}
+
+#screen-editor .editor-options-wrapper {
+    flex-shrink: 0;
+}
+
+#screen-editor .editor-options-dropdown {
+    box-sizing: border-box;
+    inline-size: min(10rem, calc(100vw - var(--gn-space-2xl)));
+    padding: var(--gn-space-sm);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-sm);
+    background-color: var(--gn-color-surface);
+    box-shadow: var(--gn-shadow-menu);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    animation: fadeInMenu var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-editor .editor-option-item {
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: 0;
+    border-radius: var(--gn-radius-sm);
+    background-color: transparent;
+    color: var(--gn-color-text);
+    gap: var(--gn-space-md);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    text-align: start;
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-editor .editor-option-item i {
+    flex: 0 0 var(--gn-space-lg);
+    inline-size: var(--gn-space-lg);
+    color: var(--gn-color-text-muted);
+    font-size: var(--gn-font-size-sm);
+}
+
+@media (hover: hover) {
+    #screen-editor .editor-option-item:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-surface-secondary);
+    }
+}
+
+#screen-editor .editor-option-item:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+}
+
+#screen-editor .editor-option-item:focus-visible {
+    outline: 0;
+    background-color: var(--gn-color-surface-secondary);
+    box-shadow: inset 0 0 0 var(--gn-border-width-thin) var(--gn-color-border);
+}
+
+#screen-editor .expandable-wrapper {
+    background-color: var(--gn-color-surface);
+    transition: max-height var(--gn-motion-standard) var(--gn-ease-standard);
+}
+
+#screen-editor .expandable-wrapper.open {
+    border-top: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+}
+
+#screen-editor .exercises-content {
+    padding: var(--gn-space-md) calc(var(--gn-space-xl) - var(--gn-space-xs));
+    background-color: var(--gn-color-surface);
+}
+
+#screen-editor .search-input {
+    box-sizing: border-box;
+    min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
+    margin-bottom: var(--gn-space-sm);
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-sm);
+    background-color: var(--gn-color-surface);
+    box-shadow: var(--gn-shadow-none);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-normal);
+    transition:
+        background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-editor .search-input::placeholder {
+    color: var(--gn-color-text-muted);
+    opacity: 1;
+}
+
+@media (hover: hover) {
+    #screen-editor .search-input:hover:not(:disabled):not([readonly]):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+    }
+}
+
+#screen-editor .exercises-list {
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-sm);
+    background-color: var(--gn-color-surface);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-editor .exercise-item {
+    min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    background-color: transparent;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-normal);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-editor .exercise-item:last-child {
+    border-bottom: 0;
+}
+
+@media (hover: hover) {
+    #screen-editor .exercise-item:hover {
+        background-color: var(--gn-color-surface-secondary);
+    }
+}
+
+#screen-editor .exercise-item:active {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+#screen-editor .session-exercise-item__content {
+    display: flex;
+    align-items: center;
+    gap: var(--gn-space-sm);
+    min-inline-size: 0;
+}
+
+#screen-editor .session-exercise-marker {
+    flex: 0 0 calc(var(--gn-space-xl) + var(--gn-space-xs));
+    inline-size: calc(var(--gn-space-xl) + var(--gn-space-xs));
+    block-size: calc(var(--gn-space-xl) + var(--gn-space-xs));
+    box-sizing: border-box;
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-sm);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text-muted);
+    display: grid;
+    place-items: center;
+    object-fit: cover;
+    overflow: hidden;
+}
+
+#screen-editor .session-exercise-marker i {
+    font-size: var(--gn-font-size-sm);
+}
+
+#screen-editor .session-exercise-item__name {
+    min-inline-size: 0;
+    color: var(--gn-color-text);
+}
+
+#screen-editor .no-results {
+    padding: var(--gn-space-xl);
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    line-height: var(--gn-line-height-normal);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #screen-editor .btn-tool-toggle,
+    #screen-editor .btn-start-session,
+    #screen-editor .editor-options-dropdown,
+    #screen-editor .editor-option-item,
+    #screen-editor .expandable-wrapper,
+    #screen-editor .search-input,
+    #screen-editor .exercise-item {
+        animation-duration: 0ms;
+        transition-duration: 0ms;
+    }
+}
+
+/* ===========================================================================
+   INTEGRACIÓN VISUAL LOCAL DE QUILL
+   #toolbarWrapper y #editor-instance son las dos carcasas reales del editor.
+   ========================================================================== */
+
+#screen-editor #toolbarWrapper.open {
+    border: 0;
+    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: 0;
+    background-color: var(--gn-color-surface-secondary);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-editor #toolbarWrapper.open .ql-toolbar.ql-snow {
+    border: 0;
+    border-radius: 0;
+    padding: var(--gn-space-xs) var(--gn-space-md);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    box-shadow: var(--gn-shadow-none);
+}
+
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow .ql-formats {
+    margin-right: var(--gn-space-sm);
+}
+
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow :is(button, .ql-picker-label) {
+    inline-size: calc(var(--gn-space-xl) + var(--gn-space-xs));
+    block-size: calc(var(--gn-space-xl) + var(--gn-space-xs));
+    padding: var(--gn-space-xs);
+    border-radius: var(--gn-radius-sm);
+    background-color: transparent;
+    color: var(--gn-color-text);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow .ql-stroke {
+    stroke: var(--gn-color-text);
+}
+
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow .ql-fill {
+    fill: var(--gn-color-text);
+}
+
+@media (hover: hover) {
+    #screen-editor #toolbarWrapper .ql-toolbar.ql-snow :is(button, .ql-picker-label):hover:not(:disabled):not(.ql-disabled) {
+        background-color: var(--gn-color-surface);
+    }
+
+    #screen-editor #toolbarWrapper .ql-toolbar.ql-snow .ql-picker-item:hover:not(.ql-selected):not(.ql-disabled) {
+        background-color: var(--gn-color-surface-secondary);
+        color: var(--gn-color-text);
+    }
+}
+
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow :is(button, .ql-picker-label).ql-active,
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow :is(button, .ql-picker-label):active:not(:disabled):not(.ql-disabled),
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow .ql-picker-item.ql-selected {
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+}
+
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow :is(button, .ql-picker-label).ql-active .ql-stroke,
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow :is(button, .ql-picker-label):active:not(:disabled):not(.ql-disabled) .ql-stroke,
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow .ql-picker-item.ql-selected .ql-stroke {
+    stroke: currentColor;
+}
+
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow :is(button, .ql-picker-label).ql-active .ql-fill,
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow :is(button, .ql-picker-label):active:not(:disabled):not(.ql-disabled) .ql-fill,
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow .ql-picker-item.ql-selected .ql-fill {
+    fill: currentColor;
+}
+
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow :is(button, .ql-picker-label):focus-visible {
+    outline: 0;
+    box-shadow: inset 0 0 0 var(--gn-border-width-thin) var(--gn-color-border);
+}
+
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow :is(button:disabled, .ql-disabled) {
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow :is(button:disabled, .ql-disabled) :is(.ql-stroke, .ql-fill) {
+    stroke: currentColor;
+    fill: currentColor;
+}
+
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow .ql-picker-options {
+    border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-radius: var(--gn-radius-sm);
+    background-color: var(--gn-color-surface);
+    box-shadow: var(--gn-shadow-menu);
+    color: var(--gn-color-text);
+}
+
+#screen-editor #toolbarWrapper .ql-toolbar.ql-snow .ql-picker-item {
+    border-radius: var(--gn-radius-sm);
+    color: var(--gn-color-text-muted);
+}
+
+#screen-editor #editor-instance {
+    box-sizing: border-box;
+    border: 0;
+    border-radius: 0;
+    background-color: var(--gn-color-surface);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        box-shadow var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#screen-editor #editor-instance .ql-container.ql-snow {
+    border: 0;
+    background-color: transparent;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+}
+
+#screen-editor #editor-instance .ql-editor {
+    background-color: transparent;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    line-height: var(--gn-line-height-relaxed);
+}
+
+#screen-editor #editor-instance .ql-editor.ql-blank::before {
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-body);
+}
+
+#screen-editor #editor-instance:focus-within {
+    background-color: var(--gn-color-surface-secondary);
+    box-shadow: inset 0 0 0 var(--gn-border-width-thin) var(--gn-color-border-muted);
+}
+
+#screen-editor #editor-instance .ql-editor {
+    scrollbar-width: thin;
+    scrollbar-color: var(--gn-color-border-muted) transparent;
+}
+
+#screen-editor #editor-instance .ql-editor::-webkit-scrollbar {
+    inline-size: var(--gn-space-xs);
+    block-size: var(--gn-space-xs);
+}
+
+#screen-editor #editor-instance .ql-editor::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+#screen-editor #editor-instance .ql-editor::-webkit-scrollbar-thumb {
+    border: var(--gn-border-width-thin) var(--gn-border-style) transparent;
+    border-radius: var(--gn-radius-pill);
+    background-clip: padding-box;
+    background-color: var(--gn-color-border-muted);
+}
+
+@media (hover: hover) {
+    #screen-editor #editor-instance .ql-editor::-webkit-scrollbar-thumb:hover {
+        background-color: var(--gn-color-text-muted);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #screen-editor #toolbarWrapper .ql-toolbar.ql-snow :is(button, .ql-picker-label),
+    #screen-editor #editor-instance {
+        transition-duration: 0ms;
+    }
 }
 
 /* ==========================================================================
@@ -588,20 +1072,9 @@
     }
     
     /* Ajuste del título en móviles */
-    .session-input-field {
-        font-size: 19px;
-        min-height: 28px;
-        padding: 2px 2px;
-    }
-    
-    .editor-title-row {
-        padding: 4px 6px 4px 6px;
-    }
-}
-
-@media (max-width: 360px) {
-    .session-input-field {
-        font-size: 17px;
-        min-height: 24px;
+    #screen-editor .session-input-field {
+        font-size: var(--gn-font-size-lg);
+        min-height: calc(var(--gn-space-xl) + var(--gn-space-xs));
+        padding: 0;
     }
 }

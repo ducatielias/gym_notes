@@ -51,8 +51,8 @@ function openRoutine(id) {
                             <i class="fa-solid fa-file-export"></i> Exportar sesión
                         </button>
                         <div class="menu-divider"></div>
-                        <button class="menu-item menu-delete" onclick="borrarTodasSesiones(); closeSessionListOptionsMenu();" style="color:#ef4444;">
-                            <i class="fa-solid fa-trash-can" style="color:#ef4444;"></i> Borrar todas
+                        <button class="menu-item menu-delete" onclick="borrarTodasSesiones(); closeSessionListOptionsMenu();">
+                            <i class="fa-solid fa-trash-can"></i> Borrar todas
                         </button>
                     </div>
                 </div>
@@ -69,11 +69,14 @@ function openRoutine(id) {
                 const sessionIdAttribute = GymNotesSafe.escapeText(session.id);
                 const sessionIdHandler = GymNotesSafe.escapeInlineHandlerArgument(session.id);
                 const sessionTitle = GymNotesSafe.escapeText(session.title);
+                const sessionStatusClass = resultado.realizada
+                    ? 'session-status session-status--completed'
+                    : 'session-status session-status--pending';
                 return `
                     <div class="card card-session" onclick="openSessionEditor('${sessionIdHandler}')">
                         <div class="card-content">
                             <h3>${sessionTitle}</h3>
-                            <p style="color: ${!resultado.realizada ? '#ef4444' : 'var(--text-muted)'};">${resultado.texto}</p>
+                            <p class="${sessionStatusClass}">${resultado.texto}</p>
                         </div>
                         
                         <button class="btn-session-options" onclick="toggleSessionMenu(event, '${sessionIdHandler}')">

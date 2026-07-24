@@ -124,38 +124,53 @@ function renderExercisesList(lista) {
         return;
     }
 
-    // Obtener la URL de la imagen o usar un placeholder
+    // Las miniaturas reales se conservan; los ejercicios sin imagen usan un marcador CSS local.
     listContainer.innerHTML = lista.map(ejercicio => {
-        const placeholderImage = getPlaceholderImage(ejercicio.nombre);
-        const imgSrc = GymNotesSafe.getSafeImageUrl(ejercicio.img) || placeholderImage;
+        const imgSrc = GymNotesSafe.getSafeImageUrl(ejercicio.img);
         const exerciseName = GymNotesSafe.escapeText(ejercicio.nombre);
         const exerciseNameHandler = GymNotesSafe.escapeInlineHandlerArgument(ejercicio.nombre);
         const exerciseIdHandler = GymNotesSafe.escapeInlineHandlerArgument(ejercicio.id);
-        const imageSrcAttribute = GymNotesSafe.escapeText(imgSrc);
-        const placeholderHandler = GymNotesSafe.escapeInlineHandlerArgument(placeholderImage);
+        const imageSrcAttribute = imgSrc ? GymNotesSafe.escapeText(imgSrc) : '';
+        const exerciseMarker = imageSrcAttribute
+            ? `<img class="session-exercise-marker session-exercise-marker--image" src="${imageSrcAttribute}" alt="${exerciseName}">`
+            : `<span class="session-exercise-marker session-exercise-marker--fallback" aria-hidden="true"><i class="fa-solid fa-dumbbell"></i></span>`;
         
         return `
             <li class="exercise-item" onclick="insertarEjercicioEnTexto('${exerciseNameHandler}', '${exerciseIdHandler}')">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <img src="${imageSrcAttribute}" 
-                         style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover; background: #f3f4f6; flex-shrink: 0;" 
-                         onerror="this.src='${placeholderHandler}'"
-                         alt="${exerciseName}">
-                    <span>${exerciseName}</span>
+                <div class="session-exercise-item__content">
+                    ${exerciseMarker}
+                    <span class="session-exercise-item__name">${exerciseName}</span>
                 </div>
             </li>
         `;
     }).join('');
+
+    // Una imagen rota debe conservar el mismo marcador plano que un ejercicio sin miniatura.
+    listContainer.querySelectorAll('.session-exercise-marker--image').forEach((image) => {
+        image.addEventListener('error', () => replaceExerciseImageWithMarker(image), { once: true });
+
+        if (image.complete && image.naturalWidth === 0) {
+            replaceExerciseImageWithMarker(image);
+        }
+    });
 }
 
-// Función para obtener imagen placeholder
-function getPlaceholderImage(text) {
-    return 'data:image/svg+xml,' + encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-            <rect width="32" height="32" fill="#f3f4f6" rx="8"/>
-            <text x="16" y="20" font-family="Arial" font-size="16" text-anchor="middle" fill="#9ca3af">💪</text>
-        </svg>
-    `);
+/**
+ * Sustituye una miniatura fallida por el mismo indicador plano usado sin imagen.
+ * Solo resuelve la presentación de la lista; no altera el ejercicio seleccionado.
+ */
+function replaceExerciseImageWithMarker(image) {
+    if (!image.isConnected) return;
+
+    const marker = document.createElement('span');
+    marker.className = 'session-exercise-marker session-exercise-marker--fallback';
+    marker.setAttribute('aria-hidden', 'true');
+
+    const icon = document.createElement('i');
+    icon.className = 'fa-solid fa-dumbbell';
+    marker.appendChild(icon);
+
+    image.replaceWith(marker);
 }
 
 // Filtrar en tiempo real los ejercicios mediante la caja de entrada de texto
@@ -188,7 +203,7 @@ function filtrarEjercicios() {
 }
 
 // Insertar de manera limpia el ejercicio seleccionado en la posición actual del cursor de Quill
-// MODIFICADO: Usa el formato nativo de Quill (negrita + subrayado + color)
+// MODIFICADO: Usa el formato nativo de Quill (negrita + subrayado).
 function insertarEjercicioEnTexto(nombreEjercicio, ejercicioId) {
     if (!window.quillInstance) {
         console.warn('[gym-session] Quill no está inicializado');
@@ -206,11 +221,10 @@ function insertarEjercicioEnTexto(nombreEjercicio, ejercicioId) {
     const id = ejercicioId || nombreEjercicio;
     console.log('[gym-session] Insertando ejercicio:', nombreEjercicio, 'ID:', id);
     
-    // Insertar el texto con formato (negrita + subrayado + color)
+    // El texto hereda el color principal del editor; el azul se reserva para enlaces reales.
     window.quillInstance.insertText(range.index, `${nombreEjercicio}`, {
         'bold': true,
-        'underline': false,
-        'color': '#2563eb'
+        'underline': false
     });
     
     // Desplazar el cursor al final del bloque insertado

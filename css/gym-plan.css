@@ -157,63 +157,109 @@
     position: absolute;
     top: 45px;
     right: 0;
-    background-color: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-    width: 200px;
     z-index: 200;
+    box-sizing: border-box;
+    inline-size: min(12.5rem, calc(100vw - var(--gn-space-2xl)));
     display: flex;
     flex-direction: column;
-    padding: 6px;
-    animation: fadeInMenu 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: var(--gn-space-sm);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface);
+    box-shadow: var(--gn-shadow-menu);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    animation: fadeInMenu var(--gn-motion-fast) var(--gn-ease-standard);
 }
 
 .session-list-options-menu .menu-item {
-    background: none;
-    border: none;
-    padding: 10px 12px;
-    text-align: left;
-    font-size: 14px;
-    font-weight: 600;
-    color: #374151;
-    border-radius: 8px;
-    cursor: pointer;
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-block-size: calc(var(--gn-space-2xl) + var(--gn-space-md));
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: 0;
+    border-radius: var(--gn-radius-sm);
+    background-color: transparent;
+    color: var(--gn-color-text);
     display: flex;
     align-items: center;
-    gap: 10px;
-    transition: background-color 0.12s ease, color 0.12s ease;
-    width: 100%;
+    gap: var(--gn-space-md);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: var(--gn-line-height-normal);
+    text-align: start;
+    cursor: pointer;
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+    overflow-wrap: anywhere;
 }
 
 .session-list-options-menu .menu-item i {
-    font-size: 14px;
-    width: 18px;
+    flex: 0 0 var(--gn-space-lg);
+    inline-size: var(--gn-space-lg);
     text-align: center;
-    color: #9ca3af;
-}
-
-.session-list-options-menu .menu-item:active {
-    background-color: #f3f4f6;
-    color: #000000;
+    color: var(--gn-color-text-muted);
+    font-size: var(--gn-font-size-sm);
 }
 
 .session-list-options-menu .menu-item.menu-delete {
-    color: #ef4444;
+    color: var(--gn-color-danger-text);
 }
 
 .session-list-options-menu .menu-item.menu-delete i {
-    color: #ef4444;
+    color: currentColor;
 }
 
-.session-list-options-menu .menu-item.menu-delete:active {
-    background-color: #fef2f2;
+.session-list-options-menu .menu-item:disabled,
+.session-list-options-menu .menu-item[aria-disabled="true"] {
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
+.session-list-options-menu .menu-item:disabled i,
+.session-list-options-menu .menu-item[aria-disabled="true"] i {
+    color: currentColor;
 }
 
 .session-list-options-menu .menu-divider {
-    height: 1px;
-    background-color: #f3f4f6;
-    margin: 4px 6px;
+    block-size: var(--gn-border-width-thin);
+    margin: var(--gn-space-xs) var(--gn-space-sm);
+    background-color: var(--gn-color-border-muted);
+}
+
+@media (hover: hover) {
+    .session-list-options-menu .menu-item:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-surface-secondary);
+    }
+
+    .session-list-options-menu .menu-item.menu-delete:hover:not(:disabled):not([aria-disabled="true"]) {
+        background-color: var(--gn-color-danger);
+        color: var(--gn-color-danger-text);
+    }
+}
+
+.session-list-options-menu .menu-item:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+.session-list-options-menu .menu-item.menu-delete:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-danger);
+    color: var(--gn-color-danger-text);
+}
+
+.session-list-options-menu .menu-item:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: calc(var(--gn-space-xs) * -1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .session-list-options-menu,
+    .session-list-options-menu .menu-item {
+        animation-duration: 0s;
+        transition-duration: 0s;
+    }
 }
 
 /* ==========================================================================
@@ -277,6 +323,50 @@
 .btn-session-options:active,
 .btn-routine-options:active {
     color: var(--primary-color);
+}
+
+/* Scoped Sessions variant that preserves the card pencil geometry. */
+#sessions-list .btn-session-options {
+    appearance: none;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: var(--gn-radius-circle);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    box-shadow: var(--gn-shadow-none);
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+@media (hover: hover) {
+    #sessions-list .btn-session-options:hover {
+        background-color: var(--gn-color-surface);
+    }
+}
+
+#sessions-list .btn-session-options:active {
+    background-color: var(--gn-color-accent);
+    color: var(--gn-color-text);
+}
+
+#sessions-list .btn-session-options:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+/* These selectors outrank the shared card bridge without changing it. */
+#screen-plan #sessions-list .card-session .card-content .session-status {
+    color: var(--gn-color-text-muted);
+}
+
+#screen-plan #sessions-list .card-session .card-content .session-status--completed {
+    color: var(--gn-color-success-text);
+}
+
+#screen-plan #sessions-list .card-session .card-content .session-status--pending {
+    color: var(--gn-color-danger-text);
 }
 
 /* ==========================================================================
