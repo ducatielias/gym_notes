@@ -23,6 +23,11 @@
         height: var(--aw-visual-viewport-height);
         transform: translateY(var(--aw-visual-viewport-offset-top));
     }
+
+    /* El teclado libera espacio para Quill sin cambiar el estado de Formato. */
+    #active-workout .aw-container.aw-keyboard-open :is(.aw-header, .aw-tools-row) {
+        display: none;
+    }
 }
 
 /* Cabecera existente: se conserva su posicionamiento y dimensiones funcionales. */

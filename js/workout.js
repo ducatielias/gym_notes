@@ -15,10 +15,14 @@
 let activeWorkoutViewportFrame = null;
 let stopActiveWorkoutViewportSync = null;
 
+// Las barras del navegador suelen variar unas decenas de píxeles; 150px
+// separa esas variaciones y los cambios de orientación de un teclado virtual.
+const ACTIVE_WORKOUT_KEYBOARD_VIEWPORT_DELTA_PX = 150;
+
 /**
  * Ajusta exclusivamente la carcasa de Entrenamiento Activo al viewport visual
- * móvil. Cuando el teclado desplaza ese viewport, conserva la cabecera y la
- * toolbar dentro del área visible sin alterar el scroll interno de Quill.
+ * móvil. Cuando el teclado reduce ese viewport, activa un modo compacto que
+ * deja disponible la toolbar de formato sin alterar el scroll interno de Quill.
  */
 function syncActiveWorkoutVisualViewport() {
     activeWorkoutViewportFrame = null;
@@ -27,13 +31,18 @@ function syncActiveWorkoutVisualViewport() {
     const viewport = window.visualViewport;
     if (!modal || modal.style.display !== 'flex' || !viewport) return;
 
+    const container = modal.querySelector('.aw-container');
     const viewportHeight = Math.round(viewport.height);
     const viewportOffsetTop = Math.max(0, Math.round(viewport.offsetTop));
     if (viewportHeight <= 0) return;
 
+    const keyboardViewportDelta = Math.max(0, window.innerHeight - viewportHeight);
+    const isKeyboardOpen = keyboardViewportDelta >= ACTIVE_WORKOUT_KEYBOARD_VIEWPORT_DELTA_PX;
+
     modal.style.setProperty('--aw-visual-viewport-height', `${viewportHeight}px`);
     modal.style.setProperty('--aw-visual-viewport-offset-top', `${viewportOffsetTop}px`);
     modal.classList.add('aw-visual-viewport-active');
+    container?.classList.toggle('aw-keyboard-open', isKeyboardOpen);
 }
 
 function queueActiveWorkoutVisualViewportSync() {
@@ -74,6 +83,7 @@ function stopActiveWorkoutVisualViewportSync() {
     const modal = document.getElementById('active-workout');
     if (!modal) return;
 
+    modal.querySelector('.aw-container')?.classList.remove('aw-keyboard-open');
     modal.classList.remove('aw-visual-viewport-active');
     modal.style.removeProperty('--aw-visual-viewport-height');
     modal.style.removeProperty('--aw-visual-viewport-offset-top');
