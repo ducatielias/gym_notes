@@ -13,6 +13,18 @@
     color: var(--gn-color-text);
 }
 
+/*
+ * Solo en pantallas táctiles, workout.js refleja el viewport visual durante
+ * el teclado. La toolbar sigue fuera de .ql-editor y este ajuste no crea otro
+ * contenedor de scroll.
+ */
+@media (pointer: coarse) {
+    #active-workout.aw-visual-viewport-active .aw-container {
+        height: var(--aw-visual-viewport-height);
+        transform: translateY(var(--aw-visual-viewport-offset-top));
+    }
+}
+
 /* Cabecera existente: se conserva su posicionamiento y dimensiones funcionales. */
 #active-workout .aw-header {
     background-color: var(--gn-color-surface);

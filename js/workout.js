@@ -8,9 +8,80 @@
  * - liberarBloqueoEntrenamiento(): se llama desde back-handler para liberar el historial.
  */
 
-// ==========================================================================
+// ===========================================================================
+// SINCRONIZACIÓN DEL VIEWPORT MÓVIL
+// ===========================================================================
+
+let activeWorkoutViewportFrame = null;
+let stopActiveWorkoutViewportSync = null;
+
+/**
+ * Ajusta exclusivamente la carcasa de Entrenamiento Activo al viewport visual
+ * móvil. Cuando el teclado desplaza ese viewport, conserva la cabecera y la
+ * toolbar dentro del área visible sin alterar el scroll interno de Quill.
+ */
+function syncActiveWorkoutVisualViewport() {
+    activeWorkoutViewportFrame = null;
+
+    const modal = document.getElementById('active-workout');
+    const viewport = window.visualViewport;
+    if (!modal || modal.style.display !== 'flex' || !viewport) return;
+
+    const viewportHeight = Math.round(viewport.height);
+    const viewportOffsetTop = Math.max(0, Math.round(viewport.offsetTop));
+    if (viewportHeight <= 0) return;
+
+    modal.style.setProperty('--aw-visual-viewport-height', `${viewportHeight}px`);
+    modal.style.setProperty('--aw-visual-viewport-offset-top', `${viewportOffsetTop}px`);
+    modal.classList.add('aw-visual-viewport-active');
+}
+
+function queueActiveWorkoutVisualViewportSync() {
+    if (activeWorkoutViewportFrame !== null) return;
+
+    activeWorkoutViewportFrame = window.requestAnimationFrame(syncActiveWorkoutVisualViewport);
+}
+
+function startActiveWorkoutVisualViewportSync() {
+    stopActiveWorkoutVisualViewportSync();
+
+    const viewport = window.visualViewport;
+    const isCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches;
+    if (!viewport || !isCoarsePointer) return;
+
+    viewport.addEventListener('resize', queueActiveWorkoutVisualViewportSync);
+    viewport.addEventListener('scroll', queueActiveWorkoutVisualViewportSync);
+    window.addEventListener('orientationchange', queueActiveWorkoutVisualViewportSync);
+
+    stopActiveWorkoutViewportSync = () => {
+        viewport.removeEventListener('resize', queueActiveWorkoutVisualViewportSync);
+        viewport.removeEventListener('scroll', queueActiveWorkoutVisualViewportSync);
+        window.removeEventListener('orientationchange', queueActiveWorkoutVisualViewportSync);
+        stopActiveWorkoutViewportSync = null;
+    };
+
+    queueActiveWorkoutVisualViewportSync();
+}
+
+function stopActiveWorkoutVisualViewportSync() {
+    if (activeWorkoutViewportFrame !== null) {
+        window.cancelAnimationFrame(activeWorkoutViewportFrame);
+        activeWorkoutViewportFrame = null;
+    }
+
+    stopActiveWorkoutViewportSync?.();
+
+    const modal = document.getElementById('active-workout');
+    if (!modal) return;
+
+    modal.classList.remove('aw-visual-viewport-active');
+    modal.style.removeProperty('--aw-visual-viewport-height');
+    modal.style.removeProperty('--aw-visual-viewport-offset-top');
+}
+
+// ===========================================================================
 // FUNCIONES DE RESETEO DE ESTADO
-// ==========================================================================
+// ===========================================================================
 
 function resetAllTimersAndState() {
     if (aw_totalTimerInterval) { clearInterval(aw_totalTimerInterval); aw_totalTimerInterval = null; }
@@ -73,6 +144,7 @@ window.iniciarEntrenamiento = function(sessionData) {
     const modal = document.getElementById('active-workout');
     if (modal) {
         modal.style.display = 'flex';
+        startActiveWorkoutVisualViewportSync();
     }
     
     // Activar bloqueo del historial
@@ -172,6 +244,7 @@ window.finalizarEntrenamiento = async function() {
     // Cerrar el modal
     const modal = document.getElementById('active-workout');
     if (modal) modal.style.display = 'none';
+    stopActiveWorkoutVisualViewportSync();
     
     // Liberar bloqueo del historial
     if (typeof window.liberarBloqueoEntrenamiento === 'function') {
@@ -234,6 +307,7 @@ window.cerrarEntrenamiento = async function() {
     // Cerrar modal
     const modal = document.getElementById('active-workout');
     if (modal) modal.style.display = 'none';
+    stopActiveWorkoutVisualViewportSync();
     
     // Liberar bloqueo del historial
     if (typeof window.liberarBloqueoEntrenamiento === 'function') {
