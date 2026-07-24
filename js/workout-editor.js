@@ -2,8 +2,8 @@
  * MÓDULO: workout-editor.js
  * Controla el editor Quill y la gestión del botón de historial en el entrenamiento
  * 
- * MODIFICADO: Listener optimizado para detectar ejercicios por formato (negrita + color azul)
- * sin necesidad de clase .exercise-link. Usa window.buscarEjercicioPorNombre().
+ * MODIFICADO: Listener de ejercicios por texto en negrita, con resolución compartida
+ * por nombre en exercise-viewer.js hasta que el contenido persista IDs semánticos.
  */
 
 // ==========================================================================
@@ -133,38 +133,11 @@ function configurarListenerEjerciciosEnEntrenamiento() {
         // Obtener el elemento clickeado
         let target = e.target;
         
-        // Función para verificar si un elemento tiene formato de ejercicio (negrita + azul)
-        const esFormatoEjercicio = function(el) {
-            if (!el || el === contenedorEditor) return false;
-            
-            // Si el elemento o su padre es un <strong>, es candidato
-            let elementoAChequear = el;
-            if (el.tagName !== 'STRONG' && el.tagName !== 'SPAN') {
-                elementoAChequear = el.closest('strong') || el.closest('span');
-            }
-            if (!elementoAChequear) return false;
-            
-            // Obtener el estilo computado
-            let estilo;
-            try {
-                estilo = window.getComputedStyle(elementoAChequear);
-            } catch (err) {
-                return false;
-            }
-            
-            // Verificar color azul (rgb(37, 99, 235) = #2563eb)
-            const esAzul = estilo.color === 'rgb(37, 99, 235)' || 
-                           estilo.color === '#2563eb' ||
-                           estilo.color === 'rgb(59, 130, 246)' ||
-                           estilo.color === '#3b82f6';
-            
-            // Verificar negrita
-            const esNegrita = estilo.fontWeight === '700' || 
-                              estilo.fontWeight === 'bold' || 
-                              estilo.fontWeight === 'bolder' ||
-                              elementoAChequear.tagName === 'STRONG';
-            
-            return esAzul && esNegrita;
+        // Debe mantenerse sincronizado con el listener global del visor.
+        // La identificación por texto es temporal mientras no se persistan IDs semánticos.
+        const getExerciseElement = function(el) {
+            if (!el || el === contenedorEditor) return null;
+            return el.tagName === 'STRONG' ? el : el.closest('strong');
         };
         
         // Buscar el elemento con formato de ejercicio (subiendo en el DOM)
@@ -172,8 +145,9 @@ function configurarListenerEjerciciosEnEntrenamiento() {
         let currentElement = target;
         
         while (currentElement && currentElement !== contenedorEditor) {
-            if (esFormatoEjercicio(currentElement)) {
-                elementoEjercicio = currentElement;
+            const exerciseElement = getExerciseElement(currentElement);
+            if (exerciseElement) {
+                elementoEjercicio = exerciseElement;
                 break;
             }
             currentElement = currentElement.parentElement;
@@ -187,9 +161,9 @@ function configurarListenerEjerciciosEnEntrenamiento() {
             if (nombreEjercicio && nombreEjercicio.length > 1) {
                 console.log('[workout] Detectado clic en ejercicio por formato:', nombreEjercicio);
                 
-                // Buscar el ejercicio por nombre usando la función global
-                if (typeof window.buscarEjercicioPorNombre === 'function') {
-                    const ejercicio = window.buscarEjercicioPorNombre(nombreEjercicio);
+                // Reutilizar el mismo criterio que el visor para contenido antiguo y nuevo.
+                if (typeof window.findExerciseByInteractiveText === 'function') {
+                    const ejercicio = window.findExerciseByInteractiveText(nombreEjercicio);
                     if (ejercicio && ejercicio.id) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -204,7 +178,7 @@ function configurarListenerEjerciciosEnEntrenamiento() {
                         console.warn('[workout] No se encontró ejercicio con nombre:', nombreEjercicio);
                     }
                 } else {
-                    console.warn('[workout] window.buscarEjercicioPorNombre no está definida');
+                    console.warn('[workout] window.findExerciseByInteractiveText no está definida');
                 }
             }
         }

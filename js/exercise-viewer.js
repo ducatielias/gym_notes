@@ -481,8 +481,31 @@ function getExerciseViewerPlaceholder(text) {
 }
 
 // ==========================================================================
-// DETECTAR CLIC EN EJERCICIOS POR FORMATO (negrita + color azul)
-// ==========================================================================
+// DETECTAR CLIC EN EJERCICIOS POR FORMATO
+// ===========================================================================
+
+/**
+ * Resuelve un ejercicio a partir del texto enriquecido con el que se insertó.
+ *
+ * Es una compatibilidad temporal para contenido histórico azul y contenido nuevo
+ * oscuro. Hasta que el formato persistido incluya IDs semánticos, los listeners
+ * del visor y de Entrenamiento Activo deben usar este mismo criterio.
+ */
+function findExerciseByInteractiveText(text) {
+    const exerciseName = String(text ?? '').trim();
+    if (exerciseName.length <= 1 || typeof window.getExercises !== 'function') return null;
+
+    const normalizedName = exerciseName.toLowerCase();
+    const exercises = window.getExercises();
+
+    return exercises.find(exercise => exercise.nombre.toLowerCase() === normalizedName)
+        || exercises.find(exercise => {
+            const normalizedExerciseName = exercise.nombre.toLowerCase();
+            return normalizedExerciseName.includes(normalizedName)
+                || normalizedName.includes(normalizedExerciseName);
+        })
+        || null;
+}
 
 function configurarListenerPorFormato() {
     // Eliminar listener anterior si existe
@@ -502,41 +525,14 @@ function configurarListenerPorFormato() {
         
         if (elemento && elemento.tagName === 'STRONG') {
             const textContent = elemento.textContent || '';
-            
-            if (textContent.length > 1) {
-                const style = elemento.getAttribute('style') || '';
-                const isBlue = style.includes('color: #2563eb') || 
-                              style.includes('color:#2563eb') ||
-                              style.includes('color: rgb(37, 99, 235)') ||
-                              style.includes('color:rgb(37, 99, 235)');
-                
-                let computedBlue = false;
-                try {
-                    const computedStyle = window.getComputedStyle(elemento);
-                    const color = computedStyle.color;
-                    computedBlue = color === 'rgb(37, 99, 235)' || color === '#2563eb';
-                } catch(e) {}
-                
-                if (isBlue || computedBlue) {
-                    console.log('[exercise-viewer] Detectado clic en ejercicio por formato:', textContent);
-                    
-                    if (typeof window.getExercises === 'function') {
-                        const exercises = window.getExercises();
-                        let exercise = exercises.find(ex => ex.nombre === textContent);
-                        if (!exercise) {
-                            exercise = exercises.find(ex => ex.nombre.includes(textContent) || textContent.includes(ex.nombre));
-                        }
-                        if (exercise && typeof window.openExerciseViewer === 'function') {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('[exercise-viewer] Abriendo visor para:', exercise.nombre, 'ID:', exercise.id);
-                            window.openExerciseViewer(exercise.id);
-                            return;
-                        } else {
-                            console.warn('[exercise-viewer] No se encontró ejercicio con nombre:', textContent);
-                        }
-                    }
-                }
+            const exercise = findExerciseByInteractiveText(textContent);
+
+            if (exercise && typeof window.openExerciseViewer === 'function') {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('[exercise-viewer] Abriendo visor para:', exercise.nombre, 'ID:', exercise.id);
+                window.openExerciseViewer(exercise.id);
+                return;
             }
         }
     };
@@ -608,6 +604,7 @@ window.openExerciseLightbox = openExerciseLightbox;
 window.closeExerciseLightbox = closeExerciseLightbox;
 window.linkifyExerciseViewerHTML = linkifyExerciseViewerHTML;
 window.getExerciseViewerPlaceholder = getExerciseViewerPlaceholder;
+window.findExerciseByInteractiveText = findExerciseByInteractiveText;
 window.configurarListenerGlobalEjercicios = configurarListenerGlobalEjercicios;
 window.configurarListenerPorFormato = configurarListenerPorFormato;
 window.mostrarVisorEjercicioCompleto = mostrarVisorEjercicioCompleto;
