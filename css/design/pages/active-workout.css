@@ -24,8 +24,8 @@
         transform: translateY(var(--aw-visual-viewport-offset-top));
     }
 
-    /* El teclado libera espacio para Quill sin cambiar el estado de Formato. */
-    #active-workout .aw-container.aw-keyboard-open :is(.aw-header, .aw-tools-row) {
+    /* El teclado libera espacio sin ocultar el panel de timer que contiene el foco. */
+    #active-workout .aw-container.aw-keyboard-open :is(.aw-header-top, .aw-timers-container, .aw-tools-row) {
         display: none;
     }
 }
