@@ -41,36 +41,6 @@
     top: 0;
 }
 
-.exercise-viewer-full-nav-top {
-    height: 56px;
-    padding: 0 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #ffffff;
-    border-bottom: 1px solid #f3f4f6;
-    flex-shrink: 0;
-}
-
-.btn-exercise-viewer-close {
-    background: #f3f4f6;
-    border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 16px;
-    cursor: pointer;
-    color: var(--primary-color, #000000);
-    transition: transform 0.1s ease;
-}
-
-.btn-exercise-viewer-close:active {
-    transform: scale(0.9);
-}
-
 .exercise-viewer-full-badge {
     font-size: 11px;
     font-weight: 700;

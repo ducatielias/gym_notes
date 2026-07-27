@@ -21,58 +21,9 @@
     box-shadow: var(--gn-shadow-none);
 }
 
-#screen-exercise-viewer .exercise-viewer-full-nav-top {
-    min-height: 3.5rem;
-    padding-inline: var(--gn-space-lg);
-    background-color: var(--gn-color-surface);
-    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
-}
-
-#screen-exercise-viewer .btn-exercise-viewer-close {
-    appearance: none;
-    display: inline-flex;
-    width: 2.75rem;
-    min-width: 2.75rem;
-    min-height: 2.75rem;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
-    border-radius: var(--gn-radius-circle);
-    background-color: var(--gn-color-surface-secondary);
-    color: var(--gn-color-text);
-    font-family: var(--gn-font-body);
-    font-size: var(--gn-font-size-md);
-    cursor: pointer;
-    box-shadow: var(--gn-shadow-none);
-    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
-        border-color var(--gn-motion-fast) var(--gn-ease-standard),
-        color var(--gn-motion-fast) var(--gn-ease-standard);
-}
-
-#screen-exercise-viewer .btn-exercise-viewer-close:active {
-    transform: none;
-}
-
-#screen-exercise-viewer .btn-exercise-viewer-close:focus-visible,
 #screen-exercise-viewer .exercise-viewer-full-btn:focus-visible {
     outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
     outline-offset: var(--gn-space-xs);
-}
-
-@media (hover: hover) {
-    #screen-exercise-viewer .btn-exercise-viewer-close:hover:not(:disabled):not([aria-disabled="true"]) {
-        border-color: var(--gn-color-text);
-        background-color: var(--gn-color-surface);
-    }
-}
-
-#screen-exercise-viewer .btn-exercise-viewer-close:disabled,
-#screen-exercise-viewer .btn-exercise-viewer-close[aria-disabled="true"] {
-    border-color: var(--gn-color-border-muted);
-    background-color: var(--gn-color-disabled);
-    color: var(--gn-color-disabled-text);
-    cursor: not-allowed;
 }
 
 #screen-exercise-viewer .exercise-viewer-full-badge,
@@ -95,8 +46,8 @@
 
 #screen-exercise-viewer .exercise-viewer-full-title-row {
     gap: var(--gn-space-xs);
-    padding: var(--gn-space-sm) var(--gn-space-lg) var(--gn-space-md);
-    background-color: var(--gn-color-surface);
+    padding: var(--gn-space-sm) calc(var(--gn-space-xl) - var(--gn-space-xs)) var(--gn-space-md);
+    background-color: var(--gn-color-background);
     border-bottom: 0;
 }
 
@@ -341,8 +292,6 @@
 }
 
 @media (max-width: 30rem) {
-    #screen-exercise-viewer .exercise-viewer-full-nav-top,
-    #screen-exercise-viewer .exercise-viewer-full-title-row,
     #screen-exercise-viewer .exercise-viewer-full-body,
     #screen-exercise-viewer .exercise-viewer-full-footer {
         padding-inline: var(--gn-space-md);
@@ -384,7 +333,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #screen-exercise-viewer .btn-exercise-viewer-close,
     #screen-exercise-viewer .exercise-viewer-full-image-container,
     #screen-exercise-viewer .exercise-viewer-full-btn,
     #exerciseLightboxOverlay.exercise-lightbox-overlay,

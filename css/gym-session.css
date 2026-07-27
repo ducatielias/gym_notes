@@ -965,6 +965,15 @@
     box-shadow: inset 0 0 0 var(--gn-border-width-thin) var(--gn-color-border-muted);
 }
 
+/* En lectura, el contenido no debe comunicar un estado de edición activo. */
+@supports selector(#screen-editor:has(.session-input-field[readonly])) {
+    #screen-editor:has(.session-input-field[readonly]) #editor-instance:focus-within {
+        background-color: var(--gn-color-surface);
+        box-shadow: var(--gn-shadow-none);
+        outline: 0;
+    }
+}
+
 #screen-editor #editor-instance .ql-editor {
     scrollbar-width: thin;
     scrollbar-color: var(--gn-color-border-muted) transparent;

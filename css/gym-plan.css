@@ -383,7 +383,7 @@
     border-radius: 14px;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     width: 170px;
-    z-index: 200;
+    z-index: var(--gn-layer-menu);
     display: flex;
     flex-direction: column;
     padding: 6px;

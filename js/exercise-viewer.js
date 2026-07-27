@@ -121,11 +121,13 @@ function mostrarVisorEjercicioCompleto(exercise) {
         <div class="exercise-viewer-full-container">
             <!-- HEADER FIJO -->
             <div class="exercise-viewer-full-header">
-                <div class="exercise-viewer-full-nav-top">
-                    <button class="btn-exercise-viewer-close" onclick="closeExerciseViewerFull()" title="Volver">
-                        <i class="fa-solid fa-chevron-left"></i>
-                    </button>
-                    <span class="exercise-viewer-full-badge">${exerciseGroup}</span>
+                <div class="gn-screen-header">
+                    <div class="gn-screen-header__row">
+                        <button class="gn-back-button" type="button" aria-label="Volver" onclick="closeExerciseViewerFull()" title="Volver">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <span class="exercise-viewer-full-badge">${exerciseGroup}</span>
+                    </div>
                 </div>
                 <div class="exercise-viewer-full-title-row">
                     <h2 class="exercise-viewer-full-title">${exerciseName}</h2>
