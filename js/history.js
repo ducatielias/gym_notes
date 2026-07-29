@@ -55,7 +55,7 @@ function mostrarHistorialEntrenamientoActual() {
                         }
                         
                         // Navegar al historial
-                        switchTab('history');
+                        switchTab('history', { preserveRoutineContext: true });
                         
                         setTimeout(() => {
                             const input = document.getElementById('historySearchInput');
@@ -110,7 +110,7 @@ function mostrarHistorialEntrenamientoActual() {
     // ============================================================
     
     // Navegar a la pantalla de historial
-    switchTab('history');
+    switchTab('history', { preserveRoutineContext: true });
     
     // Esperar a que el DOM se renderice y luego aplicar el filtro
     setTimeout(() => {
@@ -175,11 +175,9 @@ function goBackFromHistory() {
             modal.style.display = 'flex';
             console.log('[goBackFromHistory] Modal de entrenamiento restaurado');
         }
-        // Ocultar el menú inferior
-        const bottomNav = document.querySelector('.bottom-nav');
-        if (bottomNav) bottomNav.classList.add('hidden-nav');
         // Limpiar los filtros
         resetHistoryFilters();
+        syncBottomNavVisibility();
     } else if (historyReturnScreen === 'session') {
         // Volver a la sesión específica que se estaba viendo
         const sessionId = window.historySessionId;

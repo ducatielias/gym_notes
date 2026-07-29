@@ -103,10 +103,10 @@ function scrollToTopGlobal() {
 
 // Interceptamos la función original de cambiar pestañas para resetear scroll a 0 instantáneamente
 const originalSwitchTab = window.switchTab;
-window.switchTab = function(tabId) {
+window.switchTab = function(tabId, options) {
     // Ejecutamos la lógica nativa del index.js
     if (typeof originalSwitchTab === 'function') {
-        originalSwitchTab(tabId);
+        originalSwitchTab(tabId, options);
     }
 
     // RESETEO DE PESTAÑA: Devolvemos a 0 el scroll de la nueva pantalla de destino inmediatamente
