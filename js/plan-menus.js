@@ -138,7 +138,7 @@ async function handleSessionHistory() {
         window.historyRoutineFilter = routineName;
         
         // Navegar a la pantalla de historial
-        switchTab('history');
+        switchTab('history', { preserveRoutineContext: true });
         
         // Esperar a que el DOM se renderice y luego aplicar el filtro
         setTimeout(() => {

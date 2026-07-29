@@ -16,6 +16,8 @@
 // ==========================================================================
 
 function renderRoutineList() {
+    window.setRoutineNavigationActive?.(false);
+
     // Limpiar los IDs guardados para el historial
     window.historySessionId = null;
     window.historyRoutineId = null;

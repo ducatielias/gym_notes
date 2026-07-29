@@ -6,8 +6,33 @@
  * y establecer un estado inicial en el historial.
  */
 
+const internalScreens = ['editor', 'exercise-editor', 'history-detail', 'exercise-viewer'];
+let routineNavigationActive = false;
+
+/**
+ * Sincroniza la barra inferior con el contexto de navegación actual.
+ * Una rutina mantiene la barra oculta durante todas sus vistas internas.
+ */
+function syncBottomNavVisibility(tabId) {
+    const bottomNav = document.querySelector('.bottom-nav');
+    if (!bottomNav) return;
+
+    const activeTabId = tabId || document.querySelector('.screen:not(.hidden)')?.id?.replace('screen-', '');
+    const shouldHide = internalScreens.includes(activeTabId) || routineNavigationActive;
+    bottomNav.classList.toggle('hidden-nav', shouldHide);
+}
+
+/**
+ * Define si la navegación actual pertenece a una rutina, sin acoplarla a cada vista hija.
+ */
+function setRoutineNavigationActive(isActive) {
+    routineNavigationActive = Boolean(isActive);
+    syncBottomNavVisibility();
+}
+
 function switchTab(tabId, options = {}) {
     const noPushState = options.noPushState || false;
+    const preserveRoutineContext = options.preserveRoutineContext === true;
 
     // 1. Ocultar todas las pantallas
     const screens = document.querySelectorAll('.screen');
@@ -18,13 +43,10 @@ function switchTab(tabId, options = {}) {
     navItems.forEach(item => item.classList.remove('active'));
 
     // 3. Gestionar la visibilidad del menú inferior
-    const bottomNav = document.querySelector('.bottom-nav');
-    const internalScreens = ['editor', 'exercise-editor', 'history-detail', 'exercise-viewer'];
-    if (internalScreens.includes(tabId)) {
-        if (bottomNav) bottomNav.classList.add('hidden-nav');
-    } else {
-        if (bottomNav) bottomNav.classList.remove('hidden-nav');
+    if (!preserveRoutineContext && ['today', 'history', 'exercises'].includes(tabId)) {
+        routineNavigationActive = false;
     }
+    syncBottomNavVisibility(tabId);
 
     // 4. Mostrar la pantalla solicitada
     const targetScreen = document.getElementById(`screen-${tabId}`);
@@ -47,7 +69,7 @@ function switchTab(tabId, options = {}) {
 
     // 7. Lógica modular específica
     if (tabId === 'plan') {
-        renderRoutineList();
+        if (!options.skipPlanRender) renderRoutineList();
     }
     if (tabId === 'exercises') {
         setTimeout(() => {
@@ -68,6 +90,8 @@ function switchTab(tabId, options = {}) {
         }, 50);
     }
 }
+
+window.setRoutineNavigationActive = setRoutineNavigationActive;
 
 // ==========================================================================
 // NAVEGAR Y CAMBIAR DE PESTAÑA (CON HISTORIAL)

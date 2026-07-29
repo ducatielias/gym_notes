@@ -24,6 +24,7 @@
 function openRoutine(id) {
     currentRoutineId = id;
     const routine = appData.routines.find(r => r.id === id);
+    window.setRoutineNavigationActive?.(true);
     const planUI = document.getElementById('plan-container');
     if (!planUI) return;
 

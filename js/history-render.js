@@ -84,8 +84,8 @@ function renderHistory() {
             <div class="history-header-top gn-screen-header__row">
                 <div class="gn-header__leading">
                     ${showBackButton ? `
-                        <button class="btn-back" onclick="goBackFromHistory()" style="background:none; border:none; color:var(--primary-color); font-size:16px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; padding:4px 0;">
-                            <i class="fa-solid fa-chevron-left"></i> ${backButtonLabel}
+                        <button class="gn-back-button" type="button" aria-label="${backButtonLabel}" onclick="goBackFromHistory()" title="${backButtonLabel}">
+                            <i class="fa-solid fa-chevron-left"></i>
                         </button>
                     ` : `
                         <img class="gn-app-icon" src="icons/icon-192x192.png"

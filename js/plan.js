@@ -409,7 +409,7 @@ function closeEditorAndReturn() {
     // Limpiar los IDs guardados para el historial
     window.historySessionId = null;
     window.historyRoutineId = null;
-    switchTab('plan');
+    switchTab('plan', { preserveRoutineContext: true, skipPlanRender: true });
     openRoutine(currentRoutineId);
 }
 

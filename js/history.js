@@ -190,8 +190,8 @@ function goBackFromHistory() {
         // Limpiar los filtros
         resetHistoryFilters();
         
-        // Volver a la pantalla de plan
-        switchTab('plan');
+        // Volver al contexto de la rutina sin restaurar el navbar entre vistas internas.
+        switchTab('plan', { preserveRoutineContext: true, skipPlanRender: true });
         
         // Restaurar la rutina y abrir la sesión específica
         if (routineId && sessionId) {
@@ -199,10 +199,8 @@ function goBackFromHistory() {
             currentRoutineId = routineId;
             // Abrir la rutina para mostrar el contexto
             openRoutine(routineId);
-            // Luego abrir el editor de la sesión específica
-            setTimeout(() => {
-                openSessionEditor(sessionId);
-            }, 150);
+            // Luego abrir el editor de la sesión específica.
+            openSessionEditor(sessionId);
         } else if (currentRoutineId) {
             // Fallback: si no tenemos los IDs guardados, usar los que tenemos
             openRoutine(currentRoutineId);
