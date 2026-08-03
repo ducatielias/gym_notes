@@ -15,14 +15,22 @@
 let activeWorkoutViewportFrame = null;
 let stopActiveWorkoutViewportSync = null;
 
-// Las barras del navegador suelen variar unas decenas de píxeles; 150px
-// separa esas variaciones y los cambios de orientación de un teclado virtual.
-const ACTIVE_WORKOUT_KEYBOARD_VIEWPORT_DELTA_PX = 150;
+// La cabecera solo responde al scroll real de Quill, nunca al teclado virtual.
+const ACTIVE_WORKOUT_HEADER_SCROLL_TOP_PX = 12;
+const ACTIVE_WORKOUT_HEADER_COLLAPSE_DOWN_PX = 32;
+const ACTIVE_WORKOUT_HEADER_RESTORE_UP_PX = 16;
+
+let activeWorkoutHeaderScrollFrame = null;
+let activeWorkoutHeaderScrollEditor = null;
+let activeWorkoutHeaderScrollListener = null;
+let activeWorkoutHeaderScrollReady = false;
+let activeWorkoutHeaderLastScrollTop = 0;
+let activeWorkoutHeaderScrollDirection = 0;
+let activeWorkoutHeaderScrollDistance = 0;
 
 /**
  * Ajusta exclusivamente la carcasa de Entrenamiento Activo al viewport visual
- * móvil. Cuando el teclado reduce ese viewport, activa un modo compacto que
- * deja disponible la toolbar de formato sin alterar el scroll interno de Quill.
+ * móvil, sin alterar el scroll interno de Quill ni el estado de la cabecera.
  */
 function syncActiveWorkoutVisualViewport() {
     activeWorkoutViewportFrame = null;
@@ -31,18 +39,13 @@ function syncActiveWorkoutVisualViewport() {
     const viewport = window.visualViewport;
     if (!modal || modal.style.display !== 'flex' || !viewport) return;
 
-    const container = modal.querySelector('.aw-container');
     const viewportHeight = Math.round(viewport.height);
     const viewportOffsetTop = Math.max(0, Math.round(viewport.offsetTop));
     if (viewportHeight <= 0) return;
 
-    const keyboardViewportDelta = Math.max(0, window.innerHeight - viewportHeight);
-    const isKeyboardOpen = keyboardViewportDelta >= ACTIVE_WORKOUT_KEYBOARD_VIEWPORT_DELTA_PX;
-
     modal.style.setProperty('--aw-visual-viewport-height', `${viewportHeight}px`);
     modal.style.setProperty('--aw-visual-viewport-offset-top', `${viewportOffsetTop}px`);
     modal.classList.add('aw-visual-viewport-active');
-    container?.classList.toggle('aw-keyboard-open', isKeyboardOpen);
 }
 
 function queueActiveWorkoutVisualViewportSync() {
@@ -83,10 +86,123 @@ function stopActiveWorkoutVisualViewportSync() {
     const modal = document.getElementById('active-workout');
     if (!modal) return;
 
+    // Compatibilidad de limpieza con sesiones abiertas antes de RC-20I.
     modal.querySelector('.aw-container')?.classList.remove('aw-keyboard-open');
     modal.classList.remove('aw-visual-viewport-active');
     modal.style.removeProperty('--aw-visual-viewport-height');
     modal.style.removeProperty('--aw-visual-viewport-offset-top');
+}
+
+// ===========================================================================
+// CABECERA ADAPTABLE AL SCROLL DEL EDITOR
+// ===========================================================================
+
+function getActiveWorkoutContainer() {
+    return document.querySelector('#active-workout .aw-container');
+}
+
+function resetActiveWorkoutHeaderScrollMotion(scrollTop = 0) {
+    activeWorkoutHeaderLastScrollTop = scrollTop;
+    activeWorkoutHeaderScrollDirection = 0;
+    activeWorkoutHeaderScrollDistance = 0;
+}
+
+function setActiveWorkoutHeaderCollapsed(isCollapsed) {
+    getActiveWorkoutContainer()?.classList.toggle('aw-header-collapsed', isCollapsed);
+}
+
+/**
+ * Aplica el estado compacto con histéresis. La separación entre los umbrales
+ * evita parpadeos causados por rebotes o por la inercia del scroll táctil.
+ */
+function syncActiveWorkoutHeaderFromEditorScroll() {
+    activeWorkoutHeaderScrollFrame = null;
+
+    const editor = activeWorkoutHeaderScrollEditor;
+    if (!activeWorkoutHeaderScrollReady || !editor) return;
+
+    const scrollTop = Math.max(0, editor.scrollTop);
+    const scrollDelta = scrollTop - activeWorkoutHeaderLastScrollTop;
+    if (scrollDelta === 0) return;
+
+    activeWorkoutHeaderLastScrollTop = scrollTop;
+
+    if (scrollTop <= ACTIVE_WORKOUT_HEADER_SCROLL_TOP_PX) {
+        setActiveWorkoutHeaderCollapsed(false);
+        resetActiveWorkoutHeaderScrollMotion();
+        return;
+    }
+
+    const direction = scrollDelta > 0 ? 1 : -1;
+    if (direction !== activeWorkoutHeaderScrollDirection) {
+        activeWorkoutHeaderScrollDirection = direction;
+        activeWorkoutHeaderScrollDistance = 0;
+    }
+
+    const isCollapsed = getActiveWorkoutContainer()?.classList.contains('aw-header-collapsed');
+    if ((direction > 0 && isCollapsed) || (direction < 0 && !isCollapsed)) {
+        activeWorkoutHeaderScrollDistance = 0;
+        return;
+    }
+
+    activeWorkoutHeaderScrollDistance += Math.abs(scrollDelta);
+
+    if (direction > 0 && activeWorkoutHeaderScrollDistance >= ACTIVE_WORKOUT_HEADER_COLLAPSE_DOWN_PX) {
+        setActiveWorkoutHeaderCollapsed(true);
+        activeWorkoutHeaderScrollDistance = 0;
+    } else if (direction < 0 && activeWorkoutHeaderScrollDistance >= ACTIVE_WORKOUT_HEADER_RESTORE_UP_PX) {
+        setActiveWorkoutHeaderCollapsed(false);
+        activeWorkoutHeaderScrollDistance = 0;
+    }
+}
+
+function queueActiveWorkoutHeaderScrollSync() {
+    if (!activeWorkoutHeaderScrollReady || activeWorkoutHeaderScrollFrame !== null) return;
+
+    activeWorkoutHeaderScrollFrame = window.requestAnimationFrame(syncActiveWorkoutHeaderFromEditorScroll);
+}
+
+/**
+ * Escucha únicamente el contenedor que desplaza Quill. La línea base se toma
+ * tras el foco automático para no confundir ese ajuste del navegador con un
+ * gesto voluntario de la persona usuaria.
+ */
+function startActiveWorkoutHeaderScrollSync() {
+    stopActiveWorkoutHeaderScrollSync();
+
+    const isCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches;
+    const editor = document.querySelector('#aw-editor-container .ql-editor');
+    if (!isCoarsePointer || !editor) return;
+
+    activeWorkoutHeaderScrollEditor = editor;
+    activeWorkoutHeaderScrollListener = queueActiveWorkoutHeaderScrollSync;
+    editor.addEventListener('scroll', activeWorkoutHeaderScrollListener, { passive: true });
+
+    activeWorkoutHeaderScrollFrame = window.requestAnimationFrame(() => {
+        activeWorkoutHeaderScrollFrame = null;
+        if (activeWorkoutHeaderScrollEditor !== editor) return;
+
+        resetActiveWorkoutHeaderScrollMotion(Math.max(0, editor.scrollTop));
+        setActiveWorkoutHeaderCollapsed(false);
+        activeWorkoutHeaderScrollReady = true;
+    });
+}
+
+function stopActiveWorkoutHeaderScrollSync() {
+    if (activeWorkoutHeaderScrollFrame !== null) {
+        window.cancelAnimationFrame(activeWorkoutHeaderScrollFrame);
+        activeWorkoutHeaderScrollFrame = null;
+    }
+
+    if (activeWorkoutHeaderScrollEditor && activeWorkoutHeaderScrollListener) {
+        activeWorkoutHeaderScrollEditor.removeEventListener('scroll', activeWorkoutHeaderScrollListener);
+    }
+
+    activeWorkoutHeaderScrollEditor = null;
+    activeWorkoutHeaderScrollListener = null;
+    activeWorkoutHeaderScrollReady = false;
+    resetActiveWorkoutHeaderScrollMotion();
+    setActiveWorkoutHeaderCollapsed(false);
 }
 
 // ===========================================================================
@@ -130,6 +246,7 @@ function resetAllTimersAndState() {
 // ==========================================================================
 
 window.iniciarEntrenamiento = function(sessionData) {
+    stopActiveWorkoutHeaderScrollSync();
     resetAllTimersAndState();
     
     if (aw_quillInstance) {
@@ -183,6 +300,7 @@ window.iniciarEntrenamiento = function(sessionData) {
     
     setTimeout(() => {
         inicializarEditorEntrenamiento();
+        startActiveWorkoutHeaderScrollSync();
         if (typeof window.configurarListenerGlobalEjercicios === 'function') {
             window.configurarListenerGlobalEjercicios();
         }
@@ -254,6 +372,7 @@ window.finalizarEntrenamiento = async function() {
     // Cerrar el modal
     const modal = document.getElementById('active-workout');
     if (modal) modal.style.display = 'none';
+    stopActiveWorkoutHeaderScrollSync();
     stopActiveWorkoutVisualViewportSync();
     
     // Liberar bloqueo del historial
@@ -317,6 +436,7 @@ window.cerrarEntrenamiento = async function() {
     // Cerrar modal
     const modal = document.getElementById('active-workout');
     if (modal) modal.style.display = 'none';
+    stopActiveWorkoutHeaderScrollSync();
     stopActiveWorkoutVisualViewportSync();
     
     // Liberar bloqueo del historial
