@@ -25,18 +25,6 @@
     }
 
     /* Solo el scroll voluntario de Quill compacta los controles superiores. */
-    #active-workout .aw-header,
-    #active-workout .aw-header-top,
-    #active-workout .aw-timers-container,
-    #active-workout .aw-tools-row {
-        transition: max-block-size var(--gn-motion-fast) var(--gn-ease-standard),
-            margin-block var(--gn-motion-fast) var(--gn-ease-standard),
-            padding-block var(--gn-motion-fast) var(--gn-ease-standard),
-            border-block-width var(--gn-motion-fast) var(--gn-ease-standard),
-            opacity var(--gn-motion-fast) var(--gn-ease-standard),
-            visibility 0ms linear;
-    }
-
     #active-workout .aw-header-top,
     #active-workout .aw-timers-container,
     #active-workout .aw-tools-row {
@@ -69,7 +57,6 @@
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
-        transition-delay: 0ms, 0ms, 0ms, 0ms, 0ms, var(--gn-motion-fast);
     }
 }
 
@@ -408,15 +395,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #active-workout .aw-header,
-    #active-workout .aw-header-top,
-    #active-workout .aw-timers-container,
-    #active-workout .aw-tools-row,
     #active-workout .aw-history-btn,
     #active-workout .aw-close-btn:not(.gn-close-button),
     #active-workout .aw-tool-toggle,
     #active-workout .aw-exercises-content .search-input {
         transition-duration: 0ms;
-        transition-delay: 0ms;
     }
 }

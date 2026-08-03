@@ -21,10 +21,14 @@ const ACTIVE_WORKOUT_HEADER_COLLAPSE_DOWN_PX = 32;
 const ACTIVE_WORKOUT_HEADER_RESTORE_UP_PX = 16;
 
 let activeWorkoutHeaderScrollFrame = null;
+let activeWorkoutHeaderLayoutFrame = null;
 let activeWorkoutHeaderScrollEditor = null;
 let activeWorkoutHeaderScrollListener = null;
 let activeWorkoutHeaderScrollReady = false;
+let activeWorkoutHeaderIsApplyingLayout = false;
+let activeWorkoutHeaderAwaitsLayoutCompensation = false;
 let activeWorkoutHeaderLastScrollTop = 0;
+let activeWorkoutHeaderLastClientHeight = 0;
 let activeWorkoutHeaderScrollDirection = 0;
 let activeWorkoutHeaderScrollDistance = 0;
 
@@ -107,8 +111,42 @@ function resetActiveWorkoutHeaderScrollMotion(scrollTop = 0) {
     activeWorkoutHeaderScrollDistance = 0;
 }
 
-function setActiveWorkoutHeaderCollapsed(isCollapsed) {
-    getActiveWorkoutContainer()?.classList.toggle('aw-header-collapsed', isCollapsed);
+/**
+ * Cambia la geometría de la cabecera una sola vez y recalibra el editor en el
+ * siguiente frame. Así, un scroll compensatorio causado por el reflujo no se
+ * interpreta como un gesto en sentido contrario.
+ */
+function setActiveWorkoutHeaderCollapsed(isCollapsed, shouldStabilize = true) {
+    const container = getActiveWorkoutContainer();
+    if (!container || container.classList.contains('aw-header-collapsed') === isCollapsed) return;
+
+    activeWorkoutHeaderIsApplyingLayout = shouldStabilize;
+    activeWorkoutHeaderAwaitsLayoutCompensation = false;
+    container.classList.toggle('aw-header-collapsed', isCollapsed);
+
+    if (!shouldStabilize) {
+        activeWorkoutHeaderIsApplyingLayout = false;
+        return;
+    }
+
+    if (activeWorkoutHeaderLayoutFrame !== null) {
+        window.cancelAnimationFrame(activeWorkoutHeaderLayoutFrame);
+    }
+
+    const editor = activeWorkoutHeaderScrollEditor;
+    activeWorkoutHeaderLayoutFrame = window.requestAnimationFrame(() => {
+        activeWorkoutHeaderLayoutFrame = null;
+        if (activeWorkoutHeaderScrollEditor !== editor || !editor) {
+            activeWorkoutHeaderIsApplyingLayout = false;
+            return;
+        }
+
+        const scrollTop = Math.max(0, editor.scrollTop);
+        activeWorkoutHeaderLastClientHeight = editor.clientHeight;
+        resetActiveWorkoutHeaderScrollMotion(scrollTop);
+        activeWorkoutHeaderAwaitsLayoutCompensation = true;
+        activeWorkoutHeaderIsApplyingLayout = false;
+    });
 }
 
 /**
@@ -122,10 +160,25 @@ function syncActiveWorkoutHeaderFromEditorScroll() {
     if (!activeWorkoutHeaderScrollReady || !editor) return;
 
     const scrollTop = Math.max(0, editor.scrollTop);
+    const clientHeight = editor.clientHeight;
     const scrollDelta = scrollTop - activeWorkoutHeaderLastScrollTop;
+    activeWorkoutHeaderLastScrollTop = scrollTop;
+    const didClientHeightChange = activeWorkoutHeaderLastClientHeight !== 0
+        && clientHeight !== activeWorkoutHeaderLastClientHeight;
+    activeWorkoutHeaderLastClientHeight = clientHeight;
+
+    if (activeWorkoutHeaderIsApplyingLayout) return;
+    const wasAwaitingLayoutCompensation = activeWorkoutHeaderAwaitsLayoutCompensation;
+    activeWorkoutHeaderAwaitsLayoutCompensation = false;
     if (scrollDelta === 0) return;
 
-    activeWorkoutHeaderLastScrollTop = scrollTop;
+    const isCollapsed = getActiveWorkoutContainer()?.classList.contains('aw-header-collapsed');
+    const isCompensatingLayout = wasAwaitingLayoutCompensation && didClientHeightChange
+        && ((isCollapsed && scrollDelta < 0) || (!isCollapsed && scrollDelta > 0));
+    if (isCompensatingLayout) {
+        resetActiveWorkoutHeaderScrollMotion(scrollTop);
+        return;
+    }
 
     if (scrollTop <= ACTIVE_WORKOUT_HEADER_SCROLL_TOP_PX) {
         setActiveWorkoutHeaderCollapsed(false);
@@ -139,7 +192,6 @@ function syncActiveWorkoutHeaderFromEditorScroll() {
         activeWorkoutHeaderScrollDistance = 0;
     }
 
-    const isCollapsed = getActiveWorkoutContainer()?.classList.contains('aw-header-collapsed');
     if ((direction > 0 && isCollapsed) || (direction < 0 && !isCollapsed)) {
         activeWorkoutHeaderScrollDistance = 0;
         return;
@@ -183,7 +235,9 @@ function startActiveWorkoutHeaderScrollSync() {
         if (activeWorkoutHeaderScrollEditor !== editor) return;
 
         resetActiveWorkoutHeaderScrollMotion(Math.max(0, editor.scrollTop));
-        setActiveWorkoutHeaderCollapsed(false);
+        activeWorkoutHeaderLastClientHeight = editor.clientHeight;
+        setActiveWorkoutHeaderCollapsed(false, false);
+        activeWorkoutHeaderAwaitsLayoutCompensation = false;
         activeWorkoutHeaderScrollReady = true;
     });
 }
@@ -194,6 +248,11 @@ function stopActiveWorkoutHeaderScrollSync() {
         activeWorkoutHeaderScrollFrame = null;
     }
 
+    if (activeWorkoutHeaderLayoutFrame !== null) {
+        window.cancelAnimationFrame(activeWorkoutHeaderLayoutFrame);
+        activeWorkoutHeaderLayoutFrame = null;
+    }
+
     if (activeWorkoutHeaderScrollEditor && activeWorkoutHeaderScrollListener) {
         activeWorkoutHeaderScrollEditor.removeEventListener('scroll', activeWorkoutHeaderScrollListener);
     }
@@ -201,8 +260,11 @@ function stopActiveWorkoutHeaderScrollSync() {
     activeWorkoutHeaderScrollEditor = null;
     activeWorkoutHeaderScrollListener = null;
     activeWorkoutHeaderScrollReady = false;
+    activeWorkoutHeaderIsApplyingLayout = false;
+    activeWorkoutHeaderAwaitsLayoutCompensation = false;
     resetActiveWorkoutHeaderScrollMotion();
-    setActiveWorkoutHeaderCollapsed(false);
+    activeWorkoutHeaderLastClientHeight = 0;
+    setActiveWorkoutHeaderCollapsed(false, false);
 }
 
 // ===========================================================================
