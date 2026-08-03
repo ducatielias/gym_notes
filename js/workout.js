@@ -15,6 +15,164 @@
 let activeWorkoutViewportFrame = null;
 let stopActiveWorkoutViewportSync = null;
 
+// ===========================================================================
+// RC-20J-FIX-METRICS — INSTRUMENTACIÓN TEMPORAL DE GEOMETRÍA
+// ===========================================================================
+
+let activeWorkoutMetricsRun = null;
+let stopActiveWorkoutMetricsCapture = null;
+
+function describeActiveWorkoutMetricsElement(element) {
+    if (!element) return null;
+
+    const rect = element.getBoundingClientRect();
+    const computed = window.getComputedStyle(element);
+
+    return {
+        id: element.id || null,
+        className: element.className || null,
+        inlineStyle: element.getAttribute('style'),
+        rect: {
+            top: rect.top,
+            right: rect.right,
+            bottom: rect.bottom,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height
+        },
+        clientHeight: element.clientHeight,
+        offsetHeight: element.offsetHeight,
+        scrollHeight: element.scrollHeight,
+        scrollTop: element.scrollTop,
+        computed: {
+            width: computed.width,
+            height: computed.height,
+            minHeight: computed.minHeight,
+            maxHeight: computed.maxHeight,
+            flex: computed.flex,
+            flexGrow: computed.flexGrow,
+            flexShrink: computed.flexShrink,
+            overflow: computed.overflow,
+            overflowY: computed.overflowY,
+            padding: computed.padding,
+            boxSizing: computed.boxSizing,
+            position: computed.position
+        }
+    };
+}
+
+function describeActiveWorkoutMetricsActiveElement() {
+    const element = document.activeElement;
+    if (!element) return null;
+
+    return {
+        tagName: element.tagName,
+        id: element.id || null,
+        className: element.className || null
+    };
+}
+
+function isActiveWorkoutKeyboardLikelyOpen() {
+    const viewport = window.visualViewport;
+    return Boolean(viewport && viewport.height < window.innerHeight - 120);
+}
+
+/**
+ * Registra una instantánea de lectura sin cambiar geometría, foco ni scroll.
+ * Los datos viven únicamente durante la sesión actual de la pestaña.
+ */
+function captureActiveWorkoutMetrics(stage, detail = {}) {
+    if (!activeWorkoutMetricsRun) return;
+
+    const container = document.querySelector('#active-workout .aw-container');
+    const content = document.querySelector('#active-workout .aw-content');
+    const editorContainer = document.getElementById('aw-editor-container');
+    const quillContainer = editorContainer?.querySelector('.ql-container') || null;
+    const quillEditor = editorContainer?.querySelector('.ql-editor') || null;
+    const viewport = window.visualViewport;
+    const placeholderStyle = quillEditor ? window.getComputedStyle(quillEditor, '::before') : null;
+    const placeholderVisible = Boolean(
+        quillEditor?.classList.contains('ql-blank')
+        && placeholderStyle?.display !== 'none'
+        && placeholderStyle?.visibility !== 'hidden'
+        && placeholderStyle?.content !== 'none'
+        && Number.parseFloat(placeholderStyle?.opacity || '1') > 0
+    );
+
+    const entry = {
+        stage,
+        timestamp: new Date().toISOString(),
+        elapsedMs: Math.round(performance.now() - activeWorkoutMetricsRun.startedAt),
+        origin: activeWorkoutMetricsRun.origin,
+        visualViewport: viewport ? {
+            height: viewport.height,
+            offsetTop: viewport.offsetTop
+        } : null,
+        windowInnerHeight: window.innerHeight,
+        keyboardLikelyOpen: isActiveWorkoutKeyboardLikelyOpen(),
+        activeElement: describeActiveWorkoutMetricsActiveElement(),
+        elements: {
+            awContainer: describeActiveWorkoutMetricsElement(container),
+            awContent: describeActiveWorkoutMetricsElement(content),
+            editorContainer: describeActiveWorkoutMetricsElement(editorContainer),
+            quillContainer: describeActiveWorkoutMetricsElement(quillContainer),
+            quillEditor: describeActiveWorkoutMetricsElement(quillEditor)
+        },
+        quill: {
+            paragraphCount: quillEditor?.querySelectorAll('p').length || 0,
+            placeholderVisible
+        },
+        detail
+    };
+
+    activeWorkoutMetricsRun.entries.push(entry);
+    console.info('[RC-20J-FIX-METRICS]', entry);
+}
+
+function startActiveWorkoutMetricsCapture(sessionData) {
+    stopActiveWorkoutMetricsCapture?.();
+
+    const runs = window.__gnRc20jMetrics || [];
+    const origin = String(sessionData?.id || '').startsWith('free-') ? 'free' : 'routine';
+    activeWorkoutMetricsRun = {
+        origin,
+        sessionId: sessionData?.id || null,
+        startedAt: performance.now(),
+        entries: []
+    };
+    runs.push(activeWorkoutMetricsRun);
+    window.__gnRc20jMetrics = runs;
+
+    let previousKeyboardState = isActiveWorkoutKeyboardLikelyOpen();
+    const viewport = window.visualViewport;
+    const captureViewportChange = () => {
+        const keyboardLikelyOpen = isActiveWorkoutKeyboardLikelyOpen();
+        captureActiveWorkoutMetrics('visual-viewport-resize', { keyboardLikelyOpen });
+
+        if (keyboardLikelyOpen !== previousKeyboardState) {
+            captureActiveWorkoutMetrics(keyboardLikelyOpen ? 'keyboard-open' : 'keyboard-closed');
+            previousKeyboardState = keyboardLikelyOpen;
+        }
+
+        window.requestAnimationFrame(() => {
+            captureActiveWorkoutMetrics('visual-viewport-settled', { keyboardLikelyOpen });
+        });
+    };
+
+    viewport?.addEventListener('resize', captureViewportChange);
+    viewport?.addEventListener('scroll', captureViewportChange);
+
+    stopActiveWorkoutMetricsCapture = () => {
+        viewport?.removeEventListener('resize', captureViewportChange);
+        viewport?.removeEventListener('scroll', captureViewportChange);
+        stopActiveWorkoutMetricsCapture = null;
+        activeWorkoutMetricsRun = null;
+    };
+}
+
+window.captureActiveWorkoutMetrics = captureActiveWorkoutMetrics;
+window.getRc20jMetrics = () => JSON.parse(JSON.stringify(window.__gnRc20jMetrics || []));
+
 /**
  * Ajusta exclusivamente la carcasa de Entrenamiento Activo al viewport visual
  * móvil, sin controlar el scroll ni la visibilidad de sus controles.
@@ -143,6 +301,8 @@ window.iniciarEntrenamiento = function(sessionData) {
     const modal = document.getElementById('active-workout');
     if (modal) {
         modal.style.display = 'flex';
+        startActiveWorkoutMetricsCapture(sessionData);
+        captureActiveWorkoutMetrics('modal-visible');
         startActiveWorkoutVisualViewportSync();
     }
     
@@ -243,6 +403,7 @@ window.finalizarEntrenamiento = async function() {
     // Cerrar el modal
     const modal = document.getElementById('active-workout');
     if (modal) modal.style.display = 'none';
+    stopActiveWorkoutMetricsCapture?.();
     stopActiveWorkoutVisualViewportSync();
     
     // Liberar bloqueo del historial
@@ -306,6 +467,7 @@ window.cerrarEntrenamiento = async function() {
     // Cerrar modal
     const modal = document.getElementById('active-workout');
     if (modal) modal.style.display = 'none';
+    stopActiveWorkoutMetricsCapture?.();
     stopActiveWorkoutVisualViewportSync();
     
     // Liberar bloqueo del historial
