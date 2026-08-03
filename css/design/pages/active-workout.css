@@ -15,8 +15,7 @@
 
 /*
  * Solo en pantallas táctiles, workout.js refleja el viewport visual durante
- * el teclado. La toolbar sigue fuera de .ql-editor y este ajuste no crea otro
- * contenedor de scroll.
+ * el teclado. El scroll sigue perteneciendo a .aw-container.
  */
 @media (pointer: coarse) {
     #active-workout.aw-visual-viewport-active .aw-container {
@@ -24,44 +23,13 @@
         transform: translateY(var(--aw-visual-viewport-offset-top));
     }
 
-    /* Solo el scroll voluntario de Quill compacta los controles superiores. */
-    #active-workout .aw-header-top,
-    #active-workout .aw-timers-container,
-    #active-workout .aw-tools-row {
-        overflow: hidden;
-        opacity: 1;
-        visibility: visible;
-    }
-
-    #active-workout .aw-header-top {
-        max-block-size: 5rem;
-    }
-
-    #active-workout .aw-timers-container {
-        max-block-size: 20rem;
-    }
-
-    #active-workout .aw-tools-row {
-        max-block-size: 5rem;
-    }
-
-    #active-workout .aw-container.aw-header-collapsed .aw-header {
-        padding-block: 0;
-    }
-
-    #active-workout .aw-container.aw-header-collapsed :is(.aw-header-top, .aw-timers-container, .aw-tools-row) {
-        max-block-size: 0;
-        margin-block: 0;
-        padding-block: 0;
-        border-block-width: 0;
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-    }
 }
 
-/* Cabecera existente: se conserva su posicionamiento y dimensiones funcionales. */
+/* La cabecera se desplaza con el resto del contenido; no controla el scroll. */
 #active-workout .aw-header {
+    position: static;
+    top: auto;
+    z-index: auto;
     background-color: var(--gn-color-surface);
     border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
     box-shadow: var(--gn-shadow-none);
@@ -201,6 +169,16 @@
 #active-workout #aw-toolbar-wrapper.open,
 #active-workout #aw-exercises-wrapper.open {
     border-top-color: var(--gn-color-border-muted);
+}
+
+/* Formato permanece accesible al desplazarse, sin reservar espacio al cerrarse. */
+#active-workout #aw-toolbar-wrapper.open {
+    position: sticky;
+    top: 0;
+    z-index: var(--gn-layer-sticky);
+    background-color: var(--gn-color-surface-secondary);
+    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    box-shadow: var(--gn-shadow-none);
 }
 
 /* Carcasa de Quill: no se altera su scroll ni sus formatos. */

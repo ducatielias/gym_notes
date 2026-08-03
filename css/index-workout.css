@@ -7,12 +7,13 @@
 }
 
 .aw-container {
-    display: flex;
-    flex-direction: column;
+    display: block;
     height: 100dvh;
     width: 100%;
     background-color: var(--background-color);
-    overflow: hidden !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .aw-header {
@@ -288,37 +289,35 @@
 }
 
 /* ==========================================================================
-   CONTENEDORES INTERMEDIOS - SCROLL DELEGADO AL .ql-editor
+   CONTENEDORES INTERMEDIOS - SCROLL DELEGADO A .aw-container
    ========================================================================== */
 
 .aw-content {
-    flex: 1;
-    min-height: 0; /* Crucial en flexbox para que respete el desbordamiento */
-    overflow: hidden !important;
+    min-height: 0;
+    overflow: visible;
     padding: 0;
 }
 
 .aw-editor-container {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+    height: auto;
+    display: block;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .aw-editor-container .ql-container {
-    flex: 1;
+    height: auto;
     min-height: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    overflow: visible;
+    display: block;
 }
 
 .aw-editor-container .ql-editor {
-    flex: 1;
-    overflow-y: auto !important; /* Solo aquí se permite scroll */
-    -webkit-overflow-scrolling: touch !important; /* Inercia fluida en iOS */
-    padding: 20px 16px 160px 16px !important;
+    height: auto;
+    min-height: 0;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: auto;
+    padding: 20px 16px 160px 16px;
 }
 
 .aw-editor-container .ql-editor:focus {

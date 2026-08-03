@@ -15,26 +15,9 @@
 let activeWorkoutViewportFrame = null;
 let stopActiveWorkoutViewportSync = null;
 
-// La cabecera solo responde al scroll real de Quill, nunca al teclado virtual.
-const ACTIVE_WORKOUT_HEADER_SCROLL_TOP_PX = 12;
-const ACTIVE_WORKOUT_HEADER_COLLAPSE_DOWN_PX = 32;
-const ACTIVE_WORKOUT_HEADER_RESTORE_UP_PX = 16;
-
-let activeWorkoutHeaderScrollFrame = null;
-let activeWorkoutHeaderLayoutFrame = null;
-let activeWorkoutHeaderScrollEditor = null;
-let activeWorkoutHeaderScrollListener = null;
-let activeWorkoutHeaderScrollReady = false;
-let activeWorkoutHeaderIsApplyingLayout = false;
-let activeWorkoutHeaderAwaitsLayoutCompensation = false;
-let activeWorkoutHeaderLastScrollTop = 0;
-let activeWorkoutHeaderLastClientHeight = 0;
-let activeWorkoutHeaderScrollDirection = 0;
-let activeWorkoutHeaderScrollDistance = 0;
-
 /**
  * Ajusta exclusivamente la carcasa de Entrenamiento Activo al viewport visual
- * móvil, sin alterar el scroll interno de Quill ni el estado de la cabecera.
+ * móvil, sin controlar el scroll ni la visibilidad de sus controles.
  */
 function syncActiveWorkoutVisualViewport() {
     activeWorkoutViewportFrame = null;
@@ -90,181 +73,9 @@ function stopActiveWorkoutVisualViewportSync() {
     const modal = document.getElementById('active-workout');
     if (!modal) return;
 
-    // Compatibilidad de limpieza con sesiones abiertas antes de RC-20I.
-    modal.querySelector('.aw-container')?.classList.remove('aw-keyboard-open');
     modal.classList.remove('aw-visual-viewport-active');
     modal.style.removeProperty('--aw-visual-viewport-height');
     modal.style.removeProperty('--aw-visual-viewport-offset-top');
-}
-
-// ===========================================================================
-// CABECERA ADAPTABLE AL SCROLL DEL EDITOR
-// ===========================================================================
-
-function getActiveWorkoutContainer() {
-    return document.querySelector('#active-workout .aw-container');
-}
-
-function resetActiveWorkoutHeaderScrollMotion(scrollTop = 0) {
-    activeWorkoutHeaderLastScrollTop = scrollTop;
-    activeWorkoutHeaderScrollDirection = 0;
-    activeWorkoutHeaderScrollDistance = 0;
-}
-
-/**
- * Cambia la geometría de la cabecera una sola vez y recalibra el editor en el
- * siguiente frame. Así, un scroll compensatorio causado por el reflujo no se
- * interpreta como un gesto en sentido contrario.
- */
-function setActiveWorkoutHeaderCollapsed(isCollapsed, shouldStabilize = true) {
-    const container = getActiveWorkoutContainer();
-    if (!container || container.classList.contains('aw-header-collapsed') === isCollapsed) return;
-
-    activeWorkoutHeaderIsApplyingLayout = shouldStabilize;
-    activeWorkoutHeaderAwaitsLayoutCompensation = false;
-    container.classList.toggle('aw-header-collapsed', isCollapsed);
-
-    if (!shouldStabilize) {
-        activeWorkoutHeaderIsApplyingLayout = false;
-        return;
-    }
-
-    if (activeWorkoutHeaderLayoutFrame !== null) {
-        window.cancelAnimationFrame(activeWorkoutHeaderLayoutFrame);
-    }
-
-    const editor = activeWorkoutHeaderScrollEditor;
-    activeWorkoutHeaderLayoutFrame = window.requestAnimationFrame(() => {
-        activeWorkoutHeaderLayoutFrame = null;
-        if (activeWorkoutHeaderScrollEditor !== editor || !editor) {
-            activeWorkoutHeaderIsApplyingLayout = false;
-            return;
-        }
-
-        const scrollTop = Math.max(0, editor.scrollTop);
-        activeWorkoutHeaderLastClientHeight = editor.clientHeight;
-        resetActiveWorkoutHeaderScrollMotion(scrollTop);
-        activeWorkoutHeaderAwaitsLayoutCompensation = true;
-        activeWorkoutHeaderIsApplyingLayout = false;
-    });
-}
-
-/**
- * Aplica el estado compacto con histéresis. La separación entre los umbrales
- * evita parpadeos causados por rebotes o por la inercia del scroll táctil.
- */
-function syncActiveWorkoutHeaderFromEditorScroll() {
-    activeWorkoutHeaderScrollFrame = null;
-
-    const editor = activeWorkoutHeaderScrollEditor;
-    if (!activeWorkoutHeaderScrollReady || !editor) return;
-
-    const scrollTop = Math.max(0, editor.scrollTop);
-    const clientHeight = editor.clientHeight;
-    const scrollDelta = scrollTop - activeWorkoutHeaderLastScrollTop;
-    activeWorkoutHeaderLastScrollTop = scrollTop;
-    const didClientHeightChange = activeWorkoutHeaderLastClientHeight !== 0
-        && clientHeight !== activeWorkoutHeaderLastClientHeight;
-    activeWorkoutHeaderLastClientHeight = clientHeight;
-
-    if (activeWorkoutHeaderIsApplyingLayout) return;
-    const wasAwaitingLayoutCompensation = activeWorkoutHeaderAwaitsLayoutCompensation;
-    activeWorkoutHeaderAwaitsLayoutCompensation = false;
-    if (scrollDelta === 0) return;
-
-    const isCollapsed = getActiveWorkoutContainer()?.classList.contains('aw-header-collapsed');
-    const isCompensatingLayout = wasAwaitingLayoutCompensation && didClientHeightChange
-        && ((isCollapsed && scrollDelta < 0) || (!isCollapsed && scrollDelta > 0));
-    if (isCompensatingLayout) {
-        resetActiveWorkoutHeaderScrollMotion(scrollTop);
-        return;
-    }
-
-    if (scrollTop <= ACTIVE_WORKOUT_HEADER_SCROLL_TOP_PX) {
-        setActiveWorkoutHeaderCollapsed(false);
-        resetActiveWorkoutHeaderScrollMotion();
-        return;
-    }
-
-    const direction = scrollDelta > 0 ? 1 : -1;
-    if (direction !== activeWorkoutHeaderScrollDirection) {
-        activeWorkoutHeaderScrollDirection = direction;
-        activeWorkoutHeaderScrollDistance = 0;
-    }
-
-    if ((direction > 0 && isCollapsed) || (direction < 0 && !isCollapsed)) {
-        activeWorkoutHeaderScrollDistance = 0;
-        return;
-    }
-
-    activeWorkoutHeaderScrollDistance += Math.abs(scrollDelta);
-
-    if (direction > 0 && activeWorkoutHeaderScrollDistance >= ACTIVE_WORKOUT_HEADER_COLLAPSE_DOWN_PX) {
-        setActiveWorkoutHeaderCollapsed(true);
-        activeWorkoutHeaderScrollDistance = 0;
-    } else if (direction < 0 && activeWorkoutHeaderScrollDistance >= ACTIVE_WORKOUT_HEADER_RESTORE_UP_PX) {
-        setActiveWorkoutHeaderCollapsed(false);
-        activeWorkoutHeaderScrollDistance = 0;
-    }
-}
-
-function queueActiveWorkoutHeaderScrollSync() {
-    if (!activeWorkoutHeaderScrollReady || activeWorkoutHeaderScrollFrame !== null) return;
-
-    activeWorkoutHeaderScrollFrame = window.requestAnimationFrame(syncActiveWorkoutHeaderFromEditorScroll);
-}
-
-/**
- * Escucha únicamente el contenedor que desplaza Quill. La línea base se toma
- * tras el foco automático para no confundir ese ajuste del navegador con un
- * gesto voluntario de la persona usuaria.
- */
-function startActiveWorkoutHeaderScrollSync() {
-    stopActiveWorkoutHeaderScrollSync();
-
-    const isCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches;
-    const editor = document.querySelector('#aw-editor-container .ql-editor');
-    if (!isCoarsePointer || !editor) return;
-
-    activeWorkoutHeaderScrollEditor = editor;
-    activeWorkoutHeaderScrollListener = queueActiveWorkoutHeaderScrollSync;
-    editor.addEventListener('scroll', activeWorkoutHeaderScrollListener, { passive: true });
-
-    activeWorkoutHeaderScrollFrame = window.requestAnimationFrame(() => {
-        activeWorkoutHeaderScrollFrame = null;
-        if (activeWorkoutHeaderScrollEditor !== editor) return;
-
-        resetActiveWorkoutHeaderScrollMotion(Math.max(0, editor.scrollTop));
-        activeWorkoutHeaderLastClientHeight = editor.clientHeight;
-        setActiveWorkoutHeaderCollapsed(false, false);
-        activeWorkoutHeaderAwaitsLayoutCompensation = false;
-        activeWorkoutHeaderScrollReady = true;
-    });
-}
-
-function stopActiveWorkoutHeaderScrollSync() {
-    if (activeWorkoutHeaderScrollFrame !== null) {
-        window.cancelAnimationFrame(activeWorkoutHeaderScrollFrame);
-        activeWorkoutHeaderScrollFrame = null;
-    }
-
-    if (activeWorkoutHeaderLayoutFrame !== null) {
-        window.cancelAnimationFrame(activeWorkoutHeaderLayoutFrame);
-        activeWorkoutHeaderLayoutFrame = null;
-    }
-
-    if (activeWorkoutHeaderScrollEditor && activeWorkoutHeaderScrollListener) {
-        activeWorkoutHeaderScrollEditor.removeEventListener('scroll', activeWorkoutHeaderScrollListener);
-    }
-
-    activeWorkoutHeaderScrollEditor = null;
-    activeWorkoutHeaderScrollListener = null;
-    activeWorkoutHeaderScrollReady = false;
-    activeWorkoutHeaderIsApplyingLayout = false;
-    activeWorkoutHeaderAwaitsLayoutCompensation = false;
-    resetActiveWorkoutHeaderScrollMotion();
-    activeWorkoutHeaderLastClientHeight = 0;
-    setActiveWorkoutHeaderCollapsed(false, false);
 }
 
 // ===========================================================================
@@ -308,7 +119,6 @@ function resetAllTimersAndState() {
 // ==========================================================================
 
 window.iniciarEntrenamiento = function(sessionData) {
-    stopActiveWorkoutHeaderScrollSync();
     resetAllTimersAndState();
     
     if (aw_quillInstance) {
@@ -362,7 +172,6 @@ window.iniciarEntrenamiento = function(sessionData) {
     
     setTimeout(() => {
         inicializarEditorEntrenamiento();
-        startActiveWorkoutHeaderScrollSync();
         if (typeof window.configurarListenerGlobalEjercicios === 'function') {
             window.configurarListenerGlobalEjercicios();
         }
@@ -434,7 +243,6 @@ window.finalizarEntrenamiento = async function() {
     // Cerrar el modal
     const modal = document.getElementById('active-workout');
     if (modal) modal.style.display = 'none';
-    stopActiveWorkoutHeaderScrollSync();
     stopActiveWorkoutVisualViewportSync();
     
     // Liberar bloqueo del historial
@@ -498,7 +306,6 @@ window.cerrarEntrenamiento = async function() {
     // Cerrar modal
     const modal = document.getElementById('active-workout');
     if (modal) modal.style.display = 'none';
-    stopActiveWorkoutHeaderScrollSync();
     stopActiveWorkoutVisualViewportSync();
     
     // Liberar bloqueo del historial

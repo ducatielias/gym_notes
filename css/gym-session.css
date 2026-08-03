@@ -330,7 +330,8 @@
     flex-direction: column;
 }
 
-.ql-container.ql-snow {
+#screen-editor #editor-instance .ql-container.ql-snow,
+#history-edit-editor-container .ql-container.ql-snow {
     border: none !important;
     font-size: 16px;
     flex: 1; /* Sigue rellenando el espacio vertical remanente */
@@ -343,7 +344,8 @@
 /* ==========================================================================
    ZONA ÚNICA DE SCROLL EXCLUSIVO (.ql-editor)
    ========================================================================== */
-.ql-editor {
+#screen-editor #editor-instance .ql-editor,
+#history-edit-editor-container .ql-editor {
     flex: 1;
     overflow-y: auto !important; /* Único punto de scroll vertical permitido en toda la pantalla */
     -webkit-overflow-scrolling: touch !important; /* Inercia nativa ultra suave en iOS */
