@@ -29,18 +29,15 @@ function inicializarEditorEntrenamiento() {
         },
         placeholder: 'Anota aquí tus series, repeticiones, sensaciones...'
     });
-    window.captureActiveWorkoutMetrics?.('quill-created');
     
     // Cargar el contenido original (copia)
     if (aw_currentWorkout && aw_currentWorkout.sessionContent) {
         aw_quillInstance.clipboard.dangerouslyPasteHTML(GymNotesSafe.sanitizeRichHtml(aw_currentWorkout.sessionContent));
     }
-    window.captureActiveWorkoutMetrics?.('content-pasted');
     
     // Habilitar edición
     aw_quillInstance.enable();
     aw_quillInstance.focus();
-    window.captureActiveWorkoutMetrics?.('quill-focused');
     
     console.log('[inicializarEditorEntrenamiento] Quill inicializado correctamente');
     
