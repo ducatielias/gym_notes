@@ -70,7 +70,25 @@ function handlePopState(event) {
 
     console.log('[back-handler] popstate:', state, 'visible:', isWorkoutVisible, 'bloqueo:', esBloqueoActivo);
 
-    // CASO 1: Entrenamiento visible
+    // CASO 1: Historial abierto desde un entrenamiento activo
+    // El modal se oculta para mostrar Historial, pero el entrenamiento y sus
+    // temporizadores continúan activos. Restaurar ese contexto antes de que
+    // el estado anterior del navegador pueda llevar a otra pestaña o a salir.
+    const isHistoryFromActiveWorkout = esBloqueoActivo
+        && window.historyReturnScreen === 'workout'
+        && !isWorkoutVisible;
+    if (isHistoryFromActiveWorkout) {
+        console.log('[back-handler] Restaurando entrenamiento desde Historial.');
+        window.goBackFromHistory();
+
+        // El popstate ya consumió la entrada de entrenamiento. Crear una sola
+        // entrada equivalente protege la siguiente pulsación de Atrás.
+        history.pushState({ tab: 'workout' }, '', '#workout');
+        console.log('[back-handler] Protección de entrenamiento rearmada.');
+        return;
+    }
+
+    // CASO 2: Entrenamiento visible
     if (isWorkoutVisible && esBloqueoActivo) {
         window.showConfirm(
             '¿Salir del entrenamiento? Se perderán las notas no guardadas.',
@@ -99,14 +117,14 @@ function handlePopState(event) {
         return;
     }
 
-    // CASO 2: Navegación entre pestañas (hay estado)
+    // CASO 3: Navegación entre pestañas (hay estado)
     if (state && state.tab && state.tab !== 'workout') {
         console.log('[back-handler] Navegando a pestaña:', state.tab);
         window.switchTab(state.tab, { noPushState: true });
         return;
     }
 
-    // CASO 3: Sin estado (raíz)
+    // CASO 4: Sin estado (raíz)
     console.log('[back-handler] Estado raíz detectado.');
 
     if (hayPantallaInternaVisible()) {
