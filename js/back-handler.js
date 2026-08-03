@@ -80,11 +80,6 @@ function handlePopState(event) {
     if (isHistoryFromActiveWorkout) {
         console.log('[back-handler] Restaurando entrenamiento desde Historial.');
         window.goBackFromHistory();
-
-        // El popstate ya consumió la entrada de entrenamiento. Crear una sola
-        // entrada equivalente protege la siguiente pulsación de Atrás.
-        history.pushState({ tab: 'workout' }, '', '#workout');
-        console.log('[back-handler] Protección de entrenamiento rearmada.');
         return;
     }
 

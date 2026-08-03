@@ -14,6 +14,19 @@ function initHistoryPage() {
     renderHistory();
 }
 
+/**
+ * Registra Historial como una vista hija del entrenamiento activo.
+ * La entrada de entrenamiento ya existe; Atrás consume esta entrada contextual
+ * y vuelve a ella sin tener que reconstruir la pila después del popstate.
+ */
+function pushActiveWorkoutHistoryState() {
+    history.pushState(
+        { tab: 'history', returnScreen: 'workout' },
+        '',
+        '#history'
+    );
+}
+
 // ==========================================================================
 // FUNCIONES DE INTEGRACIÓN CON EL ENTRENAMIENTO
 // ==========================================================================
@@ -48,6 +61,8 @@ function mostrarHistorialEntrenamientoActual() {
                         window.historyRoutineFilter = routineName;
                         historyOriginalRoutineFilter = routineName;
                         window.historyOriginalRoutineFilter = routineName;
+
+                        pushActiveWorkoutHistoryState();
                         
                         // OCULTAR EL MODAL DE ENTRENAMIENTO
                         if (modal) {
@@ -98,6 +113,8 @@ function mostrarHistorialEntrenamientoActual() {
     // Establecer el filtro de rutina
     historyRoutineFilter = routineName;
     window.historyRoutineFilter = routineName;
+
+    pushActiveWorkoutHistoryState();
     
     // ============================================================
     // SOLUCIÓN DEFINITIVA: OCULTAR EL MODAL DE ENTRENAMIENTO
