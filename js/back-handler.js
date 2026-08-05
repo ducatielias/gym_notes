@@ -15,6 +15,226 @@
 let backHandlerInitialized = false;
 let esBloqueoActivo = false; // true mientras el entrenamiento esté activo
 let currentTab = 'today';
+let backResolutionPending = false;
+let nextBackHandlerOrder = 0;
+
+const registeredBackHandlers = new Map();
+
+/**
+ * Resultados explicitos del resolvedor central. Los manejadores registrados
+ * consumen o dejan pasar Atras; el estado pendiente evita la reentrancia.
+ */
+const BACK_ACTION_RESULT = Object.freeze({
+    CONSUMED: 'consumed',
+    NOT_CONSUMED: 'not-consumed',
+    PENDING_CONFIRMATION: 'pending-confirmation'
+});
+
+/**
+ * Orden semantico para las familias que se migraran en fases posteriores.
+ */
+const BACK_HANDLER_PRIORITY = Object.freeze({
+    DIALOG: 700,
+    OVERLAY: 600,
+    AUXILIARY_PANEL: 500,
+    CHILD_VIEW: 400,
+    PROTECTED_CONTEXT: 300,
+    PRIMARY_NAVIGATION: 200,
+    APP_EXIT: 100
+});
+
+// ===========================================================================
+// REGISTRO CENTRAL DE MANEJADORES
+// ===========================================================================
+
+/**
+ * Registra o actualiza un consumidor de Atras sin crear listeners globales.
+ * Un ID repetido conserva su orden y sustituye su definicion, evitando que la
+ * reapertura de una misma interfaz duplique el consumo de Atras.
+ */
+function registerBackHandler(config) {
+    const id = config?.id;
+    const handle = config?.handle;
+
+    if (typeof id !== 'string' || id.trim() === '' || typeof handle !== 'function') {
+        console.error('[back-handler] Registro rechazado: se requieren id y handle().');
+        return () => false;
+    }
+
+    const priority = Number.isFinite(config.priority)
+        ? config.priority
+        : BACK_HANDLER_PRIORITY.AUXILIARY_PANEL;
+    const existingHandler = registeredBackHandlers.get(id);
+
+    registeredBackHandlers.set(id, {
+        id,
+        priority,
+        canHandle: typeof config.canHandle === 'function' ? config.canHandle : () => true,
+        handle,
+        order: existingHandler?.order ?? nextBackHandlerOrder++
+    });
+
+    return () => unregisterBackHandler(id);
+}
+
+/**
+ * Elimina de forma segura un consumidor. Puede invocarse mas de una vez al
+ * cerrar una vista u overlay sin dejar registros residuales.
+ */
+function unregisterBackHandler(id) {
+    return registeredBackHandlers.delete(id);
+}
+
+function getRegisteredBackHandlers() {
+    return Array.from(registeredBackHandlers.values()).sort((first, second) => {
+        if (second.priority !== first.priority) {
+            return second.priority - first.priority;
+        }
+
+        return first.order - second.order;
+    });
+}
+
+function normalizeBackActionResult(result, sourceId) {
+    if (result === BACK_ACTION_RESULT.CONSUMED || result === BACK_ACTION_RESULT.NOT_CONSUMED) {
+        return result;
+    }
+
+    console.error(
+        `[back-handler] El manejador "${sourceId}" devolvio un resultado invalido.`,
+        result
+    );
+    return BACK_ACTION_RESULT.NOT_CONSUMED;
+}
+
+/**
+ * Un popstate ya ha movido el puntero del navegador antes de que un handler
+ * pueda cerrar una capa. Al consumirlo, se reconstruye la entrada principal
+ * actual con el mismo mecanismo heredado para no navegar por debajo del modal.
+ */
+function stabilizeConsumedPopState(context) {
+    if (context?.source !== 'popstate') return;
+
+    if (context.workoutActive) {
+        history.pushState({ tab: 'workout' }, '', '#workout');
+        return;
+    }
+
+    if (context.visibleScreenId === 'history' && context.historyReturnScreen === 'workout') {
+        history.pushState({ tab: 'history', returnScreen: 'workout' }, '', '#history');
+        return;
+    }
+
+    const mainTabs = ['today', 'plan', 'history', 'exercises'];
+    const tabToRestore = mainTabs.includes(context.currentTab) ? context.currentTab : null;
+
+    if (!tabToRestore) {
+        console.warn('[back-handler] No se pudo estabilizar el historial: pestana principal desconocida.');
+        return;
+    }
+
+    history.pushState({ tab: tabToRestore }, '', '#' + tabToRestore);
+}
+
+/**
+ * Ejecuta consumidores por prioridad y usa el fallback heredado solo cuando
+ * ninguno absorbe Atras. El bloqueo cubre promesas de confirmacion.
+ */
+async function resolveBackAction(context, legacyFallback) {
+    if (backResolutionPending) {
+        console.warn('[back-handler] Accion Atras ignorada: hay una resolucion pendiente.');
+        return BACK_ACTION_RESULT.PENDING_CONFIRMATION;
+    }
+
+    backResolutionPending = true;
+
+    try {
+        for (const handler of getRegisteredBackHandlers()) {
+            let canHandle = false;
+
+            try {
+                canHandle = Boolean(await handler.canHandle(context));
+            } catch (error) {
+                console.error(`[back-handler] Error en canHandle() de "${handler.id}".`, error);
+                continue;
+            }
+
+            if (!canHandle) continue;
+
+            try {
+                const result = normalizeBackActionResult(
+                    await handler.handle(context),
+                    handler.id
+                );
+
+                if (result === BACK_ACTION_RESULT.CONSUMED) {
+                    stabilizeConsumedPopState(context);
+                    return result;
+                }
+            } catch (error) {
+                console.error(`[back-handler] Error en handle() de "${handler.id}".`, error);
+            }
+        }
+
+        if (typeof legacyFallback === 'function') {
+            try {
+                return normalizeBackActionResult(
+                    await legacyFallback(context),
+                    'fallback-heredado'
+                );
+            } catch (error) {
+                console.error('[back-handler] Error en el fallback heredado.', error);
+            }
+        }
+
+        return BACK_ACTION_RESULT.NOT_CONSUMED;
+    } finally {
+        backResolutionPending = false;
+    }
+}
+
+/**
+ * Crea un contexto efimero desde el DOM y los estados ya existentes. No crea
+ * una pila paralela ni introduce nuevas banderas de navegacion.
+ */
+function buildBackContext(event) {
+    const workoutModal = document.getElementById('active-workout');
+    const customModal = document.getElementById('customModal');
+    const visibleScreen = document.querySelector('.screen:not(.hidden)');
+    const isWorkoutVisible = workoutModal?.style.display === 'flex';
+    const isCustomModalVisible = customModal
+        && !customModal.classList.contains('hidden')
+        && customModal.getAttribute('aria-hidden') !== 'true';
+
+    return Object.freeze({
+        source: 'popstate',
+        state: event?.state ?? null,
+        currentTab,
+        visibleScreenId: visibleScreen?.id?.replace('screen-', '') || null,
+        activeModalId: isCustomModalVisible ? 'custom-modal' : null,
+        historyReturnScreen: window.historyReturnScreen || null,
+        routineNavigationActive: Boolean(window.currentRoutineId),
+        workoutActive: Boolean(isWorkoutVisible),
+        url: window.location.href,
+        hash: window.location.hash
+    });
+}
+
+/**
+ * RC-21B integra unicamente el dialogo comun. El resto de capas se migrara
+ * despues mediante el mismo registro.
+ */
+function registerCommonModalBackHandler() {
+    registerBackHandler({
+        id: 'custom-modal',
+        priority: BACK_HANDLER_PRIORITY.DIALOG,
+        canHandle: () => Boolean(window.GymNotesModal?.isOpen?.()),
+        handle: () => {
+            const dismissed = window.GymNotesModal?.dismiss?.();
+            return dismissed ? BACK_ACTION_RESULT.CONSUMED : BACK_ACTION_RESULT.NOT_CONSUMED;
+        }
+    });
+}
 
 // ==========================================================================
 // INICIALIZACIÓN
@@ -25,6 +245,7 @@ function initBackHandler() {
     window.addEventListener('popstate', handlePopState);
     document.body.style.overscrollBehavior = 'none';
     document.documentElement.style.overscrollBehavior = 'none';
+    registerCommonModalBackHandler();
     backHandlerInitialized = true;
     console.log('[back-handler] Inicializado.');
 }
@@ -64,6 +285,30 @@ function hayPantallaInternaVisible() {
 // ==========================================================================
 
 function handlePopState(event) {
+    const context = buildBackContext(event);
+
+    void resolveBackAction(context, runLegacyBackFallback).catch((error) => {
+        // El resolvedor ya aisla fallos de consumidores concretos. Este cierre
+        // evita una promesa rechazada si falla la infraestructura global.
+        console.error('[back-handler] Error no controlado resolviendo Atras.', error);
+    });
+}
+
+/**
+ * Adaptador temporal del flujo de RC-20. Conserva sus ramas y espera sus
+ * confirmaciones para que el nucleo pueda bloquear la reentrancia.
+ */
+async function runLegacyBackFallback(context) {
+    const legacyResult = handleLegacyPopState({ state: context.state });
+
+    if (legacyResult && typeof legacyResult.then === 'function') {
+        await legacyResult;
+    }
+
+    return BACK_ACTION_RESULT.CONSUMED;
+}
+
+function handleLegacyPopState(event) {
     const state = event.state;
     const workoutModal = document.getElementById('active-workout');
     const isWorkoutVisible = workoutModal && workoutModal.style.display === 'flex';
@@ -85,7 +330,7 @@ function handlePopState(event) {
 
     // CASO 2: Entrenamiento visible
     if (isWorkoutVisible && esBloqueoActivo) {
-        window.showConfirm(
+        return window.showConfirm(
             '¿Salir del entrenamiento? Se perderán las notas no guardadas.',
             'Cancelar entrenamiento'
         ).then((confirmado) => {
@@ -93,7 +338,7 @@ function handlePopState(event) {
                 console.log('[back-handler] Usuario confirmó salida del entrenamiento.');
                 // Llamar a la función de cierre del entrenamiento (definida en workout.js)
                 if (typeof window.cerrarEntrenamiento === 'function') {
-                    window.cerrarEntrenamiento();
+                    return window.cerrarEntrenamiento();
                 } else {
                     // Fallback: cerrar manualmente
                     if (workoutModal) workoutModal.style.display = 'none';
@@ -130,7 +375,7 @@ function handlePopState(event) {
     }
 
     console.log('[back-handler] Mostrando confirmación de salida de la app.');
-    window.showConfirm(
+    return window.showConfirm(
         '¿Estás seguro de que quieres salir de Gym Notes?',
         'Salir de la app'
     ).then((confirmado) => {
@@ -185,6 +430,12 @@ window.alAbrirEntrenamiento = alAbrirEntrenamiento;
 window.liberarBloqueoEntrenamiento = liberarBloqueoEntrenamiento;
 window.navigateToTab = navigateToTab;
 window.setCurrentTab = setCurrentTab;
+window.GymNotesBackNavigation = Object.freeze({
+    register: registerBackHandler,
+    unregister: unregisterBackHandler,
+    PRIORITY: BACK_HANDLER_PRIORITY,
+    RESULT: BACK_ACTION_RESULT
+});
 
 // ==========================================================================
 // INICIALIZACIÓN AUTOMÁTICA

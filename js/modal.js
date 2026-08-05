@@ -117,6 +117,26 @@ function closeModal() {
     }
 }
 
+/**
+ * Expone al nucleo de Atras el estado minimo del dialogo comun, sin revelar
+ * su promesa interna ni permitir aceptar una accion desde fuera del modal.
+ */
+function isCommonModalOpen() {
+    return !modalOverlay.classList.contains('hidden')
+        && modalOverlay.getAttribute('aria-hidden') !== 'true';
+}
+
+/**
+ * Equivale a cancelar el dialogo: confirmaciones resuelven false y prompts o
+ * selectores resuelven null. Las alertas se cierran sin aceptar otra accion.
+ */
+function dismissCommonModal() {
+    if (!isCommonModalOpen()) return false;
+
+    closeModal();
+    return true;
+}
+
 function confirmModal(value) {
     completeModal(currentType === 'alert' ? undefined : value);
 }
@@ -361,3 +381,7 @@ window.showAlert = showAlert;
 window.showConfirm = showConfirm;
 window.showPrompt = showPrompt;
 window.showRoutineSelector = showRoutineSelector;
+window.GymNotesModal = Object.freeze({
+    isOpen: isCommonModalOpen,
+    dismiss: dismissCommonModal
+});

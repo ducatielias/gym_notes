@@ -413,6 +413,39 @@ function closeEditorAndReturn() {
     openRoutine(currentRoutineId);
 }
 
+// ===========================================================================
+// INTEGRACION CON ATRAS GLOBAL
+// ===========================================================================
+
+/**
+ * Ambos modos del editor comparten screen-editor. No se distingue por Quill ni
+ * por los controles visibles para conservar exactamente el cierre actual.
+ */
+function isSessionEditorVisible() {
+    const editorScreen = document.getElementById('screen-editor');
+    return Boolean(editorScreen && !editorScreen.classList.contains('hidden'));
+}
+
+/**
+ * Reutiliza closeEditorAndReturn(), la misma ruta del boton X del editor.
+ * Este handler se registra despues del de sesiones y su canHandle excluyente
+ * le da precedencia cuando el editor es la vista visible.
+ */
+function registerSessionEditorBackHandler() {
+    const backNavigation = window.GymNotesBackNavigation;
+    if (!backNavigation) return;
+
+    backNavigation.register({
+        id: 'session-editor',
+        priority: backNavigation.PRIORITY.CHILD_VIEW,
+        canHandle: isSessionEditorVisible,
+        handle: () => {
+            closeEditorAndReturn();
+            return backNavigation.RESULT.CONSUMED;
+        }
+    });
+}
+
 // ==========================================================================
 // INICIALIZACIÓN
 // ==========================================================================
@@ -429,3 +462,5 @@ window.enableSessionEditing = enableSessionEditing;
 window.saveCurrentSession = saveCurrentSession;
 window.closeEditorAndReturn = closeEditorAndReturn;
 window.ajustarAlturaTitulo = ajustarAlturaTitulo;
+
+registerSessionEditorBackHandler();
