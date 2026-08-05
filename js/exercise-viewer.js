@@ -593,6 +593,38 @@ if (document.readyState === 'loading') {
 
 setTimeout(configurarListenerGlobalEjercicios, 500);
 
+// ===========================================================================
+// INTEGRACION CON ATRAS GLOBAL
+// ===========================================================================
+
+/**
+ * El visor tiene una pantalla propia. Su visibilidad real define si es la
+ * vista hija superior, sin sustituir exerciseViewerOrigen ni sus retornos.
+ */
+function isExerciseViewerVisible() {
+    const viewerScreen = document.getElementById('screen-exercise-viewer');
+    return Boolean(viewerScreen && !viewerScreen.classList.contains('hidden'));
+}
+
+/**
+ * Reutiliza el mismo cierre del boton visible para conservar los cuatro
+ * origenes existentes: ejercicios, sesion, historial y entrenamiento.
+ */
+function registerExerciseViewerBackHandler() {
+    const backNavigation = window.GymNotesBackNavigation;
+    if (!backNavigation) return;
+
+    backNavigation.register({
+        id: 'exercise-viewer',
+        priority: backNavigation.PRIORITY.CHILD_VIEW,
+        canHandle: isExerciseViewerVisible,
+        handle: () => {
+            closeExerciseViewerFull();
+            return backNavigation.RESULT.CONSUMED;
+        }
+    });
+}
+
 // ==========================================================================
 // EXPOSICIÓN GLOBAL
 // ==========================================================================
@@ -611,3 +643,5 @@ window.configurarListenerGlobalEjercicios = configurarListenerGlobalEjercicios;
 window.configurarListenerPorFormato = configurarListenerPorFormato;
 window.mostrarVisorEjercicioCompleto = mostrarVisorEjercicioCompleto;
 window.exerciseViewerOrigen = exerciseViewerOrigen;
+
+registerExerciseViewerBackHandler();

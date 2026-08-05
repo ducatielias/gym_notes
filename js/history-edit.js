@@ -20,6 +20,21 @@ let historyEditingId = null;
 let historyEditQuillInstance = null;
 let historyEditOriginalItem = null;
 
+/**
+ * Mantiene el mismo criterio ya usado por Cancelar: la confirmacion solo
+ * depende del contenido de Quill frente al snapshot original.
+ */
+function hasUnsavedHistoryEditChanges() {
+    if (!historyEditQuillInstance) return false;
+
+    const contenidoActual = historyEditQuillInstance.getSemanticHTML();
+    const contenidoOriginal = historyEditOriginalItem?.contenido_editado
+        || historyEditOriginalItem?.contenido_original
+        || '';
+
+    return contenidoActual !== contenidoOriginal;
+}
+
 // ==========================================================================
 // ABRIR EDICIÓN DEL HISTORIAL
 // ==========================================================================
@@ -278,27 +293,26 @@ function cancelHistoryEdit() {
     console.log('[history-edit] Cancelando edición...');
     
     // Preguntar si está seguro de descartar cambios
-    if (historyEditQuillInstance) {
-        const contenidoActual = historyEditQuillInstance.getSemanticHTML();
-        const contenidoOriginal = historyEditOriginalItem?.contenido_editado || historyEditOriginalItem?.contenido_original || '';
-        
-        if (contenidoActual !== contenidoOriginal) {
-            window.showConfirm(
-                '¿Seguro que quieres cancelar? Los cambios no guardados se perderán.',
-                'Cancelar edición'
-            ).then(confirm => {
-                if (confirm) {
-                    finalizarCancelacionEdicion();
-                }
-            });
-            return;
-        }
+    if (hasUnsavedHistoryEditChanges()) {
+        return window.showConfirm(
+            '¿Seguro que quieres cancelar? Los cambios no guardados se perderán.',
+            'Cancelar edición'
+        ).then(confirm => {
+            if (confirm) {
+                finalizarCancelacionEdicion();
+            }
+
+            return confirm;
+        });
     }
     
     finalizarCancelacionEdicion();
+    return true;
 }
 
 function finalizarCancelacionEdicion() {
+    const detailId = historyEditingId;
+
     // Limpiar instancia de Quill
     if (historyEditQuillInstance) {
         historyEditQuillInstance = null;
@@ -308,9 +322,14 @@ function finalizarCancelacionEdicion() {
     historyEditingId = null;
     historyEditOriginalItem = null;
     
-    // Volver a la lista de historial
-    switchTab('history');
-    renderHistory();
+    // La edición es hija del detalle: cancelar restaura ese padre visible.
+    if (detailId && typeof window.viewHistoryDetail === 'function') {
+        window.viewHistoryDetail(detailId);
+    } else {
+        // Conserva el retorno heredado si el detalle deja de estar disponible.
+        switchTab('history');
+        renderHistory();
+    }
     
     console.log('[history-edit] Edición cancelada');
 }
@@ -352,6 +371,43 @@ function openHistoryEditFromDetail(id) {
     // No cambiamos de pestaña porque ya estamos en history-detail
 }
 
+// ===========================================================================
+// INTEGRACION CON ATRAS GLOBAL
+// ===========================================================================
+
+/**
+ * El formulario comparte screen-history-detail con la lectura. El ID de
+ * edición existente distingue el modo real sin crear estado paralelo.
+ */
+function isHistoryEditVisible() {
+    const detailScreen = document.getElementById('screen-history-detail');
+    return Boolean(
+        historyEditingId !== null
+        && historyEditingId !== undefined
+        && detailScreen
+        && !detailScreen.classList.contains('hidden')
+    );
+}
+
+/**
+ * Reutiliza Cancelar, incluida su confirmación asíncrona. Mientras esta
+ * promesa esta pendiente, RC-21B bloquea una segunda accion Atras.
+ */
+function registerHistoryEditBackHandler() {
+    const backNavigation = window.GymNotesBackNavigation;
+    if (!backNavigation) return;
+
+    backNavigation.register({
+        id: 'history-edit',
+        priority: backNavigation.PRIORITY.CHILD_VIEW,
+        canHandle: isHistoryEditVisible,
+        handle: async () => {
+            await cancelHistoryEdit();
+            return backNavigation.RESULT.CONSUMED;
+        }
+    });
+}
+
 // ==========================================================================
 // EXPOSICIÓN GLOBAL
 // ==========================================================================
@@ -362,3 +418,6 @@ window.saveHistoryEdit = saveHistoryEdit;
 window.cancelHistoryEdit = cancelHistoryEdit;
 window.closeHistoryEdit = closeHistoryEdit;
 window.historyEditQuillInstance = historyEditQuillInstance;
+window.isHistoryEditActive = () => Boolean(historyEditingId);
+
+registerHistoryEditBackHandler();
