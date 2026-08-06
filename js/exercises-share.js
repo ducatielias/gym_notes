@@ -184,6 +184,53 @@ const exerciseShareOverlayAccessibility = (() => {
     return { setup, addListener, cleanup };
 })();
 
+const exerciseShareDialogCloseActions = new WeakMap();
+
+function getExerciseShareDialogOverlay() {
+    return document.getElementById('exercise-share-dialog');
+}
+
+function isExerciseShareDialogVisible() {
+    const overlay = getExerciseShareDialogOverlay();
+    return Boolean(
+        overlay
+        && overlay.isConnected
+        && !overlay.hidden
+        && !overlay.classList.contains('hidden')
+        && overlay.style.display !== 'none'
+        && overlay.getAttribute('aria-hidden') !== 'true'
+    );
+}
+
+/**
+ * Invoca el mismo cierre creado para el dialogo actual. Asi se conservan la
+ * resolucion de su promesa, el foco y la limpieza de listeners existentes.
+ */
+function closeExerciseShareDialog() {
+    const overlay = getExerciseShareDialogOverlay();
+    const closeDialog = overlay && exerciseShareDialogCloseActions.get(overlay);
+    if (typeof closeDialog !== 'function') return false;
+
+    closeDialog(null);
+    return true;
+}
+
+function registerExerciseShareBackHandler() {
+    const backNavigation = window.GymNotesBackNavigation;
+    if (!backNavigation) return;
+
+    backNavigation.register({
+        id: 'exercise-share',
+        priority: backNavigation.PRIORITY.TRANSIENT_OVERLAY,
+        canHandle: isExerciseShareDialogVisible,
+        handle: () => {
+            return closeExerciseShareDialog()
+                ? backNavigation.RESULT.CONSUMED
+                : backNavigation.RESULT.NOT_CONSUMED;
+        }
+    });
+}
+
 window.showExerciseShareDialog = function(exercise) {
     return new Promise((resolve) => {
         const overlay = document.createElement('div');
@@ -228,10 +275,13 @@ window.showExerciseShareDialog = function(exercise) {
         function closeShareDialog(result) {
             if (settled) return;
             settled = true;
+            exerciseShareDialogCloseActions.delete(overlay);
             exerciseShareOverlayAccessibility.cleanup(overlay);
             overlay.remove();
             resolve(result);
         }
+
+        exerciseShareDialogCloseActions.set(overlay, closeShareDialog);
 
         exerciseShareOverlayAccessibility.setup(overlay, {
             dialog,
@@ -260,3 +310,5 @@ window.showExerciseShareDialog = function(exercise) {
 
 window.shareExercise = shareExercise;
 window.shareExerciseViaWeb = shareExerciseViaWeb;
+
+registerExerciseShareBackHandler();

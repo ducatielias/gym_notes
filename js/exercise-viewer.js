@@ -466,6 +466,34 @@ function closeExerciseLightbox() {
     restoreLightboxFocus();
 }
 
+function isExerciseLightboxVisible() {
+    const overlay = activeLightboxOverlay || document.getElementById('exerciseLightboxOverlay');
+    return Boolean(
+        lightboxActive
+        && overlay
+        && overlay.isConnected
+        && !overlay.hidden
+        && !overlay.classList.contains('hidden')
+        && overlay.style.display !== 'none'
+        && overlay.getAttribute('aria-hidden') !== 'true'
+    );
+}
+
+function registerExerciseLightboxBackHandler() {
+    const backNavigation = window.GymNotesBackNavigation;
+    if (!backNavigation) return;
+
+    backNavigation.register({
+        id: 'exercise-lightbox',
+        priority: backNavigation.PRIORITY.TRANSIENT_OVERLAY,
+        canHandle: isExerciseLightboxVisible,
+        handle: () => {
+            closeExerciseLightbox();
+            return backNavigation.RESULT.CONSUMED;
+        }
+    });
+}
+
 function linkifyExerciseViewerHTML(html) {
     if (!html) return 'Sin notas adicionales.';
     return GymNotesSafe.sanitizeRichHtml(String(html).replace(/\n/g, '<br>'), { linkify: true });
@@ -644,4 +672,5 @@ window.configurarListenerPorFormato = configurarListenerPorFormato;
 window.mostrarVisorEjercicioCompleto = mostrarVisorEjercicioCompleto;
 window.exerciseViewerOrigen = exerciseViewerOrigen;
 
+registerExerciseLightboxBackHandler();
 registerExerciseViewerBackHandler();

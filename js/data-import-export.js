@@ -133,6 +133,43 @@ const dataTransferOverlayAccessibility = (() => {
     return { setup, cleanup };
 })();
 
+/**
+ * Los selectores de datos globales son overlays transitorios independientes
+ * del modal comun. Su cierre reutiliza las mismas funciones de Cancelar y
+ * Escape, sin intervenir sobre el selector nativo de archivos.
+ */
+function registerDataTransferBackHandlers() {
+    const backNavigation = window.GymNotesBackNavigation;
+    if (!backNavigation) return;
+
+    [
+        {
+            id: 'data-export-selection',
+            overlayId: 'export-data-modal',
+            close: cerrarExportDataModal
+        },
+        {
+            id: 'data-import-selection',
+            overlayId: 'import-data-modal',
+            close: cerrarImportDataModal
+        }
+    ].forEach(({ id, overlayId, close }) => {
+        backNavigation.register({
+            id,
+            priority: backNavigation.PRIORITY.TRANSIENT_OVERLAY,
+            canHandle: () => backNavigation.isOverlayVisible(overlayId),
+            handle: () => {
+                if (!backNavigation.isOverlayVisible(overlayId)) {
+                    return backNavigation.RESULT.NOT_CONSUMED;
+                }
+
+                close();
+                return backNavigation.RESULT.CONSUMED;
+            }
+        });
+    });
+}
+
 // ==========================================================================
 // FUNCIÓN: OBTENER TIMESTAMP PARA NOMBRE DE ARCHIVO
 // ==========================================================================
@@ -851,3 +888,5 @@ window.cerrarImportDataModal = cerrarImportDataModal;
 window.importData = importData;
 window.performImport = performImport;
 window.getDataTimestamp = getDataTimestamp;
+
+registerDataTransferBackHandlers();

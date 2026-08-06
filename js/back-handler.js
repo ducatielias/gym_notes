@@ -35,6 +35,7 @@ const BACK_ACTION_RESULT = Object.freeze({
  */
 const BACK_HANDLER_PRIORITY = Object.freeze({
     DIALOG: 700,
+    TRANSIENT_OVERLAY: 650,
     OVERLAY: 600,
     CONTEXTUAL_VIEW: 550,
     AUXILIARY_PANEL: 500,
@@ -43,6 +44,22 @@ const BACK_HANDLER_PRIORITY = Object.freeze({
     PRIMARY_NAVIGATION: 200,
     APP_EXIT: 100
 });
+
+/**
+ * Comprueba la visibilidad efectiva de un overlay dinamico sin inferirla de
+ * estados historicos. Los modulos de cada flujo mantienen sus propios cierres.
+ */
+function isBackNavigationOverlayVisible(overlayId) {
+    const overlay = document.getElementById(overlayId);
+    return Boolean(
+        overlay
+        && overlay.isConnected
+        && !overlay.hidden
+        && !overlay.classList.contains('hidden')
+        && overlay.style.display !== 'none'
+        && overlay.getAttribute('aria-hidden') !== 'true'
+    );
+}
 
 // ===========================================================================
 // REGISTRO CENTRAL DE MANEJADORES
@@ -431,6 +448,7 @@ window.setCurrentTab = setCurrentTab;
 window.GymNotesBackNavigation = Object.freeze({
     register: registerBackHandler,
     unregister: unregisterBackHandler,
+    isOverlayVisible: isBackNavigationOverlayVisible,
     PRIORITY: BACK_HANDLER_PRIORITY,
     RESULT: BACK_ACTION_RESULT
 });
