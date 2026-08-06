@@ -51,10 +51,15 @@ const BACK_HANDLER_PRIORITY = Object.freeze({
 // RC-21H.1-METRICS START
 // Diagnóstico temporal en memoria para reproducir Atrás en móviles sin DevTools.
 const RC21H_METRICS_MAX_EVENTS = 120;
+const RC21H_METRICS_HISTORY_TAP_COUNT = 5;
+const RC21H_METRICS_HISTORY_TAP_WINDOW_MS = 900;
 let rc21hMetricsEvents = [];
 let rc21hMetricsCaptureActive = false;
 let rc21hMetricsPanel = null;
-let rc21hMetricsLongPressTimer = null;
+let rc21hMetricsHistoryTapCount = 0;
+let rc21hMetricsHistoryTapTimer = null;
+let rc21hMetricsHistoryButton = null;
+let rc21hMetricsReplayingHistoryClick = false;
 let rc21hMetricsInitialized = false;
 
 function cloneRC21HMetricValue(value) {
@@ -261,27 +266,62 @@ function showRC21HMetricsPanel() {
     refreshRC21HMetricsPanel();
 }
 
-function clearRC21HMetricsLongPress() {
-    if (rc21hMetricsLongPressTimer !== null) {
-        window.clearTimeout(rc21hMetricsLongPressTimer);
-        rc21hMetricsLongPressTimer = null;
+function resetRC21HMetricsHistoryTapSequence() {
+    if (rc21hMetricsHistoryTapTimer !== null) {
+        window.clearTimeout(rc21hMetricsHistoryTapTimer);
+        rc21hMetricsHistoryTapTimer = null;
+    }
+    rc21hMetricsHistoryTapCount = 0;
+}
+
+function replayRC21HMetricsHistoryButtonClick() {
+    if (!rc21hMetricsCaptureActive || !rc21hMetricsHistoryButton?.isConnected) return;
+
+    // Reproduce un click normal únicamente al descartar una secuencia incompleta.
+    // El flag deja pasar el listener temporal para conservar el handler propietario.
+    rc21hMetricsReplayingHistoryClick = true;
+    try {
+        rc21hMetricsHistoryButton.click();
+    } finally {
+        rc21hMetricsReplayingHistoryClick = false;
     }
 }
 
-function handleRC21HMetricsPointerDown(event) {
-    if (!rc21hMetricsCaptureActive) return;
+function discardRC21HMetricsHistoryTapSequence() {
+    const hadPendingTaps = rc21hMetricsHistoryTapCount > 0;
+    resetRC21HMetricsHistoryTapSequence();
+    if (hadPendingTaps) replayRC21HMetricsHistoryButtonClick();
+}
 
-    const target = event.target instanceof Element ? event.target.closest('#aw-session-title') : null;
-    if (!target) return;
+function queueRC21HMetricsHistoryTapExpiry() {
+    if (rc21hMetricsHistoryTapTimer !== null) {
+        window.clearTimeout(rc21hMetricsHistoryTapTimer);
+    }
 
-    clearRC21HMetricsLongPress();
-    rc21hMetricsLongPressTimer = window.setTimeout(() => {
-        rc21hMetricsLongPressTimer = null;
+    rc21hMetricsHistoryTapTimer = window.setTimeout(() => {
+        rc21hMetricsHistoryTapTimer = null;
+        discardRC21HMetricsHistoryTapSequence();
+    }, RC21H_METRICS_HISTORY_TAP_WINDOW_MS);
+}
+
+function handleRC21HMetricsHistoryButtonClick(event) {
+    if (!rc21hMetricsCaptureActive || rc21hMetricsReplayingHistoryClick) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    rc21hMetricsHistoryTapCount += 1;
+    if (rc21hMetricsHistoryTapCount === RC21H_METRICS_HISTORY_TAP_COUNT) {
+        resetRC21HMetricsHistoryTapSequence();
         showRC21HMetricsPanel();
-    }, 1000);
+        return;
+    }
+
+    queueRC21HMetricsHistoryTapExpiry();
 }
 
 function startRC21HMetricsCapture() {
+    resetRC21HMetricsHistoryTapSequence();
     rc21hMetricsCaptureActive = true;
     rc21hMetricsEvents = [];
     recordRC21HMetric('metrics-capture-start', 'workout-opened');
@@ -290,15 +330,16 @@ function startRC21HMetricsCapture() {
 function stopRC21HMetricsCapture() {
     recordRC21HMetric('metrics-capture-stopped', 'workout-closed');
     rc21hMetricsCaptureActive = false;
-    clearRC21HMetricsLongPress();
+    resetRC21HMetricsHistoryTapSequence();
 }
 
 function initRC21HMetrics() {
     if (rc21hMetricsInitialized) return;
 
-    document.addEventListener('pointerdown', handleRC21HMetricsPointerDown, { passive: true });
-    document.addEventListener('pointerup', clearRC21HMetricsLongPress, { passive: true });
-    document.addEventListener('pointercancel', clearRC21HMetricsLongPress, { passive: true });
+    rc21hMetricsHistoryButton = document.getElementById('aw-history-btn');
+    // Se registra antes de que el editor asigne onclick al iniciar el entrenamiento.
+    // Así puede diferir la acción normal sin sustituir ni duplicar su propietario.
+    rc21hMetricsHistoryButton?.addEventListener('click', handleRC21HMetricsHistoryButtonClick);
     window.addEventListener('rc21h-metric', (event) => {
         const detail = event.detail || {};
         recordRC21HMetric(detail.type || 'external-metric', detail.phase || 'unknown', detail.details || {});
