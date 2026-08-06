@@ -12,6 +12,17 @@
 // SINCRONIZACIÓN DEL VIEWPORT MÓVIL
 // ===========================================================================
 
+// RC-21H.1-METRICS START
+// Marcadores temporales sin datos del entrenamiento para el recolector móvil.
+function emitRC21HWorkoutMetric(type, phase, details = {}) {
+    if (typeof window.dispatchEvent !== 'function' || typeof CustomEvent !== 'function') return;
+
+    window.dispatchEvent(new CustomEvent('rc21h-metric', {
+        detail: { type, phase, details }
+    }));
+}
+// RC-21H.1-METRICS END
+
 let activeWorkoutViewportFrame = null;
 let stopActiveWorkoutViewportSync = null;
 
@@ -290,11 +301,16 @@ window.finalizarEntrenamiento = async function() {
 window.cerrarEntrenamiento = async function() {
     // Si hay entrenamiento activo, preguntar
     if (aw_currentWorkout) {
+        emitRC21HWorkoutMetric('workout-confirm-open', 'close-workout');
         const confirmar = await window.showConfirm(
             "¿Cerrar sin guardar? Se perderán las anotaciones.",
             "Cancelar entrenamiento"
         );
-        if (!confirmar) return;
+        if (!confirmar) {
+            emitRC21HWorkoutMetric('workout-confirm-cancelled', 'close-workout');
+            return;
+        }
+        emitRC21HWorkoutMetric('workout-confirm-accepted', 'close-workout');
     }
     
     // Detener temporizadores

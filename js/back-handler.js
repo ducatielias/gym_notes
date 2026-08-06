@@ -48,6 +48,284 @@ const BACK_HANDLER_PRIORITY = Object.freeze({
     APP_EXIT: 100
 });
 
+// RC-21H.1-METRICS START
+// Diagnóstico temporal en memoria para reproducir Atrás en móviles sin DevTools.
+const RC21H_METRICS_MAX_EVENTS = 120;
+let rc21hMetricsEvents = [];
+let rc21hMetricsCaptureActive = false;
+let rc21hMetricsPanel = null;
+let rc21hMetricsLongPressTimer = null;
+let rc21hMetricsInitialized = false;
+
+function cloneRC21HMetricValue(value) {
+    try {
+        return JSON.parse(JSON.stringify(value ?? null));
+    } catch (error) {
+        return '[no-serializable]';
+    }
+}
+
+function isRC21HMetricElementVisible(elementId) {
+    const element = document.getElementById(elementId);
+    return Boolean(
+        element
+        && element.isConnected
+        && !element.hidden
+        && !element.classList.contains('hidden')
+        && element.style.display !== 'none'
+        && element.getAttribute('aria-hidden') !== 'true'
+    );
+}
+
+function getRC21HMetricVisibleScreen() {
+    return document.querySelector('.screen:not(.hidden)')?.id || null;
+}
+
+function createRC21HMetricEntry(type, phase, details = {}) {
+    const visualViewport = window.visualViewport;
+    const workoutExists = typeof aw_currentWorkout !== 'undefined' && Boolean(aw_currentWorkout);
+
+    return {
+        timestamp: Number(performance.now().toFixed(2)),
+        recordedAt: new Date().toISOString(),
+        type,
+        phase,
+        historyState: cloneRC21HMetricValue(history.state),
+        historyLength: history.length,
+        href: window.location.href,
+        hash: window.location.hash,
+        visibilityState: document.visibilityState,
+        documentHasFocus: document.hasFocus(),
+        visibleScreen: getRC21HMetricVisibleScreen(),
+        backResolutionPending,
+        workoutExists,
+        workoutLockActive: esBloqueoActivo,
+        activeWorkoutVisible: isRC21HMetricElementVisible('active-workout'),
+        commonModalVisible: isRC21HMetricElementVisible('customModal'),
+        historyReturnScreen: window.historyReturnScreen || null,
+        details: cloneRC21HMetricValue(details),
+        viewport: {
+            innerWidth: window.innerWidth,
+            innerHeight: window.innerHeight,
+            visualWidth: visualViewport?.width ?? null,
+            visualHeight: visualViewport?.height ?? null,
+            visualOffsetTop: visualViewport?.offsetTop ?? null
+        }
+    };
+}
+
+function refreshRC21HMetricsPanel() {
+    if (!rc21hMetricsPanel?.isConnected) return;
+
+    const count = rc21hMetricsPanel.querySelector('[data-rc21h-count]');
+    const output = rc21hMetricsPanel.querySelector('[data-rc21h-output]');
+    if (count) count.textContent = `Eventos registrados: ${rc21hMetricsEvents.length}`;
+    if (output) output.value = JSON.stringify(createRC21HMetricsSnapshot(), null, 2);
+}
+
+function recordRC21HMetric(type, phase, details = {}) {
+    if (!rc21hMetricsCaptureActive) return;
+
+    try {
+        rc21hMetricsEvents.push(createRC21HMetricEntry(type, phase, details));
+        if (rc21hMetricsEvents.length > RC21H_METRICS_MAX_EVENTS) {
+            rc21hMetricsEvents.shift();
+        }
+        refreshRC21HMetricsPanel();
+    } catch (error) {
+        // Un fallo del diagnóstico nunca debe afectar a la navegación real.
+    }
+}
+
+function createRC21HMetricsSnapshot() {
+    const visualViewport = window.visualViewport;
+
+    return {
+        metadata: {
+            userAgent: navigator.userAgent || null,
+            platform: navigator.userAgentData?.platform || navigator.platform || null,
+            standalone: Boolean(
+                navigator.standalone
+                || window.matchMedia?.('(display-mode: standalone)').matches
+            ),
+            viewport: {
+                innerWidth: window.innerWidth,
+                innerHeight: window.innerHeight
+            },
+            visualViewport: visualViewport ? {
+                width: visualViewport.width,
+                height: visualViewport.height,
+                offsetTop: visualViewport.offsetTop
+            } : null,
+            capturedAt: new Date().toISOString()
+        },
+        events: cloneRC21HMetricValue(rc21hMetricsEvents)
+    };
+}
+
+function clearRC21HMetrics() {
+    rc21hMetricsEvents = [];
+    refreshRC21HMetricsPanel();
+}
+
+function closeRC21HMetricsPanel() {
+    if (rc21hMetricsPanel?.isConnected) {
+        rc21hMetricsPanel.remove();
+    }
+    rc21hMetricsPanel = null;
+}
+
+async function copyRC21HMetrics() {
+    const serializedSnapshot = JSON.stringify(createRC21HMetricsSnapshot(), null, 2);
+    const output = rc21hMetricsPanel?.querySelector('[data-rc21h-output]');
+    if (output) {
+        output.value = serializedSnapshot;
+        output.select();
+    }
+
+    try {
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(serializedSnapshot);
+            return true;
+        }
+    } catch (error) {
+        // El textarea visible mantiene una alternativa seleccionable sin red.
+    }
+
+    try {
+        return Boolean(document.execCommand?.('copy'));
+    } catch (error) {
+        return false;
+    }
+}
+
+function showRC21HMetricsPanel() {
+    if (rc21hMetricsPanel?.isConnected) {
+        refreshRC21HMetricsPanel();
+        return;
+    }
+
+    const panel = document.createElement('section');
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-label', 'RC-21H Diagnóstico');
+    panel.style.cssText = [
+        'position:fixed',
+        'z-index:10000',
+        'inset:12px',
+        'display:flex',
+        'flex-direction:column',
+        'gap:10px',
+        'padding:16px',
+        'background:#fffdf8',
+        'color:#25241e',
+        'border:2px solid #2b2a24',
+        'border-radius:16px',
+        'box-shadow:0 8px 24px rgba(0,0,0,.24)',
+        'font:14px system-ui,sans-serif'
+    ].join(';');
+
+    const title = document.createElement('strong');
+    title.textContent = 'RC-21H Diagnóstico';
+
+    const count = document.createElement('span');
+    count.textContent = 'Eventos registrados: 0';
+    count.setAttribute('data-rc21h-count', '');
+
+    const copyButton = document.createElement('button');
+    copyButton.type = 'button';
+    copyButton.textContent = 'Copiar diagnóstico';
+    copyButton.addEventListener('click', async () => {
+        const copied = await copyRC21HMetrics();
+        copyButton.textContent = copied ? 'Diagnóstico copiado' : 'Selecciona y copia el texto';
+    });
+
+    const clearButton = document.createElement('button');
+    clearButton.type = 'button';
+    clearButton.textContent = 'Limpiar';
+    clearButton.addEventListener('click', clearRC21HMetrics);
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.textContent = 'Cerrar';
+    closeButton.addEventListener('click', closeRC21HMetricsPanel);
+
+    const output = document.createElement('textarea');
+    output.readOnly = true;
+    output.setAttribute('data-rc21h-output', '');
+    output.setAttribute('aria-label', 'Diagnóstico seleccionable');
+    output.style.cssText = 'flex:1;min-height:180px;width:100%;resize:vertical;font:11px ui-monospace,monospace;box-sizing:border-box';
+
+    panel.append(title, count, copyButton, clearButton, closeButton, output);
+    document.body.appendChild(panel);
+    rc21hMetricsPanel = panel;
+    refreshRC21HMetricsPanel();
+}
+
+function clearRC21HMetricsLongPress() {
+    if (rc21hMetricsLongPressTimer !== null) {
+        window.clearTimeout(rc21hMetricsLongPressTimer);
+        rc21hMetricsLongPressTimer = null;
+    }
+}
+
+function handleRC21HMetricsPointerDown(event) {
+    if (!rc21hMetricsCaptureActive) return;
+
+    const target = event.target instanceof Element ? event.target.closest('#aw-session-title') : null;
+    if (!target) return;
+
+    clearRC21HMetricsLongPress();
+    rc21hMetricsLongPressTimer = window.setTimeout(() => {
+        rc21hMetricsLongPressTimer = null;
+        showRC21HMetricsPanel();
+    }, 1000);
+}
+
+function startRC21HMetricsCapture() {
+    rc21hMetricsCaptureActive = true;
+    rc21hMetricsEvents = [];
+    recordRC21HMetric('metrics-capture-start', 'workout-opened');
+}
+
+function stopRC21HMetricsCapture() {
+    recordRC21HMetric('metrics-capture-stopped', 'workout-closed');
+    rc21hMetricsCaptureActive = false;
+    clearRC21HMetricsLongPress();
+}
+
+function initRC21HMetrics() {
+    if (rc21hMetricsInitialized) return;
+
+    document.addEventListener('pointerdown', handleRC21HMetricsPointerDown, { passive: true });
+    document.addEventListener('pointerup', clearRC21HMetricsLongPress, { passive: true });
+    document.addEventListener('pointercancel', clearRC21HMetricsLongPress, { passive: true });
+    window.addEventListener('rc21h-metric', (event) => {
+        const detail = event.detail || {};
+        recordRC21HMetric(detail.type || 'external-metric', detail.phase || 'unknown', detail.details || {});
+    });
+    document.addEventListener('visibilitychange', () => {
+        recordRC21HMetric('visibilitychange', 'document', { visibilityState: document.visibilityState });
+    });
+    window.addEventListener('pagehide', (event) => {
+        recordRC21HMetric('pagehide', 'document', { persisted: Boolean(event.persisted) });
+    });
+    window.addEventListener('pageshow', (event) => {
+        recordRC21HMetric('pageshow', 'document', { persisted: Boolean(event.persisted) });
+    });
+    window.addEventListener('beforeunload', () => {
+        recordRC21HMetric('beforeunload', 'document');
+    });
+
+    window.RC21HMetrics = Object.freeze({
+        show: showRC21HMetricsPanel,
+        copy: copyRC21HMetrics,
+        clear: clearRC21HMetrics,
+        snapshot: () => cloneRC21HMetricValue(createRC21HMetricsSnapshot())
+    });
+    rc21hMetricsInitialized = true;
+}
+// RC-21H.1-METRICS END
+
 /**
  * Comprueba la visibilidad efectiva de un overlay dinamico sin inferirla de
  * estados historicos. Los modulos de cada flujo mantienen sus propios cierres.
@@ -136,6 +414,11 @@ function normalizeBackActionResult(result, sourceId) {
 function stabilizeConsumedPopState(context) {
     if (context?.source !== 'popstate') return;
 
+    recordRC21HMetric('stabilization-start', 'history', {
+        workoutActive: context.workoutActive,
+        visibleScreenId: context.visibleScreenId
+    });
+
     if (context.workoutActive) {
         const workoutModal = document.getElementById('active-workout');
 
@@ -143,15 +426,18 @@ function stabilizeConsumedPopState(context) {
         // navegación que ejecutó cerrarEntrenamiento() en lugar de recrear
         // una entrada #workout que ya no representa la vista actual.
         if (workoutModal?.style.display !== 'flex') {
+            recordRC21HMetric('stabilization-complete', 'history', { strategy: 'workout-closed' });
             return;
         }
 
         history.pushState({ tab: 'workout' }, '', '#workout');
+        recordRC21HMetric('stabilization-complete', 'history', { strategy: 'workout' });
         return;
     }
 
     if (context.visibleScreenId === 'history' && context.historyReturnScreen === 'workout') {
         history.pushState({ tab: 'history', returnScreen: 'workout' }, '', '#history');
+        recordRC21HMetric('stabilization-complete', 'history', { strategy: 'workout-history' });
         return;
     }
 
@@ -160,10 +446,12 @@ function stabilizeConsumedPopState(context) {
 
     if (!tabToRestore) {
         console.warn('[back-handler] No se pudo estabilizar el historial: pestana principal desconocida.');
+        recordRC21HMetric('stabilization-complete', 'history', { strategy: 'skipped' });
         return;
     }
 
     history.pushState({ tab: tabToRestore }, '', '#' + tabToRestore);
+    recordRC21HMetric('stabilization-complete', 'history', { strategy: 'main-tab', tab: tabToRestore });
 }
 
 /**
@@ -173,10 +461,13 @@ function stabilizeConsumedPopState(context) {
 async function resolveBackAction(context, legacyFallback) {
     if (backResolutionPending) {
         console.warn('[back-handler] Accion Atras ignorada: hay una resolucion pendiente.');
+        recordRC21HMetric('back-ignored-pending', 'reentrancy');
         return BACK_ACTION_RESULT.PENDING_CONFIRMATION;
     }
 
     backResolutionPending = true;
+    recordRC21HMetric('resolution-lock-enabled', 'reentrancy');
+    recordRC21HMetric('resolver-start', 'back-resolution');
 
     try {
         for (const handler of getRegisteredBackHandlers()) {
@@ -191,11 +482,28 @@ async function resolveBackAction(context, legacyFallback) {
 
             if (!canHandle) continue;
 
+            recordRC21HMetric('handler-selected', 'back-resolution', {
+                id: handler.id,
+                priority: handler.priority
+            });
+            if (handler.id === 'active-workout') {
+                recordRC21HMetric('active-workout-handler-start', 'back-handler');
+                recordRC21HMetric('close-workout-called', 'back-handler');
+            }
+
             try {
                 const result = normalizeBackActionResult(
                     await handler.handle(context),
                     handler.id
                 );
+                if (handler.id === 'active-workout') {
+                    recordRC21HMetric('close-workout-resolved', 'back-handler', { result });
+                    recordRC21HMetric('active-workout-handler-complete', 'back-handler', { result });
+                }
+                recordRC21HMetric('handler-result', 'back-resolution', {
+                    id: handler.id,
+                    result
+                });
 
                 if (result === BACK_ACTION_RESULT.CONSUMED) {
                     stabilizeConsumedPopState(context);
@@ -208,10 +516,16 @@ async function resolveBackAction(context, legacyFallback) {
 
         if (typeof legacyFallback === 'function') {
             try {
-                return normalizeBackActionResult(
+                recordRC21HMetric('fallback-start', 'back-resolution');
+                const result = normalizeBackActionResult(
                     await legacyFallback(context),
                     'fallback-heredado'
                 );
+                recordRC21HMetric('handler-result', 'back-resolution', {
+                    id: 'fallback-heredado',
+                    result
+                });
+                return result;
             } catch (error) {
                 console.error('[back-handler] Error en el fallback heredado.', error);
             }
@@ -220,6 +534,7 @@ async function resolveBackAction(context, legacyFallback) {
         return BACK_ACTION_RESULT.NOT_CONSUMED;
     } finally {
         backResolutionPending = false;
+        recordRC21HMetric('resolution-lock-released', 'reentrancy');
     }
 }
 
@@ -264,6 +579,7 @@ function registerCommonModalBackHandler() {
 
 function initBackHandler() {
     if (backHandlerInitialized) return;
+    initRC21HMetrics();
     window.addEventListener('popstate', handlePopState);
     document.body.style.overscrollBehavior = 'none';
     document.documentElement.style.overscrollBehavior = 'none';
@@ -278,12 +594,15 @@ function initBackHandler() {
 
 function alAbrirEntrenamiento() {
     esBloqueoActivo = true;
+    startRC21HMetricsCapture();
     history.pushState({ tab: 'workout' }, '', '#workout');
+    recordRC21HMetric('workout-history-entry-created', 'training');
     console.log('[back-handler] Entrenamiento abierto, estado pushState.');
 }
 
 function liberarBloqueoEntrenamiento() {
     esBloqueoActivo = false;
+    stopRC21HMetricsCapture();
     console.log('[back-handler] Bloqueo de entrenamiento liberado.');
 }
 
@@ -304,13 +623,20 @@ function hayPantallaInternaVisible() {
 // ==========================================================================
 
 function handlePopState(event) {
+    recordRC21HMetric('popstate-received', 'history', { eventState: cloneRC21HMetricValue(event?.state) });
     const context = buildBackContext(event);
+    recordRC21HMetric('back-context-built', 'history', { eventState: context.state });
 
-    void resolveBackAction(context, runLegacyBackFallback).catch((error) => {
-        // El resolvedor ya aisla fallos de consumidores concretos. Este cierre
-        // evita una promesa rechazada si falla la infraestructura global.
-        console.error('[back-handler] Error no controlado resolviendo Atras.', error);
-    });
+    void resolveBackAction(context, runLegacyBackFallback)
+        .then((result) => {
+            recordRC21HMetric('popstate-complete', 'history', { result });
+        })
+        .catch((error) => {
+            // El resolvedor ya aisla fallos de consumidores concretos. Este cierre
+            // evita una promesa rechazada si falla la infraestructura global.
+            recordRC21HMetric('popstate-complete', 'history', { result: 'error' });
+            console.error('[back-handler] Error no controlado resolviendo Atras.', error);
+        });
 }
 
 /**
