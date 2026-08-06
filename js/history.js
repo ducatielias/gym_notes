@@ -342,13 +342,20 @@ function isHistoryScreenVisible() {
     return Boolean(historyScreen && !historyScreen.classList.contains('hidden'));
 }
 
+function isActiveWorkoutModalVisible() {
+    const workoutModal = document.getElementById('active-workout');
+    return workoutModal?.style.display === 'flex';
+}
+
 /**
  * Historial solo es contextual cuando conserva uno de los dos padres ya
- * existentes. La lista principal permanece a cargo del fallback heredado.
+ * existentes y es la capa superior real. Al volver al entrenamiento, la
+ * pantalla queda debajo de su modal y no debe volver a consumir Atras.
  */
 function isContextualHistoryVisible() {
     const returnScreen = window.historyReturnScreen;
     return isHistoryScreenVisible()
+        && !isActiveWorkoutModalVisible()
         && (returnScreen === 'session' || returnScreen === 'workout');
 }
 
@@ -381,7 +388,7 @@ function registerHistoryBackHandlers() {
 
     backNavigation.register({
         id: 'history-contextual',
-        priority: backNavigation.PRIORITY.CHILD_VIEW,
+        priority: backNavigation.PRIORITY.CONTEXTUAL_VIEW,
         canHandle: isContextualHistoryVisible,
         handle: () => {
             goBackFromHistory();

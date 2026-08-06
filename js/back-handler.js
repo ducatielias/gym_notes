@@ -36,6 +36,7 @@ const BACK_ACTION_RESULT = Object.freeze({
 const BACK_HANDLER_PRIORITY = Object.freeze({
     DIALOG: 700,
     OVERLAY: 600,
+    CONTEXTUAL_VIEW: 550,
     AUXILIARY_PANEL: 500,
     CHILD_VIEW: 400,
     PROTECTED_CONTEXT: 300,
@@ -324,20 +325,8 @@ function handleLegacyPopState(event) {
 
     console.log('[back-handler] popstate:', state, 'visible:', isWorkoutVisible, 'bloqueo:', esBloqueoActivo);
 
-    // CASO 1: Historial abierto desde un entrenamiento activo
-    // El modal se oculta para mostrar Historial, pero el entrenamiento y sus
-    // temporizadores continúan activos. Restaurar ese contexto antes de que
-    // el estado anterior del navegador pueda llevar a otra pestaña o a salir.
-    const isHistoryFromActiveWorkout = esBloqueoActivo
-        && window.historyReturnScreen === 'workout'
-        && !isWorkoutVisible;
-    if (isHistoryFromActiveWorkout) {
-        console.log('[back-handler] Restaurando entrenamiento desde Historial.');
-        window.goBackFromHistory();
-        return;
-    }
-
-    // CASO 2: Entrenamiento visible
+    // CASO 1: Entrenamiento visible sin estado real para el handler migrado.
+    // Esta compatibilidad se conserva para no cerrar un modal legacy incompleto.
     if (isWorkoutVisible && esBloqueoActivo) {
         return window.showConfirm(
             '¿Salir del entrenamiento? Se perderán las notas no guardadas.',
@@ -366,14 +355,14 @@ function handleLegacyPopState(event) {
         return;
     }
 
-    // CASO 3: Navegación entre pestañas (hay estado)
+    // CASO 2: Navegación entre pestañas (hay estado)
     if (state && state.tab && state.tab !== 'workout') {
         console.log('[back-handler] Navegando a pestaña:', state.tab);
         window.switchTab(state.tab, { noPushState: true });
         return;
     }
 
-    // CASO 4: Sin estado (raíz)
+    // CASO 3: Sin estado (raíz)
     console.log('[back-handler] Estado raíz detectado.');
 
     if (hayPantallaInternaVisible()) {

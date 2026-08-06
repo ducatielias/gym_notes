@@ -616,7 +616,7 @@ function registerExerciseViewerBackHandler() {
 
     backNavigation.register({
         id: 'exercise-viewer',
-        priority: backNavigation.PRIORITY.CHILD_VIEW,
+        priority: backNavigation.PRIORITY.OVERLAY,
         canHandle: isExerciseViewerVisible,
         handle: () => {
             closeExerciseViewerFull();
