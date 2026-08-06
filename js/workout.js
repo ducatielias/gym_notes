@@ -495,3 +495,76 @@ window.insertarEjercicioEnEntrenamiento = insertarEjercicioEnEntrenamiento;
 window.filtrarEjerciciosEntrenamiento = filtrarEjerciciosEntrenamiento;
 window.obtenerListaEjerciciosDesdeBD = obtenerListaEjerciciosDesdeBD;
 window.renderExercisesListEntrenamiento = renderExercisesListEntrenamiento;
+
+// ===========================================================================
+// INTEGRACION CON ATRAS GLOBAL
+// ===========================================================================
+
+/**
+ * El modal puede ocultarse temporalmente para mostrar Historial o el visor.
+ * Solo se protege el entrenamiento que sigue siendo la capa visible y tiene
+ * estado real, sin crear una bandera paralela.
+ */
+function isActiveWorkoutVisible() {
+    const workoutModal = document.getElementById('active-workout');
+    return Boolean(aw_currentWorkout && workoutModal?.style.display === 'flex');
+}
+
+function registerActiveWorkoutBackHandler() {
+    const backNavigation = window.GymNotesBackNavigation;
+    if (!backNavigation) return;
+
+    backNavigation.register({
+        id: 'active-workout',
+        priority: backNavigation.PRIORITY.PROTECTED_CONTEXT,
+        canHandle: isActiveWorkoutVisible,
+        handle: async () => {
+            if (typeof window.cerrarEntrenamiento !== 'function') {
+                return backNavigation.RESULT.NOT_CONSUMED;
+            }
+
+            // El boton visible usa esta misma ruta, incluida su confirmacion.
+            await window.cerrarEntrenamiento();
+            return backNavigation.RESULT.CONSUMED;
+        }
+    });
+}
+
+function isActiveWorkoutExpandablePanelVisible(panelId) {
+    const workoutModal = document.getElementById('active-workout');
+    const panel = document.getElementById(panelId);
+    return Boolean(
+        workoutModal?.style.display === 'flex'
+        && panel?.classList.contains('open')
+    );
+}
+
+function registerActiveWorkoutPanelBackHandlers() {
+    const backNavigation = window.GymNotesBackNavigation;
+    if (!backNavigation) return;
+
+    // El registro conserva este orden cuando ambas capas comparten la
+    // prioridad semantica de panel auxiliar.
+    backNavigation.register({
+        id: 'exercise-panel',
+        priority: backNavigation.PRIORITY.AUXILIARY_PANEL,
+        canHandle: () => isActiveWorkoutExpandablePanelVisible('aw-exercises-wrapper'),
+        handle: () => {
+            window.toggleSectionEntrenamiento('exercises');
+            return backNavigation.RESULT.CONSUMED;
+        }
+    });
+
+    backNavigation.register({
+        id: 'toolbar-panel',
+        priority: backNavigation.PRIORITY.AUXILIARY_PANEL,
+        canHandle: () => isActiveWorkoutExpandablePanelVisible('aw-toolbar-wrapper'),
+        handle: () => {
+            window.toggleSectionEntrenamiento('format');
+            return backNavigation.RESULT.CONSUMED;
+        }
+    });
+}
+
+registerActiveWorkoutPanelBackHandlers();
+registerActiveWorkoutBackHandler();

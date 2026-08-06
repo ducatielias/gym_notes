@@ -33,7 +33,7 @@ function renderRoutineList() {
                     <h1>Rutinas</h1>
                 </div>
                 <div class="gn-header-actions">
-                    <button class="btn-header-ia" onclick="openIAAssistant()" title="Asistente IA">
+                    <button class="btn-header-ia" onclick="openIAAssistant('plan')" title="Asistente IA">
                         <i class="fa-solid fa-robot"></i>
                     </button>
                     <div class="routine-list-header__options">

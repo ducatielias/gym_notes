@@ -316,7 +316,7 @@ function renderTodayDashboard() {
                 </button>
 
                 <div class="today-data-buttons-row today-data-buttons-row--single">
-                    <button class="btn-today-entrenamiento-libre" onclick="openIAAssistant()">
+                    <button class="btn-today-entrenamiento-libre" onclick="openIAAssistant('today')">
                         <i class="fa-solid fa-robot"></i> Crear rutina con IA
                     </button>
                 </div>

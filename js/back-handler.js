@@ -116,6 +116,15 @@ function stabilizeConsumedPopState(context) {
     if (context?.source !== 'popstate') return;
 
     if (context.workoutActive) {
+        const workoutModal = document.getElementById('active-workout');
+
+        // Si el cierre confirmado ya ocultó el entrenamiento, se mantiene la
+        // navegación que ejecutó cerrarEntrenamiento() en lugar de recrear
+        // una entrada #workout que ya no representa la vista actual.
+        if (workoutModal?.style.display !== 'flex') {
+            return;
+        }
+
         history.pushState({ tab: 'workout' }, '', '#workout');
         return;
     }
