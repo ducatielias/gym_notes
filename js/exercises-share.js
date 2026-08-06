@@ -288,8 +288,8 @@ window.showExerciseShareDialog = function(exercise) {
             title,
             description,
             initialFocus: saveFileButton,
-            onEscape: () => closeShareDialog(null),
-            onBackdrop: () => closeShareDialog(null)
+            onEscape: closeExerciseShareDialog,
+            onBackdrop: closeExerciseShareDialog
         });
 
         exerciseShareOverlayAccessibility.addListener(overlay, saveFileButton, 'click', () => {
@@ -298,9 +298,12 @@ window.showExerciseShareDialog = function(exercise) {
         exerciseShareOverlayAccessibility.addListener(overlay, shareLinkButton, 'click', () => {
             closeShareDialog('share');
         });
-        exerciseShareOverlayAccessibility.addListener(overlay, cancelButton, 'click', () => {
-            closeShareDialog(null);
-        });
+        exerciseShareOverlayAccessibility.addListener(
+            overlay,
+            cancelButton,
+            'click',
+            closeExerciseShareDialog
+        );
     });
 };
 

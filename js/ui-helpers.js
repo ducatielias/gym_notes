@@ -34,6 +34,47 @@ function getOpenVisibleHeaderOptionsMenus() {
 }
 
 /**
+ * Conserva los cierres propietarios de cada cabecera. Las pantallas son
+ * excluyentes, por lo que solo uno de estos menús puede estar visible en un
+ * flujo normal.
+ */
+function closeOpenVisibleHeaderOptionsMenu() {
+    const openMenus = getOpenVisibleHeaderOptionsMenus();
+    const menu = openMenus[openMenus.length - 1];
+    if (!menu) return false;
+
+    const closeActions = {
+        todayOptionsMenu: window.closeTodayOptionsMenu,
+        routineListOptionsMenu: window.closeRoutineListOptionsMenu,
+        sessionListOptionsMenu: window.closeSessionListOptionsMenu,
+        historyOptionsMenu: window.closeHistoryOptionsMenu,
+        exercisesOptionsMenu: window.closeExercisesOptionsMenu
+    };
+    const closeMenu = closeActions[menu.id];
+    if (typeof closeMenu !== 'function') return false;
+
+    closeMenu();
+    return true;
+}
+
+/** Registra una única capa para los cinco menús de cabecera compartidos. */
+function registerHeaderOptionsMenuBackHandler() {
+    const backNavigation = window.GymNotesBackNavigation;
+    if (!backNavigation) return;
+
+    backNavigation.register({
+        id: 'open-menu',
+        priority: backNavigation.PRIORITY.MENU,
+        canHandle: () => getOpenVisibleHeaderOptionsMenus().length > 0,
+        handle: () => {
+            return closeOpenVisibleHeaderOptionsMenu()
+                ? backNavigation.RESULT.CONSUMED
+                : backNavigation.RESULT.NOT_CONSUMED;
+        }
+    });
+}
+
+/**
  * Cierra un menú de cabecera antes de que un clic exterior alcance el control
  * situado debajo. Las opciones internas y el botón controlador mantienen su
  * flujo normal, por lo que no requieren un segundo clic.
@@ -65,6 +106,8 @@ function handleHeaderOptionsMenuOutsideClick(event) {
 // Un único listener cubre tanto el clic de ratón como el click sintetizado por
 // una interacción táctil, sin combinar eventos redundantes de puntero y toque.
 document.addEventListener('click', handleHeaderOptionsMenuOutsideClick, true);
+
+window.registerHeaderOptionsMenuBackHandler = registerHeaderOptionsMenuBackHandler;
 
 // Respeta la preferencia de movimiento del sistema sin alterar el destino del desplazamiento.
 function getMotionAwareScrollBehavior() {

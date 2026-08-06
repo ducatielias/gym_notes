@@ -35,8 +35,10 @@ const BACK_ACTION_RESULT = Object.freeze({
  */
 const BACK_HANDLER_PRIORITY = Object.freeze({
     DIALOG: 700,
+    PWA_UPDATE_NOTICE: 675,
     TRANSIENT_OVERLAY: 650,
     OVERLAY: 600,
+    MENU: 575,
     CONTEXTUAL_VIEW: 550,
     AUXILIARY_PANEL: 500,
     CHILD_VIEW: 400,
@@ -452,6 +454,10 @@ window.GymNotesBackNavigation = Object.freeze({
     PRIORITY: BACK_HANDLER_PRIORITY,
     RESULT: BACK_ACTION_RESULT
 });
+
+// ui-helpers.js se carga antes que este núcleo y expone el único registro
+// compartido para los menús de cabecera.
+window.registerHeaderOptionsMenuBackHandler?.();
 
 // ==========================================================================
 // INICIALIZACIÓN AUTOMÁTICA

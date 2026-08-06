@@ -16,6 +16,12 @@ function closePlanCardMenus() {
         .forEach(menu => menu.classList.add('hidden'));
 }
 
+function isPlanCardMenuVisible() {
+    return Array.from(document.querySelectorAll(
+        '.session-menu-dropdown:not(.hidden), .routine-menu-dropdown:not(.hidden)'
+    )).some(menu => !menu.closest('.screen.hidden'));
+}
+
 function toggleRoutineMenu(event, routineId) {
     event.stopPropagation();
 
@@ -86,10 +92,7 @@ document.addEventListener('click', handlePlanCardMenuOutsideClick, true);
 
 // El menú del editor mantiene su cierre heredado independiente.
 document.addEventListener('click', () => {
-    const editorMenu = document.getElementById('editorOptionsMenu');
-    if (editorMenu) {
-        editorMenu.classList.add('hidden');
-    }
+    closeSessionOptionsMenu();
 });
 
 // ==========================================================================
@@ -104,6 +107,53 @@ function toggleSessionOptionsMenu(event) {
     if (targetMenu) {
         targetMenu.classList.toggle('hidden');
     }
+}
+
+function isSessionEditorOptionsMenuVisible() {
+    const menu = document.getElementById('editorOptionsMenu');
+    return Boolean(
+        menu
+        && !menu.classList.contains('hidden')
+        && !menu.closest('#screen-editor.hidden')
+    );
+}
+
+function closeSessionOptionsMenu() {
+    const menu = document.getElementById('editorOptionsMenu');
+    if (!menu) return false;
+
+    menu.classList.add('hidden');
+    return true;
+}
+
+function registerPlanMenuBackHandlers() {
+    const backNavigation = window.GymNotesBackNavigation;
+    if (!backNavigation) return;
+
+    backNavigation.register({
+        id: 'plan-card-menu',
+        priority: backNavigation.PRIORITY.MENU,
+        canHandle: isPlanCardMenuVisible,
+        handle: () => {
+            if (!isPlanCardMenuVisible()) {
+                return backNavigation.RESULT.NOT_CONSUMED;
+            }
+
+            closePlanCardMenus();
+            return backNavigation.RESULT.CONSUMED;
+        }
+    });
+
+    backNavigation.register({
+        id: 'session-editor-menu',
+        priority: backNavigation.PRIORITY.MENU,
+        canHandle: isSessionEditorOptionsMenuVisible,
+        handle: () => {
+            return closeSessionOptionsMenu()
+                ? backNavigation.RESULT.CONSUMED
+                : backNavigation.RESULT.NOT_CONSUMED;
+        }
+    });
 }
 
 async function handleSessionHistory() {
@@ -160,8 +210,7 @@ async function handleSessionHistory() {
     }
     
     // Cerrar el menú
-    const menu = document.getElementById('editorOptionsMenu');
-    if (menu) menu.classList.add('hidden');
+    closeSessionOptionsMenu();
 }
 
 async function handleSessionShare() {
@@ -169,8 +218,7 @@ async function handleSessionShare() {
     if (session) {
         await window.showAlert(`Compartir sesión: "${session.title}"\n\n(La funcionalidad de compartir estará disponible próximamente)`, "Compartir");
     }
-    const menu = document.getElementById('editorOptionsMenu');
-    if (menu) menu.classList.add('hidden');
+    closeSessionOptionsMenu();
 }
 
 async function startSessionTracking() {
@@ -200,3 +248,5 @@ window.toggleSessionOptionsMenu = toggleSessionOptionsMenu;
 window.handleSessionHistory = handleSessionHistory;
 window.handleSessionShare = handleSessionShare;
 window.startSessionTracking = startSessionTracking;
+
+registerPlanMenuBackHandlers();

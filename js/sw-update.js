@@ -28,6 +28,7 @@ let swPostponedVersion = null;
 let swUpdateModalOpening = false;
 
 const SW_IGNORED_VERSION_KEY = 'sw_ignored_version';
+const swUpdateModalDismissActions = new WeakMap();
 
 function formatSWVersion(version) {
     if (!version) return 'desconocida';
@@ -455,6 +456,45 @@ const swUpdateModalAccessibility = (() => {
     return { setup, addListener, cleanup };
 })();
 
+function isPwaUpdateNoticeVisible() {
+    const modal = document.getElementById('sw-update-modal');
+    const backNavigation = window.GymNotesBackNavigation;
+    return Boolean(
+        modal
+        && backNavigation?.isOverlayVisible('sw-update-modal')
+        && typeof swUpdateModalDismissActions.get(modal) === 'function'
+    );
+}
+
+/**
+ * Atrás equivale a posponer el aviso, igual que Escape y el clic en backdrop:
+ * nunca inicia una actualización ni modifica el Service Worker.
+ */
+function dismissPwaUpdateNotice(source = 'Atrás') {
+    const modal = document.getElementById('sw-update-modal');
+    const dismiss = modal && swUpdateModalDismissActions.get(modal);
+    if (typeof dismiss !== 'function') return false;
+
+    dismiss(source);
+    return true;
+}
+
+function registerPwaUpdateNoticeBackHandler() {
+    const backNavigation = window.GymNotesBackNavigation;
+    if (!backNavigation) return;
+
+    backNavigation.register({
+        id: 'pwa-update-notice',
+        priority: backNavigation.PRIORITY.PWA_UPDATE_NOTICE,
+        canHandle: isPwaUpdateNoticeVisible,
+        handle: () => {
+            return dismissPwaUpdateNotice()
+                ? backNavigation.RESULT.CONSUMED
+                : backNavigation.RESULT.NOT_CONSUMED;
+        }
+    });
+}
+
 async function showUpdateModal({ registration = null, manualCheck = false } = {}) {
     if (document.getElementById('sw-update-modal')) {
         return { shown: false, reason: 'already-open' };
@@ -578,12 +618,16 @@ function renderUpdateModal(updateInfo) {
     const laterButton = overlay.querySelector('#sw-later-btn');
     const ignoreVersionButton = overlay.querySelector('#sw-ignore-version-btn');
 
+    swUpdateModalDismissActions.set(overlay, (source) => {
+        postponeUpdate(updateInfo.version, source);
+    });
+
     swUpdateModalAccessibility.setup(overlay, {
         dialog,
         title,
         description,
-        onEscape: () => postponeUpdate(updateInfo.version, 'Escape'),
-        onBackdrop: () => postponeUpdate(updateInfo.version, 'clic fuera')
+        onEscape: () => dismissPwaUpdateNotice('Escape'),
+        onBackdrop: () => dismissPwaUpdateNotice('clic fuera')
     });
 
     // Listeners temporales de esta instancia visual.
@@ -597,8 +641,8 @@ function renderUpdateModal(updateInfo) {
         performExportAndUpdate();
     });
 
-    swUpdateModalAccessibility.addListener(overlay, laterButton, 'click', function() {
-        postponeUpdate(updateInfo.version, 'botón Más tarde');
+    swUpdateModalAccessibility.addListener(overlay, laterButton, 'click', () => {
+        dismissPwaUpdateNotice('botón Más tarde');
     });
 
     swUpdateModalAccessibility.addListener(overlay, ignoreVersionButton, 'click', function() {
@@ -631,6 +675,7 @@ function postponeUpdate(version, source) {
 function closeUpdateModal() {
     const modal = document.getElementById('sw-update-modal');
     if (modal) {
+        swUpdateModalDismissActions.delete(modal);
         swUpdateModalAccessibility.cleanup(modal);
         modal.remove();
     }
@@ -817,5 +862,7 @@ window.showUpdateModal = showUpdateModal;
 window.closeUpdateModal = closeUpdateModal;
 window.checkForUpdateAndShowResult = checkForUpdateAndShowResult;
 window.fetchSWVersion = fetchSWVersion;
+
+registerPwaUpdateNoticeBackHandler();
 
 console.log('[sw-update] Módulo cargado correctamente');
