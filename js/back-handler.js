@@ -31,7 +31,8 @@ const BACK_ACTION_RESULT = Object.freeze({
 });
 
 /**
- * Orden semantico para las familias que se migraran en fases posteriores.
+ * Orden semántico de las capas de Atrás. Dentro de una misma prioridad gana
+ * el primer registro: register() conserva ese orden incluso al actualizar un ID.
  */
 const BACK_HANDLER_PRIORITY = Object.freeze({
     DIALOG: 700,
@@ -223,35 +224,27 @@ async function resolveBackAction(context, legacyFallback) {
 }
 
 /**
- * Crea un contexto efimero desde el DOM y los estados ya existentes. No crea
- * una pila paralela ni introduce nuevas banderas de navegacion.
+ * Crea solo el contexto que consumen el resolvedor y el fallback. No expone
+ * estado mutable ni crea una pila de navegación paralela.
  */
 function buildBackContext(event) {
     const workoutModal = document.getElementById('active-workout');
-    const customModal = document.getElementById('customModal');
     const visibleScreen = document.querySelector('.screen:not(.hidden)');
     const isWorkoutVisible = workoutModal?.style.display === 'flex';
-    const isCustomModalVisible = customModal
-        && !customModal.classList.contains('hidden')
-        && customModal.getAttribute('aria-hidden') !== 'true';
 
     return Object.freeze({
         source: 'popstate',
         state: event?.state ?? null,
         currentTab,
         visibleScreenId: visibleScreen?.id?.replace('screen-', '') || null,
-        activeModalId: isCustomModalVisible ? 'custom-modal' : null,
         historyReturnScreen: window.historyReturnScreen || null,
-        routineNavigationActive: Boolean(window.currentRoutineId),
-        workoutActive: Boolean(isWorkoutVisible),
-        url: window.location.href,
-        hash: window.location.hash
+        workoutActive: Boolean(isWorkoutVisible)
     });
 }
 
 /**
- * RC-21B integra unicamente el dialogo comun. El resto de capas se migrara
- * despues mediante el mismo registro.
+ * El diálogo común pertenece al núcleo. Cada módulo propietario registra sus
+ * propias capas con register({ id, priority, canHandle, handle }).
  */
 function registerCommonModalBackHandler() {
     registerBackHandler({
@@ -299,14 +292,11 @@ function liberarBloqueoEntrenamiento() {
 // ==========================================================================
 
 function hayPantallaInternaVisible() {
-    const internals = ['editor', 'exercise-editor', 'history-detail', 'exercise-viewer'];
-    for (const id of internals) {
-        const el = document.getElementById(`screen-${id}`);
-        if (el && !el.classList.contains('hidden')) {
-            return true;
-        }
-    }
-    return false;
+    // RC-21 ya cubre editor de sesión, detalle de Historial y visor de
+    // ejercicios. El editor de Ejercicios aún conserva solo su retorno
+    // heredado closeExerciseModal(), por lo que necesita este último fallback.
+    const exerciseEditor = document.getElementById('screen-exercise-editor');
+    return Boolean(exerciseEditor && !exerciseEditor.classList.contains('hidden'));
 }
 
 // ==========================================================================
@@ -324,8 +314,10 @@ function handlePopState(event) {
 }
 
 /**
- * Adaptador temporal del flujo de RC-20. Conserva sus ramas y espera sus
- * confirmaciones para que el nucleo pueda bloquear la reentrancia.
+ * Compatibilidad mínima: resuelve salida en raíz, navegación principal, el
+ * editor de Ejercicios no migrado y el entrenamiento si su estado legado es
+ * el único disponible. Mantiene las confirmaciones asíncronas bajo el mismo
+ * bloqueo de reentrancia del resolvedor.
  */
 async function runLegacyBackFallback(context) {
     const legacyResult = handleLegacyPopState({ state: context.state });
@@ -447,6 +439,11 @@ window.alAbrirEntrenamiento = alAbrirEntrenamiento;
 window.liberarBloqueoEntrenamiento = liberarBloqueoEntrenamiento;
 window.navigateToTab = navigateToTab;
 window.setCurrentTab = setCurrentTab;
+/**
+ * API pública mínima para módulos propietarios. register() sustituye un ID
+ * existente de forma idempotente; isOverlayVisible() evita inferir overlays
+ * dinámicos desde banderas históricas.
+ */
 window.GymNotesBackNavigation = Object.freeze({
     register: registerBackHandler,
     unregister: unregisterBackHandler,
