@@ -40,7 +40,7 @@
     flex: 1;
 }
 
-.aw-history-btn,
+.aw-history-btn:not(.gn-options-button),
 .aw-close-btn:not(.gn-close-button) {
     background: none;
     border: none;
@@ -53,7 +53,7 @@
     justify-content: center;
 }
 
-.aw-history-btn:active,
+.aw-history-btn:not(.gn-options-button):active,
 .aw-close-btn:not(.gn-close-button):active {
     background-color: #f0f0f0;
 }

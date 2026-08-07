@@ -31,19 +31,32 @@
     position: static;
     top: auto;
     z-index: auto;
-    background-color: var(--gn-color-surface);
-    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
-    box-shadow: var(--gn-shadow-none);
-    padding-top: calc(1rem + var(--gn-safe-top));
-    padding-inline-start: calc(0.9375rem + var(--gn-safe-left));
-    padding-inline-end: calc(0.9375rem + var(--gn-safe-right));
+    padding-block-end: var(--gn-space-lg);
 }
 
 #active-workout .aw-header-top {
-    gap: var(--gn-space-sm);
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+    grid-template-areas:
+        "close spacer history"
+        "title title title";
+    align-items: center;
+    column-gap: var(--gn-space-md);
+    row-gap: var(--gn-space-md);
+    margin-bottom: var(--gn-space-lg);
+}
+
+#active-workout .aw-close-btn {
+    grid-area: close;
+}
+
+#active-workout .aw-history-btn {
+    grid-area: history;
+    justify-self: end;
 }
 
 #active-workout .aw-title {
+    grid-area: title;
     min-width: 0;
     overflow-wrap: anywhere;
     color: var(--gn-color-text);
@@ -58,59 +71,6 @@
     color: var(--gn-color-text);
     font-family: var(--gn-font-title);
     font-weight: var(--gn-font-weight-bold);
-}
-
-/* Acciones existentes de historial y cierre. */
-#active-workout .aw-history-btn,
-#active-workout .aw-close-btn:not(.gn-close-button) {
-    box-sizing: border-box;
-    width: 2.75rem;
-    min-width: 2.75rem;
-    min-height: 2.75rem;
-    padding: 0;
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
-    border-radius: var(--gn-radius-circle);
-    color: var(--gn-color-text);
-    box-shadow: var(--gn-shadow-none);
-    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
-        border-color var(--gn-motion-fast) var(--gn-ease-standard),
-        color var(--gn-motion-fast) var(--gn-ease-standard);
-}
-
-#active-workout .aw-history-btn {
-    background-color: var(--gn-color-surface-secondary);
-}
-
-#active-workout .aw-close-btn:not(.gn-close-button) {
-    border-color: var(--gn-color-danger-text);
-    background-color: var(--gn-color-danger);
-    color: var(--gn-color-danger-text);
-}
-
-@media (hover: hover) {
-    #active-workout .aw-history-btn:hover:not(:disabled):not([aria-disabled="true"]) {
-        border-color: var(--gn-color-text);
-        background-color: var(--gn-color-accent);
-    }
-
-    #active-workout .aw-close-btn:not(.gn-close-button):hover:not(:disabled):not([aria-disabled="true"]) {
-        background-color: var(--gn-color-surface-secondary);
-    }
-}
-
-#active-workout .aw-history-btn:active:not(:disabled):not([aria-disabled="true"]),
-#active-workout .aw-close-btn:not(.gn-close-button):active:not(:disabled):not([aria-disabled="true"]) {
-    transform: none;
-}
-
-#active-workout .aw-history-btn:disabled,
-#active-workout .aw-close-btn:not(.gn-close-button):disabled,
-#active-workout .aw-history-btn[aria-disabled="true"],
-#active-workout .aw-close-btn:not(.gn-close-button)[aria-disabled="true"] {
-    border-color: var(--gn-color-border-muted);
-    background-color: var(--gn-color-disabled);
-    color: var(--gn-color-disabled-text);
-    cursor: not-allowed;
 }
 
 /* Controles expandibles de formato y selector de ejercicios. */
@@ -343,8 +303,6 @@
 }
 
 /* Indicadores de foco para los controles que ya existen en esta vista. */
-#active-workout .aw-history-btn:focus-visible,
-#active-workout .aw-close-btn:not(.gn-close-button):focus-visible,
 #active-workout .aw-tool-toggle:focus-visible,
 #active-workout .aw-exercises-content .search-input:focus-visible,
 #active-workout #aw-toolbar-container.ql-toolbar button:focus-visible,
@@ -354,19 +312,8 @@
 }
 
 @media (max-width: 30rem) {
-    #active-workout .aw-header-top {
-        align-items: flex-start;
-    }
-
     #active-workout .aw-title {
         font-size: var(--gn-font-size-sm);
-    }
-
-    #active-workout .aw-history-btn,
-    #active-workout .aw-close-btn:not(.gn-close-button) {
-        width: 2.5rem;
-        min-width: 2.5rem;
-        min-height: 2.5rem;
     }
 
     #active-workout .aw-tools-row {
@@ -385,8 +332,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #active-workout .aw-history-btn,
-    #active-workout .aw-close-btn:not(.gn-close-button),
     #active-workout .aw-tool-toggle,
     #active-workout .aw-exercises-content .search-input {
         transition-duration: 0ms;

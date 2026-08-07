@@ -123,14 +123,14 @@
     <!-- MODAL DE ENTRENAMIENTO ACTIVO -->
     <div id="active-workout" class="modal-overlay" style="display:none; align-items: stretch; justify-content: stretch; background: var(--background-color);">
         <div class="aw-container">
-            <div class="aw-header">
+            <div class="aw-header gn-screen-header">
                 <div class="aw-header-top">
-                    <div id="aw-title-small" class="aw-title">Entrenando: <span id="aw-session-title"></span></div>
-                    <button id="aw-history-btn" class="aw-history-btn" title="Historial de esta sesión" style="position: relative; z-index: 10; pointer-events: auto;">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                    </button>
                     <button onclick="cerrarEntrenamiento()" class="aw-close-btn gn-close-button" type="button" aria-label="Cerrar entrenamiento" title="Cerrar (sin guardar)">
                         <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <div id="aw-title-small" class="aw-title">Entrenando: <span id="aw-session-title"></span></div>
+                    <button id="aw-history-btn" class="aw-history-btn gn-options-button" title="Historial de esta sesión" style="position: relative; z-index: 10; pointer-events: auto;">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
                     </button>
                 </div>
                 <div class="aw-timers-container">
