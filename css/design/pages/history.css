@@ -22,6 +22,11 @@
     font-family: var(--gn-font-body);
 }
 
+/* El historial contextual del entrenamiento solo necesita volver a su origen. */
+#screen-history .history-header[data-history-mode="workout"] .history-header__options {
+    display: none;
+}
+
 #screen-history .btn-history-options:not(.gn-options-button) {
     display: inline-grid;
     width: 2.75rem;

@@ -53,6 +53,8 @@
     align-items: center;
     column-gap: var(--gn-space-md);
     row-gap: var(--gn-space-md);
+    /* Mitad superior de la fila canónica gn-screen-header__row. */
+    padding-block-start: calc(var(--gn-space-lg) - var(--gn-border-width-thin));
     margin-bottom: var(--gn-space-lg);
 }
 
