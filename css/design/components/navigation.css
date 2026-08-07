@@ -7,7 +7,7 @@
 .bottom-nav {
     position: fixed;
     right: var(--gn-space-md);
-    bottom: calc(var(--gn-space-md) + env(safe-area-inset-bottom, 0px));
+    bottom: calc(var(--gn-space-md) + var(--gn-safe-bottom));
     left: var(--gn-space-md);
     box-sizing: border-box;
     width: auto;
@@ -42,7 +42,7 @@
             var(--gn-space-3xl) +
             var(--gn-space-3xl) +
             var(--gn-space-xl) +
-            env(safe-area-inset-bottom, 0px)
+            var(--gn-safe-bottom)
         );
         background: linear-gradient(
             to bottom,

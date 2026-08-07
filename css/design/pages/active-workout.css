@@ -11,6 +11,7 @@
 #active-workout .aw-container {
     background-color: var(--gn-color-background);
     color: var(--gn-color-text);
+    padding-bottom: var(--gn-safe-bottom);
 }
 
 /*
@@ -33,6 +34,9 @@
     background-color: var(--gn-color-surface);
     border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
     box-shadow: var(--gn-shadow-none);
+    padding-top: calc(1rem + var(--gn-safe-top));
+    padding-inline-start: calc(0.9375rem + var(--gn-safe-left));
+    padding-inline-end: calc(0.9375rem + var(--gn-safe-right));
 }
 
 #active-workout .aw-header-top {
@@ -114,6 +118,14 @@
     background-color: var(--gn-color-background);
     border-top-color: var(--gn-color-border-muted);
     border-bottom-color: var(--gn-color-border-muted);
+    padding-inline-start: calc(1rem + var(--gn-safe-left));
+    padding-inline-end: calc(1rem + var(--gn-safe-right));
+}
+
+#active-workout .aw-rest-panel,
+#active-workout .aw-exercises-content {
+    padding-inline-start: calc(0.9375rem + var(--gn-safe-left));
+    padding-inline-end: calc(0.9375rem + var(--gn-safe-right));
 }
 
 #active-workout .aw-tool-toggle {
@@ -174,7 +186,7 @@
 /* Formato permanece accesible al desplazarse, sin reservar espacio al cerrarse. */
 #active-workout #aw-toolbar-wrapper.open {
     position: sticky;
-    top: 0;
+    top: var(--gn-safe-top);
     z-index: var(--gn-layer-sticky);
     background-color: var(--gn-color-surface-secondary);
     border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);

@@ -76,7 +76,11 @@
 /* Titulo y metadatos del registro. */
 #screen-history-detail .history-detail-title-row {
     gap: var(--gn-space-xs);
-    padding: var(--gn-space-md) var(--gn-space-lg) var(--gn-space-lg);
+    padding:
+        var(--gn-space-md)
+        calc(var(--gn-space-lg) + var(--gn-safe-right))
+        var(--gn-space-lg)
+        calc(var(--gn-space-lg) + var(--gn-safe-left));
     background: var(--gn-color-background);
     border-bottom: 0;
 }
@@ -124,7 +128,11 @@
 
 /* Cuerpo desplazable y contenido enriquecido de lectura. */
 #screen-history-detail .history-detail-body {
-    padding: var(--gn-space-xl) var(--gn-space-lg) calc(6.5rem + env(safe-area-inset-bottom));
+    padding:
+        var(--gn-space-xl)
+        calc(var(--gn-space-lg) + var(--gn-safe-right))
+        calc(6.5rem + var(--gn-safe-bottom))
+        calc(var(--gn-space-lg) + var(--gn-safe-left));
     background: var(--gn-color-background);
 }
 

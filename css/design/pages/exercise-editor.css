@@ -55,7 +55,11 @@
 /* Nombre del ejercicio dentro del flujo de cabecera. */
 #screen-exercise-editor .exercise-editor-title-row {
     gap: var(--gn-space-xs);
-    padding: var(--gn-space-sm) var(--gn-space-lg) var(--gn-space-md);
+    padding:
+        var(--gn-space-sm)
+        calc(var(--gn-space-lg) + var(--gn-safe-right))
+        var(--gn-space-md)
+        calc(var(--gn-space-lg) + var(--gn-safe-left));
     background-color: var(--gn-color-surface);
     border-bottom: 0;
 }
@@ -99,7 +103,11 @@
 
 /* Cuerpo desplazable y controles generados por el editor. */
 #screen-exercise-editor .exercise-editor-body {
-    padding: var(--gn-space-lg) var(--gn-space-lg) calc(7.5rem + env(safe-area-inset-bottom));
+    padding:
+        var(--gn-space-lg)
+        calc(var(--gn-space-lg) + var(--gn-safe-right))
+        calc(7.5rem + var(--gn-safe-bottom))
+        calc(var(--gn-space-lg) + var(--gn-safe-left));
     background-color: var(--gn-color-background);
 }
 
@@ -267,7 +275,8 @@
 
 @media (max-width: 22.5rem) {
     #screen-exercise-editor .exercise-editor-body {
-        padding-inline: var(--gn-space-md);
+        padding-inline-start: calc(var(--gn-space-md) + var(--gn-safe-left));
+        padding-inline-end: calc(var(--gn-space-md) + var(--gn-safe-right));
     }
 }
 

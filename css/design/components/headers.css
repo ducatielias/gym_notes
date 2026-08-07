@@ -24,7 +24,9 @@
     flex-direction: column;
     align-items: stretch;
     width: 100%;
-    padding-inline: calc(var(--gn-space-xl) - var(--gn-space-xs));
+    padding-top: var(--gn-safe-top);
+    padding-inline-start: calc(var(--gn-space-xl) - var(--gn-space-xs) + var(--gn-safe-left));
+    padding-inline-end: calc(var(--gn-space-xl) - var(--gn-space-xs) + var(--gn-safe-right));
     background-color: var(--gn-color-background);
     border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
     box-shadow: var(--gn-shadow-none);

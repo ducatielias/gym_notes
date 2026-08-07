@@ -53,6 +53,12 @@
     --gn-space-2xl: 2rem;
     --gn-space-3xl: 3rem;
 
+    /* Safe areas: la superficie puede llegar al borde, los controles no. */
+    --gn-safe-top: env(safe-area-inset-top, 0px);
+    --gn-safe-right: env(safe-area-inset-right, 0px);
+    --gn-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --gn-safe-left: env(safe-area-inset-left, 0px);
+
     /* Radios */
     --gn-radius-sm: 0.75rem;
     --gn-radius-md: 1rem;

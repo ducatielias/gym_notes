@@ -4,11 +4,28 @@
  * afectar los overlays y modales de otros flujos.
  */
 
+/* Los diálogos dinámicos comparten un área segura sin afectar al workout fullscreen. */
+.modal-overlay:not(#active-workout) {
+    box-sizing: border-box;
+    inset: 0;
+    inline-size: auto;
+    block-size: auto;
+    padding:
+        calc(var(--gn-space-lg) + var(--gn-safe-top))
+        calc(var(--gn-space-lg) + var(--gn-safe-right))
+        calc(var(--gn-space-lg) + var(--gn-safe-bottom))
+        calc(var(--gn-space-lg) + var(--gn-safe-left));
+}
+
 /* Overlay y capa de diálogo */
 #customModal.modal-overlay {
     box-sizing: border-box;
     inset: 0;
-    padding: var(--gn-space-lg);
+    padding:
+        calc(var(--gn-space-lg) + var(--gn-safe-top))
+        calc(var(--gn-space-lg) + var(--gn-safe-right))
+        calc(var(--gn-space-lg) + var(--gn-safe-bottom))
+        calc(var(--gn-space-lg) + var(--gn-safe-left));
     background-color: rgb(37 36 30 / 56%);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -24,8 +41,8 @@
     flex-direction: column;
     inline-size: min(100%, 28rem);
     max-inline-size: 100%;
-    max-block-size: calc(100vh - var(--gn-space-2xl));
-    max-block-size: calc(100dvh - var(--gn-space-2xl));
+    max-block-size: calc(100vh - var(--gn-space-2xl) - var(--gn-safe-top) - var(--gn-safe-bottom));
+    max-block-size: calc(100dvh - var(--gn-space-2xl) - var(--gn-safe-top) - var(--gn-safe-bottom));
     overflow: hidden;
     border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-modal);
@@ -101,12 +118,16 @@
 
 @media (max-width: 22.4375rem) {
     #customModal.modal-overlay {
-        padding: var(--gn-space-md);
+        padding:
+            calc(var(--gn-space-md) + var(--gn-safe-top))
+            calc(var(--gn-space-md) + var(--gn-safe-right))
+            calc(var(--gn-space-md) + var(--gn-safe-bottom))
+            calc(var(--gn-space-md) + var(--gn-safe-left));
     }
 
     #customModal .modal-container {
-        max-block-size: calc(100vh - var(--gn-space-xl));
-        max-block-size: calc(100dvh - var(--gn-space-xl));
+        max-block-size: calc(100vh - var(--gn-space-xl) - var(--gn-safe-top) - var(--gn-safe-bottom));
+        max-block-size: calc(100dvh - var(--gn-space-xl) - var(--gn-safe-top) - var(--gn-safe-bottom));
     }
 
     #customModal .modal-header {

@@ -82,7 +82,11 @@
    FILA DE TÍTULO REDISEÑADA - AHORA CON TEXTAREA AJUSTABLE
    ========================================================================== */
 #screen-editor .editor-title-row {
-    padding: var(--gn-space-sm) calc(var(--gn-space-xl) - var(--gn-space-xs)) var(--gn-space-md);
+    padding:
+        var(--gn-space-sm)
+        calc(var(--gn-space-xl) - var(--gn-space-xs) + var(--gn-safe-right))
+        var(--gn-space-md)
+        calc(var(--gn-space-xl) - var(--gn-space-xs) + var(--gn-safe-left));
     background-color: var(--gn-color-surface);
     border-bottom: 0;
     flex-shrink: 0;
@@ -843,7 +847,11 @@
 #screen-editor #toolbarWrapper.open .ql-toolbar.ql-snow {
     border: 0;
     border-radius: 0;
-    padding: var(--gn-space-xs) var(--gn-space-md);
+    padding:
+        var(--gn-space-xs)
+        calc(var(--gn-space-md) + var(--gn-safe-right))
+        var(--gn-space-xs)
+        calc(var(--gn-space-md) + var(--gn-safe-left));
     background-color: var(--gn-color-surface-secondary);
     color: var(--gn-color-text);
     box-shadow: var(--gn-shadow-none);
