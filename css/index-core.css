@@ -21,8 +21,16 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+/*
+ * La superficie exterior debe alcanzar el borde físico en PWA fullscreen.
+ * Los headers conservan su propio safe-area para separar los controles.
+ */
+html {
+    background-color: var(--gn-color-background);
+}
+
 body {
-    background-color: var(--background-color);
+    background-color: var(--gn-color-background);
     color: var(--primary-color);
     overflow: hidden;
     height: 100vh;
@@ -34,6 +42,7 @@ body {
     height: 100%;
     overflow: hidden;
     position: relative;
+    background-color: var(--gn-color-background);
 }
 
 .screen {
@@ -43,11 +52,10 @@ body {
     top: 0;
     left: 0;
     overflow-y: auto;
-    background-color: var(--background-color);
+    background-color: var(--gn-color-background);
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 20px));
 }
 
 .screen.hidden {
     display: none !important;
 }
-
