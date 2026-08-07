@@ -9,9 +9,19 @@
 }
 
 #active-workout .aw-container {
+    display: flex;
+    flex-direction: column;
     background-color: var(--gn-color-background);
     color: var(--gn-color-text);
     padding-bottom: var(--gn-safe-bottom);
+}
+
+/* El contenedor principal conserva el único scroll del entrenamiento. */
+#active-workout .aw-header,
+#active-workout .aw-tools-row,
+#active-workout #aw-toolbar-wrapper,
+#active-workout #aw-exercises-wrapper {
+    flex: 0 0 auto;
 }
 
 /*
@@ -185,7 +195,18 @@
 }
 
 #active-workout .aw-content {
+    display: flex;
+    flex: 1 0 auto;
+    min-height: 0;
     background-color: var(--gn-color-background);
+}
+
+#active-workout .aw-editor-container,
+#active-workout #aw-editor-container .ql-container {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    min-height: 0;
 }
 
 #active-workout .aw-editor-container,
@@ -206,6 +227,8 @@
 }
 
 #active-workout #aw-editor-container .ql-editor {
+    flex: 1 0 auto;
+    min-height: 100%;
     color: var(--gn-color-text);
     font-family: var(--gn-font-body);
     font-size: var(--gn-font-size-md);
