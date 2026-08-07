@@ -1,8 +1,8 @@
-/**
- * MÓDULO: back-handler.js
- * Control de navegación con historial y manejo del botón de retroceso.
+﻿/**
+ * MÃ“DULO: back-handler.js
+ * Control de navegaciÃ³n con historial y manejo del botÃ³n de retroceso.
  * 
- * Técnica: el entrenamiento tiene su propio estado en el historial (pushState).
+ * TÃ©cnica: el entrenamiento tiene su propio estado en el historial (pushState).
  * Al cancelar la salida, se reconstruye la trampa con otro pushState.
  * 
  * Compatible con Samsung Internet y Chrome Android.
@@ -13,9 +13,11 @@
 // ==========================================================================
 
 let backHandlerInitialized = false;
-let esBloqueoActivo = false; // true mientras el entrenamiento esté activo
+let esBloqueoActivo = false; // true mientras el entrenamiento estÃ© activo
 let currentTab = 'today';
 let backResolutionPending = false;
+// Estado privado de una sola resolución asíncrona; no crea otra pila de historial.
+let pendingBackResolution = null;
 let nextBackHandlerOrder = 0;
 
 const registeredBackHandlers = new Map();
@@ -31,7 +33,7 @@ const BACK_ACTION_RESULT = Object.freeze({
 });
 
 /**
- * Orden semántico de las capas de Atrás. Dentro de una misma prioridad gana
+ * Orden semÃ¡ntico de las capas de AtrÃ¡s. Dentro de una misma prioridad gana
  * el primer registro: register() conserva ese orden incluso al actualizar un ID.
  */
 const BACK_HANDLER_PRIORITY = Object.freeze({
@@ -48,324 +50,6 @@ const BACK_HANDLER_PRIORITY = Object.freeze({
     APP_EXIT: 100
 });
 
-// RC-21H.1-METRICS START
-// Diagnóstico temporal en memoria para reproducir Atrás en móviles sin DevTools.
-const RC21H_METRICS_MAX_EVENTS = 120;
-const RC21H_METRICS_HISTORY_TAP_COUNT = 5;
-const RC21H_METRICS_HISTORY_TAP_WINDOW_MS = 900;
-let rc21hMetricsEvents = [];
-let rc21hMetricsCaptureActive = false;
-let rc21hMetricsPanel = null;
-let rc21hMetricsHistoryTapCount = 0;
-let rc21hMetricsHistoryTapTimer = null;
-let rc21hMetricsHistoryButton = null;
-let rc21hMetricsReplayingHistoryClick = false;
-let rc21hMetricsInitialized = false;
-
-function cloneRC21HMetricValue(value) {
-    try {
-        return JSON.parse(JSON.stringify(value ?? null));
-    } catch (error) {
-        return '[no-serializable]';
-    }
-}
-
-function isRC21HMetricElementVisible(elementId) {
-    const element = document.getElementById(elementId);
-    return Boolean(
-        element
-        && element.isConnected
-        && !element.hidden
-        && !element.classList.contains('hidden')
-        && element.style.display !== 'none'
-        && element.getAttribute('aria-hidden') !== 'true'
-    );
-}
-
-function getRC21HMetricVisibleScreen() {
-    return document.querySelector('.screen:not(.hidden)')?.id || null;
-}
-
-function createRC21HMetricEntry(type, phase, details = {}) {
-    const visualViewport = window.visualViewport;
-    const workoutExists = typeof aw_currentWorkout !== 'undefined' && Boolean(aw_currentWorkout);
-
-    return {
-        timestamp: Number(performance.now().toFixed(2)),
-        recordedAt: new Date().toISOString(),
-        type,
-        phase,
-        historyState: cloneRC21HMetricValue(history.state),
-        historyLength: history.length,
-        href: window.location.href,
-        hash: window.location.hash,
-        visibilityState: document.visibilityState,
-        documentHasFocus: document.hasFocus(),
-        visibleScreen: getRC21HMetricVisibleScreen(),
-        backResolutionPending,
-        workoutExists,
-        workoutLockActive: esBloqueoActivo,
-        activeWorkoutVisible: isRC21HMetricElementVisible('active-workout'),
-        commonModalVisible: isRC21HMetricElementVisible('customModal'),
-        historyReturnScreen: window.historyReturnScreen || null,
-        details: cloneRC21HMetricValue(details),
-        viewport: {
-            innerWidth: window.innerWidth,
-            innerHeight: window.innerHeight,
-            visualWidth: visualViewport?.width ?? null,
-            visualHeight: visualViewport?.height ?? null,
-            visualOffsetTop: visualViewport?.offsetTop ?? null
-        }
-    };
-}
-
-function refreshRC21HMetricsPanel() {
-    if (!rc21hMetricsPanel?.isConnected) return;
-
-    const count = rc21hMetricsPanel.querySelector('[data-rc21h-count]');
-    const output = rc21hMetricsPanel.querySelector('[data-rc21h-output]');
-    if (count) count.textContent = `Eventos registrados: ${rc21hMetricsEvents.length}`;
-    if (output) output.value = JSON.stringify(createRC21HMetricsSnapshot(), null, 2);
-}
-
-function recordRC21HMetric(type, phase, details = {}) {
-    if (!rc21hMetricsCaptureActive) return;
-
-    try {
-        rc21hMetricsEvents.push(createRC21HMetricEntry(type, phase, details));
-        if (rc21hMetricsEvents.length > RC21H_METRICS_MAX_EVENTS) {
-            rc21hMetricsEvents.shift();
-        }
-        refreshRC21HMetricsPanel();
-    } catch (error) {
-        // Un fallo del diagnóstico nunca debe afectar a la navegación real.
-    }
-}
-
-function createRC21HMetricsSnapshot() {
-    const visualViewport = window.visualViewport;
-
-    return {
-        metadata: {
-            userAgent: navigator.userAgent || null,
-            platform: navigator.userAgentData?.platform || navigator.platform || null,
-            standalone: Boolean(
-                navigator.standalone
-                || window.matchMedia?.('(display-mode: standalone)').matches
-            ),
-            viewport: {
-                innerWidth: window.innerWidth,
-                innerHeight: window.innerHeight
-            },
-            visualViewport: visualViewport ? {
-                width: visualViewport.width,
-                height: visualViewport.height,
-                offsetTop: visualViewport.offsetTop
-            } : null,
-            capturedAt: new Date().toISOString()
-        },
-        events: cloneRC21HMetricValue(rc21hMetricsEvents)
-    };
-}
-
-function clearRC21HMetrics() {
-    rc21hMetricsEvents = [];
-    refreshRC21HMetricsPanel();
-}
-
-function closeRC21HMetricsPanel() {
-    if (rc21hMetricsPanel?.isConnected) {
-        rc21hMetricsPanel.remove();
-    }
-    rc21hMetricsPanel = null;
-}
-
-async function copyRC21HMetrics() {
-    const serializedSnapshot = JSON.stringify(createRC21HMetricsSnapshot(), null, 2);
-    const output = rc21hMetricsPanel?.querySelector('[data-rc21h-output]');
-    if (output) {
-        output.value = serializedSnapshot;
-        output.select();
-    }
-
-    try {
-        if (navigator.clipboard?.writeText) {
-            await navigator.clipboard.writeText(serializedSnapshot);
-            return true;
-        }
-    } catch (error) {
-        // El textarea visible mantiene una alternativa seleccionable sin red.
-    }
-
-    try {
-        return Boolean(document.execCommand?.('copy'));
-    } catch (error) {
-        return false;
-    }
-}
-
-function showRC21HMetricsPanel() {
-    if (rc21hMetricsPanel?.isConnected) {
-        refreshRC21HMetricsPanel();
-        return;
-    }
-
-    const panel = document.createElement('section');
-    panel.setAttribute('role', 'dialog');
-    panel.setAttribute('aria-label', 'RC-21H Diagnóstico');
-    panel.style.cssText = [
-        'position:fixed',
-        'z-index:10000',
-        'inset:12px',
-        'display:flex',
-        'flex-direction:column',
-        'gap:10px',
-        'padding:16px',
-        'background:#fffdf8',
-        'color:#25241e',
-        'border:2px solid #2b2a24',
-        'border-radius:16px',
-        'box-shadow:0 8px 24px rgba(0,0,0,.24)',
-        'font:14px system-ui,sans-serif'
-    ].join(';');
-
-    const title = document.createElement('strong');
-    title.textContent = 'RC-21H Diagnóstico';
-
-    const count = document.createElement('span');
-    count.textContent = 'Eventos registrados: 0';
-    count.setAttribute('data-rc21h-count', '');
-
-    const copyButton = document.createElement('button');
-    copyButton.type = 'button';
-    copyButton.textContent = 'Copiar diagnóstico';
-    copyButton.addEventListener('click', async () => {
-        const copied = await copyRC21HMetrics();
-        copyButton.textContent = copied ? 'Diagnóstico copiado' : 'Selecciona y copia el texto';
-    });
-
-    const clearButton = document.createElement('button');
-    clearButton.type = 'button';
-    clearButton.textContent = 'Limpiar';
-    clearButton.addEventListener('click', clearRC21HMetrics);
-
-    const closeButton = document.createElement('button');
-    closeButton.type = 'button';
-    closeButton.textContent = 'Cerrar';
-    closeButton.addEventListener('click', closeRC21HMetricsPanel);
-
-    const output = document.createElement('textarea');
-    output.readOnly = true;
-    output.setAttribute('data-rc21h-output', '');
-    output.setAttribute('aria-label', 'Diagnóstico seleccionable');
-    output.style.cssText = 'flex:1;min-height:180px;width:100%;resize:vertical;font:11px ui-monospace,monospace;box-sizing:border-box';
-
-    panel.append(title, count, copyButton, clearButton, closeButton, output);
-    document.body.appendChild(panel);
-    rc21hMetricsPanel = panel;
-    refreshRC21HMetricsPanel();
-}
-
-function resetRC21HMetricsHistoryTapSequence() {
-    if (rc21hMetricsHistoryTapTimer !== null) {
-        window.clearTimeout(rc21hMetricsHistoryTapTimer);
-        rc21hMetricsHistoryTapTimer = null;
-    }
-    rc21hMetricsHistoryTapCount = 0;
-}
-
-function replayRC21HMetricsHistoryButtonClick() {
-    if (!rc21hMetricsCaptureActive || !rc21hMetricsHistoryButton?.isConnected) return;
-
-    // Reproduce un click normal únicamente al descartar una secuencia incompleta.
-    // El flag deja pasar el listener temporal para conservar el handler propietario.
-    rc21hMetricsReplayingHistoryClick = true;
-    try {
-        rc21hMetricsHistoryButton.click();
-    } finally {
-        rc21hMetricsReplayingHistoryClick = false;
-    }
-}
-
-function discardRC21HMetricsHistoryTapSequence() {
-    const hadPendingTaps = rc21hMetricsHistoryTapCount > 0;
-    resetRC21HMetricsHistoryTapSequence();
-    if (hadPendingTaps) replayRC21HMetricsHistoryButtonClick();
-}
-
-function queueRC21HMetricsHistoryTapExpiry() {
-    if (rc21hMetricsHistoryTapTimer !== null) {
-        window.clearTimeout(rc21hMetricsHistoryTapTimer);
-    }
-
-    rc21hMetricsHistoryTapTimer = window.setTimeout(() => {
-        rc21hMetricsHistoryTapTimer = null;
-        discardRC21HMetricsHistoryTapSequence();
-    }, RC21H_METRICS_HISTORY_TAP_WINDOW_MS);
-}
-
-function handleRC21HMetricsHistoryButtonClick(event) {
-    if (!rc21hMetricsCaptureActive || rc21hMetricsReplayingHistoryClick) return;
-
-    event.preventDefault();
-    event.stopImmediatePropagation();
-
-    rc21hMetricsHistoryTapCount += 1;
-    if (rc21hMetricsHistoryTapCount === RC21H_METRICS_HISTORY_TAP_COUNT) {
-        resetRC21HMetricsHistoryTapSequence();
-        showRC21HMetricsPanel();
-        return;
-    }
-
-    queueRC21HMetricsHistoryTapExpiry();
-}
-
-function startRC21HMetricsCapture() {
-    resetRC21HMetricsHistoryTapSequence();
-    rc21hMetricsCaptureActive = true;
-    rc21hMetricsEvents = [];
-    recordRC21HMetric('metrics-capture-start', 'workout-opened');
-}
-
-function stopRC21HMetricsCapture() {
-    recordRC21HMetric('metrics-capture-stopped', 'workout-closed');
-    rc21hMetricsCaptureActive = false;
-    resetRC21HMetricsHistoryTapSequence();
-}
-
-function initRC21HMetrics() {
-    if (rc21hMetricsInitialized) return;
-
-    rc21hMetricsHistoryButton = document.getElementById('aw-history-btn');
-    // Se registra antes de que el editor asigne onclick al iniciar el entrenamiento.
-    // Así puede diferir la acción normal sin sustituir ni duplicar su propietario.
-    rc21hMetricsHistoryButton?.addEventListener('click', handleRC21HMetricsHistoryButtonClick);
-    window.addEventListener('rc21h-metric', (event) => {
-        const detail = event.detail || {};
-        recordRC21HMetric(detail.type || 'external-metric', detail.phase || 'unknown', detail.details || {});
-    });
-    document.addEventListener('visibilitychange', () => {
-        recordRC21HMetric('visibilitychange', 'document', { visibilityState: document.visibilityState });
-    });
-    window.addEventListener('pagehide', (event) => {
-        recordRC21HMetric('pagehide', 'document', { persisted: Boolean(event.persisted) });
-    });
-    window.addEventListener('pageshow', (event) => {
-        recordRC21HMetric('pageshow', 'document', { persisted: Boolean(event.persisted) });
-    });
-    window.addEventListener('beforeunload', () => {
-        recordRC21HMetric('beforeunload', 'document');
-    });
-
-    window.RC21HMetrics = Object.freeze({
-        show: showRC21HMetricsPanel,
-        copy: copyRC21HMetrics,
-        clear: clearRC21HMetrics,
-        snapshot: () => cloneRC21HMetricValue(createRC21HMetricsSnapshot())
-    });
-    rc21hMetricsInitialized = true;
-}
-// RC-21H.1-METRICS END
 
 /**
  * Comprueba la visibilidad efectiva de un overlay dinamico sin inferirla de
@@ -452,33 +136,25 @@ function normalizeBackActionResult(result, sourceId) {
  * pueda cerrar una capa. Al consumirlo, se reconstruye la entrada principal
  * actual con el mismo mecanismo heredado para no navegar por debajo del modal.
  */
-function stabilizeConsumedPopState(context) {
+function stabilizeConsumedPopState(context, resolution = null, force = false) {
     if (context?.source !== 'popstate') return;
-
-    recordRC21HMetric('stabilization-start', 'history', {
-        workoutActive: context.workoutActive,
-        visibleScreenId: context.visibleScreenId
-    });
+    if (resolution?.historyStabilized && !force) return;
 
     if (context.workoutActive) {
         const workoutModal = document.getElementById('active-workout');
 
-        // Si el cierre confirmado ya ocultó el entrenamiento, se mantiene la
-        // navegación que ejecutó cerrarEntrenamiento() en lugar de recrear
-        // una entrada #workout que ya no representa la vista actual.
-        if (workoutModal?.style.display !== 'flex') {
-            recordRC21HMetric('stabilization-complete', 'history', { strategy: 'workout-closed' });
-            return;
-        }
+        // La entrada se reconstruye antes de esperar una confirmaciÃ³n asÃ­ncrona.
+        // Si otro popstate la consume durante la espera, force la repone una vez.
+        if (workoutModal?.style.display !== 'flex') return;
 
         history.pushState({ tab: 'workout' }, '', '#workout');
-        recordRC21HMetric('stabilization-complete', 'history', { strategy: 'workout' });
+        if (resolution) resolution.historyStabilized = true;
         return;
     }
 
     if (context.visibleScreenId === 'history' && context.historyReturnScreen === 'workout') {
         history.pushState({ tab: 'history', returnScreen: 'workout' }, '', '#history');
-        recordRC21HMetric('stabilization-complete', 'history', { strategy: 'workout-history' });
+        if (resolution) resolution.historyStabilized = true;
         return;
     }
 
@@ -487,12 +163,36 @@ function stabilizeConsumedPopState(context) {
 
     if (!tabToRestore) {
         console.warn('[back-handler] No se pudo estabilizar el historial: pestana principal desconocida.');
-        recordRC21HMetric('stabilization-complete', 'history', { strategy: 'skipped' });
         return;
     }
 
     history.pushState({ tab: tabToRestore }, '', '#' + tabToRestore);
-    recordRC21HMetric('stabilization-complete', 'history', { strategy: 'main-tab', tab: tabToRestore });
+    if (resolution) resolution.historyStabilized = true;
+}
+
+function reconcileClosedWorkoutHistory(resolution) {
+    if (!resolution?.historyStabilized || !resolution.context.workoutActive) return;
+
+    const workoutModal = document.getElementById('active-workout');
+    if (workoutModal?.style.display === 'flex') return;
+
+    // La protecciÃ³n temprana ya no representa la vista tras aceptar el cierre.
+    // Se transforma en el destino real sin dejar una entrada #workout fantasma.
+    history.replaceState({ tab: 'history' }, '', '#history');
+}
+
+function consumePendingWorkoutBackResolution() {
+    const resolution = pendingBackResolution;
+    if (!resolution?.context?.workoutActive) return false;
+
+    if (window.GymNotesModal?.isOpen?.()) {
+        window.GymNotesModal.dismiss?.();
+    }
+
+    // Este popstate ya consumiÃ³ la entrada protectora. La reconstrucciÃ³n es
+    // inmediata y no ejecuta manejadores inferiores ni un segundo cierre.
+    stabilizeConsumedPopState(resolution.context, resolution, true);
+    return true;
 }
 
 /**
@@ -501,14 +201,26 @@ function stabilizeConsumedPopState(context) {
  */
 async function resolveBackAction(context, legacyFallback) {
     if (backResolutionPending) {
+        if (consumePendingWorkoutBackResolution()) {
+            return BACK_ACTION_RESULT.PENDING_CONFIRMATION;
+        }
         console.warn('[back-handler] Accion Atras ignorada: hay una resolucion pendiente.');
-        recordRC21HMetric('back-ignored-pending', 'reentrancy');
         return BACK_ACTION_RESULT.PENDING_CONFIRMATION;
     }
 
     backResolutionPending = true;
-    recordRC21HMetric('resolution-lock-enabled', 'reentrancy');
-    recordRC21HMetric('resolver-start', 'back-resolution');
+    const resolution = {
+        context,
+        historyStabilized: false
+    };
+    pendingBackResolution = resolution;
+
+    // Un popstate ya desplazÃ³ el Ã­ndice del navegador. Para Entrenamiento
+    // Activo, la entrada protectora se repone antes del primer await del
+    // resolvedor, de modo que un segundo AtrÃ¡s no alcanza una entrada externa.
+    if (context.workoutActive) {
+        stabilizeConsumedPopState(context, resolution);
+    }
 
     try {
         for (const handler of getRegisteredBackHandlers()) {
@@ -523,31 +235,17 @@ async function resolveBackAction(context, legacyFallback) {
 
             if (!canHandle) continue;
 
-            recordRC21HMetric('handler-selected', 'back-resolution', {
-                id: handler.id,
-                priority: handler.priority
-            });
-            if (handler.id === 'active-workout') {
-                recordRC21HMetric('active-workout-handler-start', 'back-handler');
-                recordRC21HMetric('close-workout-called', 'back-handler');
-            }
-
             try {
                 const result = normalizeBackActionResult(
                     await handler.handle(context),
                     handler.id
                 );
-                if (handler.id === 'active-workout') {
-                    recordRC21HMetric('close-workout-resolved', 'back-handler', { result });
-                    recordRC21HMetric('active-workout-handler-complete', 'back-handler', { result });
-                }
-                recordRC21HMetric('handler-result', 'back-resolution', {
-                    id: handler.id,
-                    result
-                });
 
                 if (result === BACK_ACTION_RESULT.CONSUMED) {
-                    stabilizeConsumedPopState(context);
+                    if (handler.id === 'active-workout') {
+                        reconcileClosedWorkoutHistory(resolution);
+                    }
+                    stabilizeConsumedPopState(context, resolution);
                     return result;
                 }
             } catch (error) {
@@ -557,16 +255,10 @@ async function resolveBackAction(context, legacyFallback) {
 
         if (typeof legacyFallback === 'function') {
             try {
-                recordRC21HMetric('fallback-start', 'back-resolution');
-                const result = normalizeBackActionResult(
+                return normalizeBackActionResult(
                     await legacyFallback(context),
                     'fallback-heredado'
                 );
-                recordRC21HMetric('handler-result', 'back-resolution', {
-                    id: 'fallback-heredado',
-                    result
-                });
-                return result;
             } catch (error) {
                 console.error('[back-handler] Error en el fallback heredado.', error);
             }
@@ -575,13 +267,15 @@ async function resolveBackAction(context, legacyFallback) {
         return BACK_ACTION_RESULT.NOT_CONSUMED;
     } finally {
         backResolutionPending = false;
-        recordRC21HMetric('resolution-lock-released', 'reentrancy');
+        if (pendingBackResolution === resolution) {
+            pendingBackResolution = null;
+        }
     }
 }
 
 /**
  * Crea solo el contexto que consumen el resolvedor y el fallback. No expone
- * estado mutable ni crea una pila de navegación paralela.
+ * estado mutable ni crea una pila de navegaciÃ³n paralela.
  */
 function buildBackContext(event) {
     const workoutModal = document.getElementById('active-workout');
@@ -599,7 +293,7 @@ function buildBackContext(event) {
 }
 
 /**
- * El diálogo común pertenece al núcleo. Cada módulo propietario registra sus
+ * El diÃ¡logo comÃºn pertenece al nÃºcleo. Cada mÃ³dulo propietario registra sus
  * propias capas con register({ id, priority, canHandle, handle }).
  */
 function registerCommonModalBackHandler() {
@@ -615,12 +309,11 @@ function registerCommonModalBackHandler() {
 }
 
 // ==========================================================================
-// INICIALIZACIÓN
+// INICIALIZACIÃ“N
 // ==========================================================================
 
 function initBackHandler() {
     if (backHandlerInitialized) return;
-    initRC21HMetrics();
     window.addEventListener('popstate', handlePopState);
     document.body.style.overscrollBehavior = 'none';
     document.documentElement.style.overscrollBehavior = 'none';
@@ -635,15 +328,12 @@ function initBackHandler() {
 
 function alAbrirEntrenamiento() {
     esBloqueoActivo = true;
-    startRC21HMetricsCapture();
     history.pushState({ tab: 'workout' }, '', '#workout');
-    recordRC21HMetric('workout-history-entry-created', 'training');
     console.log('[back-handler] Entrenamiento abierto, estado pushState.');
 }
 
 function liberarBloqueoEntrenamiento() {
     esBloqueoActivo = false;
-    stopRC21HMetricsCapture();
     console.log('[back-handler] Bloqueo de entrenamiento liberado.');
 }
 
@@ -652,38 +342,31 @@ function liberarBloqueoEntrenamiento() {
 // ==========================================================================
 
 function hayPantallaInternaVisible() {
-    // RC-21 ya cubre editor de sesión, detalle de Historial y visor de
-    // ejercicios. El editor de Ejercicios aún conserva solo su retorno
-    // heredado closeExerciseModal(), por lo que necesita este último fallback.
+    // RC-21 ya cubre editor de sesiÃ³n, detalle de Historial y visor de
+    // ejercicios. El editor de Ejercicios aÃºn conserva solo su retorno
+    // heredado closeExerciseModal(), por lo que necesita este Ãºltimo fallback.
     const exerciseEditor = document.getElementById('screen-exercise-editor');
     return Boolean(exerciseEditor && !exerciseEditor.classList.contains('hidden'));
 }
 
 // ==========================================================================
-// MANEJADOR DE POPSTATE (BOTÓN DE RETROCESO)
+// MANEJADOR DE POPSTATE (BOTÃ“N DE RETROCESO)
 // ==========================================================================
 
 function handlePopState(event) {
-    recordRC21HMetric('popstate-received', 'history', { eventState: cloneRC21HMetricValue(event?.state) });
     const context = buildBackContext(event);
-    recordRC21HMetric('back-context-built', 'history', { eventState: context.state });
 
-    void resolveBackAction(context, runLegacyBackFallback)
-        .then((result) => {
-            recordRC21HMetric('popstate-complete', 'history', { result });
-        })
-        .catch((error) => {
-            // El resolvedor ya aisla fallos de consumidores concretos. Este cierre
-            // evita una promesa rechazada si falla la infraestructura global.
-            recordRC21HMetric('popstate-complete', 'history', { result: 'error' });
-            console.error('[back-handler] Error no controlado resolviendo Atras.', error);
-        });
+    void resolveBackAction(context, runLegacyBackFallback).catch((error) => {
+        // El resolvedor ya aisla fallos de consumidores concretos. Este cierre
+        // evita una promesa rechazada si falla la infraestructura global.
+        console.error('[back-handler] Error no controlado resolviendo Atras.', error);
+    });
 }
 
 /**
- * Compatibilidad mínima: resuelve salida en raíz, navegación principal, el
+ * Compatibilidad mÃ­nima: resuelve salida en raÃ­z, navegaciÃ³n principal, el
  * editor de Ejercicios no migrado y el entrenamiento si su estado legado es
- * el único disponible. Mantiene las confirmaciones asíncronas bajo el mismo
+ * el Ãºnico disponible. Mantiene las confirmaciones asÃ­ncronas bajo el mismo
  * bloqueo de reentrancia del resolvedor.
  */
 async function runLegacyBackFallback(context) {
@@ -707,12 +390,12 @@ function handleLegacyPopState(event) {
     // Esta compatibilidad se conserva para no cerrar un modal legacy incompleto.
     if (isWorkoutVisible && esBloqueoActivo) {
         return window.showConfirm(
-            '¿Salir del entrenamiento? Se perderán las notas no guardadas.',
+            'Â¿Salir del entrenamiento? Se perderÃ¡n las notas no guardadas.',
             'Cancelar entrenamiento'
         ).then((confirmado) => {
             if (confirmado) {
-                console.log('[back-handler] Usuario confirmó salida del entrenamiento.');
-                // Llamar a la función de cierre del entrenamiento (definida en workout.js)
+                console.log('[back-handler] Usuario confirmÃ³ salida del entrenamiento.');
+                // Llamar a la funciÃ³n de cierre del entrenamiento (definida en workout.js)
                 if (typeof window.cerrarEntrenamiento === 'function') {
                     return window.cerrarEntrenamiento();
                 } else {
@@ -721,7 +404,7 @@ function handleLegacyPopState(event) {
                     liberarBloqueoEntrenamiento();
                 }
             } else {
-                console.log('[back-handler] Usuario canceló. Reconstruyendo trampa...');
+                console.log('[back-handler] Usuario cancelÃ³. Reconstruyendo trampa...');
                 setTimeout(() => {
                     if (esBloqueoActivo) {
                         history.pushState({ tab: 'workout' }, '', '#workout');
@@ -733,15 +416,15 @@ function handleLegacyPopState(event) {
         return;
     }
 
-    // CASO 2: Navegación entre pestañas (hay estado)
+    // CASO 2: NavegaciÃ³n entre pestaÃ±as (hay estado)
     if (state && state.tab && state.tab !== 'workout') {
-        console.log('[back-handler] Navegando a pestaña:', state.tab);
+        console.log('[back-handler] Navegando a pestaÃ±a:', state.tab);
         window.switchTab(state.tab, { noPushState: true });
         return;
     }
 
-    // CASO 3: Sin estado (raíz)
-    console.log('[back-handler] Estado raíz detectado.');
+    // CASO 3: Sin estado (raÃ­z)
+    console.log('[back-handler] Estado raÃ­z detectado.');
 
     if (hayPantallaInternaVisible()) {
         console.log('[back-handler] Pantalla interna visible. Cerrando...');
@@ -750,13 +433,13 @@ function handleLegacyPopState(event) {
         return;
     }
 
-    console.log('[back-handler] Mostrando confirmación de salida de la app.');
+    console.log('[back-handler] Mostrando confirmaciÃ³n de salida de la app.');
     return window.showConfirm(
-        '¿Estás seguro de que quieres salir de Gym Notes?',
+        'Â¿EstÃ¡s seguro de que quieres salir de Gym Notes?',
         'Salir de la app'
     ).then((confirmado) => {
         if (confirmado) {
-            console.log('[back-handler] Usuario confirmó salir de la app.');
+            console.log('[back-handler] Usuario confirmÃ³ salir de la app.');
             window.removeEventListener('popstate', handlePopState);
             setTimeout(() => {
                 if (window.history.length > 1) {
@@ -766,19 +449,19 @@ function handleLegacyPopState(event) {
                 }
             }, 100);
         } else {
-            console.log('[back-handler] Usuario canceló salida. Restaurando estado.');
+            console.log('[back-handler] Usuario cancelÃ³ salida. Restaurando estado.');
             history.pushState({ tab: currentTab }, '', '#' + currentTab);
         }
     });
 }
 
 // ==========================================================================
-// FUNCIÓN PARA NAVEGAR ENTRE PESTAÑAS
+// FUNCIÃ“N PARA NAVEGAR ENTRE PESTAÃ‘AS
 // ==========================================================================
 
 function navigateToTab(tabName) {
     if (esBloqueoActivo) {
-        console.warn('[back-handler] No se puede cambiar de pestaña durante el entrenamiento.');
+        console.warn('[back-handler] No se puede cambiar de pestaÃ±a durante el entrenamiento.');
         return;
     }
 
@@ -798,7 +481,7 @@ function setCurrentTab(tabName) {
 }
 
 // ==========================================================================
-// EXPOSICIÓN GLOBAL
+// EXPOSICIÃ“N GLOBAL
 // ==========================================================================
 
 window.initBackHandler = initBackHandler;
@@ -807,9 +490,9 @@ window.liberarBloqueoEntrenamiento = liberarBloqueoEntrenamiento;
 window.navigateToTab = navigateToTab;
 window.setCurrentTab = setCurrentTab;
 /**
- * API pública mínima para módulos propietarios. register() sustituye un ID
+ * API pÃºblica mÃ­nima para mÃ³dulos propietarios. register() sustituye un ID
  * existente de forma idempotente; isOverlayVisible() evita inferir overlays
- * dinámicos desde banderas históricas.
+ * dinÃ¡micos desde banderas histÃ³ricas.
  */
 window.GymNotesBackNavigation = Object.freeze({
     register: registerBackHandler,
@@ -819,12 +502,12 @@ window.GymNotesBackNavigation = Object.freeze({
     RESULT: BACK_ACTION_RESULT
 });
 
-// ui-helpers.js se carga antes que este núcleo y expone el único registro
-// compartido para los menús de cabecera.
+// ui-helpers.js se carga antes que este nÃºcleo y expone el Ãºnico registro
+// compartido para los menÃºs de cabecera.
 window.registerHeaderOptionsMenuBackHandler?.();
 
 // ==========================================================================
-// INICIALIZACIÓN AUTOMÁTICA
+// INICIALIZACIÃ“N AUTOMÃTICA
 // ==========================================================================
 
 if (document.readyState === 'loading') {
@@ -833,4 +516,4 @@ if (document.readyState === 'loading') {
     initBackHandler();
 }
 
-console.log('[back-handler] Módulo cargado correctamente.');
+console.log('[back-handler] MÃ³dulo cargado correctamente.');
