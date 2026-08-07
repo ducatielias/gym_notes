@@ -15,7 +15,6 @@ if %errorlevel% neq 0 (
     echo [!] ERROR: Git no esta instalado en este sistema.
     echo.
     echo Por favor, descarga e instala Git desde: https://git-scm.com/
-    echo Asegurate de seleccionar la opcion "Git from the command line".
     echo.
     pause
     exit
@@ -25,7 +24,6 @@ if %errorlevel% neq 0 (
 :: PASO 2: CONFIGURAR IDENTIDAD DE GIT (Si no existe)
 :: -----------------------------------------------------
 for /f "tokens=*" %%a in ('git config --global user.name 2^>nul') do set "GIT_USER=%%a"
-for /f "tokens=*" %%a in ('git config --global user.email 2^>nul') do set "GIT_EMAIL=%%a"
 
 if "!GIT_USER!"=="" (
     echo ---------------------------------------------------
@@ -67,9 +65,6 @@ if "!GIT_ORIGIN!"=="" (
     echo ---------------------------------------------------
     echo No se encontro un repositorio remoto vinculado.
     echo.
-    echo Ve a GitHub, crea tu repositorio y copia el enlace HTTPS.
-    echo Ejemplo: https://github.com/tu-usuario/tu-repositorio.git
-    echo.
     set /p "REPO_URL= Pega la URL de tu repositorio de GitHub: "
     
     git remote add origin "!REPO_URL!"
@@ -108,18 +103,32 @@ set "BACKUP_DESTINI=..\GymNotes_Backups\!VERSION_FOLDER!"
 robocopy "." "!BACKUP_DESTINI!" /E /XD .git /XF .agents *.bat >nul
 echo [Ok] Respaldo guardado en: !BACKUP_DESTINI!
 
-:: 3. Subida a GitHub
-echo [2/4] Sincronizando con la nube...
-git pull origin main --allow-unrelated-histories >nul 2>&1
-
-echo [3/4] Guardando cambios locales...
+:: 3. Guardar cambios locales primero
+echo [2/4] Preparando cambios locales...
 git add -A
 git commit -m "!COMMIT_MESSAGE!" >nul 2>&1
 
-echo [4/4] Subiendo a GitHub...
-git push origin main
+:: 4. Sincronizar con GitHub (Pull con rebase para integrar historial remoto)
+echo [3/4] Sincronizando con la nube (Pull)...
+git pull origin main --rebase --autostash >nul 2>&1
 
+:: 5. Subir a GitHub
+echo [4/4] Subiendo a GitHub (Push)...
+git push origin main
+if %errorlevel% neq 0 (
+    echo.
+    echo ===================================================
+    echo   [!] ATENCION: FALLO LA SUBIDA A GITHUB
+    echo ===================================================
+    echo Intenta ejecutar: git push origin main --force
+    echo o verifica tu conexion a internet.
+    echo.
+    pause
+    exit /b
+)
+
+echo.
 echo ===================================================
-echo   ¡PROCESO COMPLETADO EXITOSAMENTE!
+echo   ¡PROCESO COMPLETADO Y SUBIDO EXITOSAMENTE!
 echo ===================================================
 pause
