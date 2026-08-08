@@ -94,3 +94,11 @@
     --gn-layer-lightbox: 1100;
     --gn-layer-update: 1200;
 }
+
+/* En una pestaña convencional el navegador ya descuenta sus barras del viewport. */
+@media (display-mode: browser) {
+    :root {
+        --gn-safe-top: 0px;
+        --gn-safe-bottom: 0px;
+    }
+}
