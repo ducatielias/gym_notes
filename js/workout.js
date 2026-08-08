@@ -485,11 +485,12 @@ window.renderExercisesListEntrenamiento = renderExercisesListEntrenamiento;
 // ===========================================================================
 
 /**
- * El entrenamiento real sigue protegido aunque Historial o el visor oculten
- * temporalmente su modal. aw_currentWorkout es la única fuente de verdad.
+ * Protege el entrenamiento solo cuando es la pantalla funcional superior.
+ * Historial y el visor ocultan este modal y conservan su retorno visible.
  */
-function hasActiveWorkout() {
-    return Boolean(aw_currentWorkout);
+function isActiveWorkoutTopmost() {
+    const workoutModal = document.getElementById('active-workout');
+    return Boolean(aw_currentWorkout && workoutModal?.style.display === 'flex');
 }
 
 function registerActiveWorkoutBackHandler() {
@@ -499,7 +500,7 @@ function registerActiveWorkoutBackHandler() {
     backNavigation.register({
         id: 'active-workout',
         priority: backNavigation.PRIORITY.PROTECTED_CONTEXT,
-        canHandle: hasActiveWorkout,
+        canHandle: isActiveWorkoutTopmost,
         handle: async () => {
             if (typeof window.cerrarEntrenamiento !== 'function') {
                 return backNavigation.RESULT.NOT_CONSUMED;

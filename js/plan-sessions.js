@@ -120,49 +120,6 @@ function openRoutine(id) {
     `;
 }
 
-// ===========================================================================
-// INTEGRACION CON ATRAS GLOBAL
-// ===========================================================================
-
-/**
- * La lista de sesiones vive dentro de la pantalla Plan. Comprobar ambos nodos
- * evita consumir Atras cuando el DOM de la rutina permanece montado bajo otra
- * vista hija, como el editor o el Historial contextual.
- */
-function isRoutineSessionListVisible() {
-    const planScreen = document.getElementById('screen-plan');
-    const editorScreen = document.getElementById('screen-editor');
-    const sessionsList = document.getElementById('sessions-list');
-
-    return Boolean(
-        currentRoutineId !== null
-        && currentRoutineId !== undefined
-        && sessionsList
-        && planScreen
-        && !planScreen.classList.contains('hidden')
-        && (!editorScreen || editorScreen.classList.contains('hidden'))
-    );
-}
-
-/**
- * Registra una unica vez el mismo retorno que usa el boton Volver visible.
- * RC-21B sustituye un ID repetido, por lo que esta operacion es idempotente.
- */
-function registerRoutineSessionListBackHandler() {
-    const backNavigation = window.GymNotesBackNavigation;
-    if (!backNavigation) return;
-
-    backNavigation.register({
-        id: 'routine-session-list',
-        priority: backNavigation.PRIORITY.CHILD_VIEW,
-        canHandle: isRoutineSessionListVisible,
-        handle: () => {
-            renderRoutineList();
-            return backNavigation.RESULT.CONSUMED;
-        }
-    });
-}
-
 // ==========================================================================
 // CALCULAR ESTADO DE LA SESIÓN (basado en historial)
 // ==========================================================================
@@ -911,5 +868,3 @@ registerSessionTransferBackHandlers();
 window.copySessionToRoutine = copySessionToRoutine;
 window.moveSessionToRoutine = moveSessionToRoutine;
 window.calcularEstadoSesion = calcularEstadoSesion;
-
-registerRoutineSessionListBackHandler();

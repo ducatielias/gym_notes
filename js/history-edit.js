@@ -371,43 +371,6 @@ function openHistoryEditFromDetail(id) {
     // No cambiamos de pestaña porque ya estamos en history-detail
 }
 
-// ===========================================================================
-// INTEGRACION CON ATRAS GLOBAL
-// ===========================================================================
-
-/**
- * El formulario comparte screen-history-detail con la lectura. El ID de
- * edición existente distingue el modo real sin crear estado paralelo.
- */
-function isHistoryEditVisible() {
-    const detailScreen = document.getElementById('screen-history-detail');
-    return Boolean(
-        historyEditingId !== null
-        && historyEditingId !== undefined
-        && detailScreen
-        && !detailScreen.classList.contains('hidden')
-    );
-}
-
-/**
- * Reutiliza Cancelar, incluida su confirmación asíncrona. Mientras esta
- * promesa esta pendiente, RC-21B bloquea una segunda accion Atras.
- */
-function registerHistoryEditBackHandler() {
-    const backNavigation = window.GymNotesBackNavigation;
-    if (!backNavigation) return;
-
-    backNavigation.register({
-        id: 'history-edit',
-        priority: backNavigation.PRIORITY.CHILD_VIEW,
-        canHandle: isHistoryEditVisible,
-        handle: async () => {
-            await cancelHistoryEdit();
-            return backNavigation.RESULT.CONSUMED;
-        }
-    });
-}
-
 // ==========================================================================
 // EXPOSICIÓN GLOBAL
 // ==========================================================================
@@ -419,5 +382,3 @@ window.cancelHistoryEdit = cancelHistoryEdit;
 window.closeHistoryEdit = closeHistoryEdit;
 window.historyEditQuillInstance = historyEditQuillInstance;
 window.isHistoryEditActive = () => Boolean(historyEditingId);
-
-registerHistoryEditBackHandler();

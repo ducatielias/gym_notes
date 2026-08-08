@@ -24,22 +24,13 @@ const BACK_ACTION_RESULT = Object.freeze({
     PENDING_CONFIRMATION: 'pending-confirmation'
 });
 
-/**
- * Las prioridades de vistas internas se conservan temporalmente hasta GN-22C.
- * El núcleo nuevo no crea estados History para ninguna de ellas.
- */
 const BACK_HANDLER_PRIORITY = Object.freeze({
     DIALOG: 700,
     PWA_UPDATE_NOTICE: 675,
     TRANSIENT_OVERLAY: 650,
-    OVERLAY: 600,
     MENU: 575,
-    CONTEXTUAL_VIEW: 550,
     AUXILIARY_PANEL: 500,
-    CHILD_VIEW: 400,
-    PROTECTED_CONTEXT: 300,
-    PRIMARY_NAVIGATION: 200,
-    APP_EXIT: 100
+    PROTECTED_CONTEXT: 300
 });
 
 function isBackNavigationOverlayVisible(overlayId) {
@@ -198,6 +189,9 @@ async function resolveBackAction(context) {
     }
 
     if (!handler) {
+        // El Back físico no navega ni abandona GymNotes. Al estar ahora en
+        // ROOT, este push sustituye la sentinel consumida sin acumular capas.
+        ensureBackSentinel();
         return BACK_ACTION_RESULT.NOT_CONSUMED;
     }
 
@@ -240,9 +234,7 @@ function handlePopState(event) {
     void resolveBackAction(context)
         .then((result) => {
             if (result === BACK_ACTION_RESULT.NOT_CONSUMED) {
-                // Estrategia A: permanecer en ROOT. No se rearma la sentinel ni
-                // se intenta cerrar programáticamente la PWA.
-                console.log('[back-handler] Sin consumidor. Sentinel liberada para salida nativa.');
+                console.log('[back-handler] Sin consumidor. Back neutralizado y sentinel rearmada.');
             }
         })
         .catch((error) => {

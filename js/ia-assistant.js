@@ -1488,61 +1488,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ==========================================================================
-// INTEGRACION CON ATRAS GLOBAL
-// ===========================================================================
-
-const IA_ASSISTANT_STEPS = new Set(['config', 'prompt', 'preview', 'import']);
-
-/**
- * Todas las etapas comparten screen-ia-assistant. La pantalla y el paso
- * vigente determinan la vista real, sin usar solo el origen historico.
- */
-function isIAAssistantVisible() {
-    const assistantScreen = document.getElementById('screen-ia-assistant');
-    return Boolean(
-        assistantScreen
-        && !assistantScreen.classList.contains('hidden')
-        && IA_ASSISTANT_STEPS.has(iaStep)
-    );
-}
-
-/**
- * Replica el boton Volver de cada etapa y conserva el origen hasta cerrar el
- * primer paso. No crea una pila ni renderiza rutas paralelas.
- */
-function goBackFromCurrentIAStep() {
-    switch (iaStep) {
-        case 'preview':
-            goBackToPrompt();
-            return;
-        case 'prompt':
-        case 'import':
-            goBackToConfig();
-            return;
-        case 'config':
-            goBackFromIA();
-            return;
-        default:
-            return;
-    }
-}
-
-function registerIAAssistantBackHandler() {
-    const backNavigation = window.GymNotesBackNavigation;
-    if (!backNavigation) return;
-
-    backNavigation.register({
-        id: 'ia-assistant',
-        priority: backNavigation.PRIORITY.CHILD_VIEW,
-        canHandle: isIAAssistantVisible,
-        handle: () => {
-            goBackFromCurrentIAStep();
-            return backNavigation.RESULT.CONSUMED;
-        }
-    });
-}
-
 // ===========================================================================
 // EXPOSICIÓN GLOBAL
 // ==========================================================================
@@ -1587,5 +1532,3 @@ window.iaSelectedTipos = iaSelectedTipos;
 window.iaStep = iaStep;
 window._iaPromptParams = null;
 window._iaGeneratedPrompt = _iaGeneratedPrompt;
-
-registerIAAssistantBackHandler();

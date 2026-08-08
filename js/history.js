@@ -320,70 +320,6 @@ function openHistoryEditFromDetail(id) {
 }
 
 // ===========================================================================
-// INTEGRACION CON ATRAS GLOBAL
-// ===========================================================================
-
-function isHistoryScreenVisible() {
-    const historyScreen = document.getElementById('screen-history');
-    return Boolean(historyScreen && !historyScreen.classList.contains('hidden'));
-}
-
-function isActiveWorkoutModalVisible() {
-    const workoutModal = document.getElementById('active-workout');
-    return workoutModal?.style.display === 'flex';
-}
-
-/**
- * Historial solo es contextual cuando conserva uno de los dos padres ya
- * existentes y es la capa superior real. Al volver al entrenamiento, la
- * pantalla queda debajo de su modal y no debe volver a consumir Atras.
- */
-function isContextualHistoryVisible() {
-    const returnScreen = window.historyReturnScreen;
-    return isHistoryScreenVisible()
-        && !isActiveWorkoutModalVisible()
-        && (returnScreen === 'session' || returnScreen === 'workout');
-}
-
-/**
- * El detalle comparte pantalla con edicion; esta ultima se resuelve primero
- * mediante su estado existente para que no cierre el detalle completo.
- */
-function isHistoryDetailVisible() {
-    const detailScreen = document.getElementById('screen-history-detail');
-    return Boolean(
-        detailScreen
-        && !detailScreen.classList.contains('hidden')
-        && !window.isHistoryEditActive?.()
-    );
-}
-
-function registerHistoryBackHandlers() {
-    const backNavigation = window.GymNotesBackNavigation;
-    if (!backNavigation) return;
-
-    backNavigation.register({
-        id: 'history-detail',
-        priority: backNavigation.PRIORITY.CHILD_VIEW,
-        canHandle: isHistoryDetailVisible,
-        handle: () => {
-            closeHistoryDetail();
-            return backNavigation.RESULT.CONSUMED;
-        }
-    });
-
-    backNavigation.register({
-        id: 'history-contextual',
-        priority: backNavigation.PRIORITY.CONTEXTUAL_VIEW,
-        canHandle: isContextualHistoryVisible,
-        handle: () => {
-            goBackFromHistory();
-            return backNavigation.RESULT.CONSUMED;
-        }
-    });
-}
-
-// ===========================================================================
 // EXPOSICIÓN GLOBAL
 // ==========================================================================
 
@@ -394,5 +330,3 @@ window.goBackFromHistory = goBackFromHistory;
 window.viewHistoryDetail = viewHistoryDetail;
 window.closeHistoryDetail = closeHistoryDetail;
 window.openHistoryEditFromDetail = openHistoryEditFromDetail;
-
-registerHistoryBackHandlers();
