@@ -317,42 +317,6 @@ const sessionTransferOverlayAccessibility = (() => {
     return { setup, cleanup };
 })();
 
-/**
- * Los selectores de sesiones se cierran desde el mismo camino que Cancelar y
- * Escape. No cubre el input de archivo, que pertenece al sistema operativo.
- */
-function registerSessionTransferBackHandlers() {
-    const backNavigation = window.GymNotesBackNavigation;
-    if (!backNavigation) return;
-
-    [
-        {
-            id: 'sessions-export-selection',
-            overlayId: 'export-sessions-modal',
-            close: cerrarExportarSesiones
-        },
-        {
-            id: 'sessions-import-selection',
-            overlayId: 'import-sessions-modal',
-            close: cerrarImportarSesiones
-        }
-    ].forEach(({ id, overlayId, close }) => {
-        backNavigation.register({
-            id,
-            priority: backNavigation.PRIORITY.TRANSIENT_OVERLAY,
-            canHandle: () => backNavigation.isOverlayVisible(overlayId),
-            handle: () => {
-                if (!backNavigation.isOverlayVisible(overlayId)) {
-                    return backNavigation.RESULT.NOT_CONSUMED;
-                }
-
-                close();
-                return backNavigation.RESULT.CONSUMED;
-            }
-        });
-    });
-}
-
 // ==========================================================================
 // EXPORTAR SESIONES CON CHECKLIST
 // ==========================================================================
@@ -864,7 +828,6 @@ window.createNewSession = createNewSession;
 window.moveSessionOrder = moveSessionOrder;
 window.deleteSession = deleteSession;
 
-registerSessionTransferBackHandlers();
 window.copySessionToRoutine = copySessionToRoutine;
 window.moveSessionToRoutine = moveSessionToRoutine;
 window.calcularEstadoSesion = calcularEstadoSesion;

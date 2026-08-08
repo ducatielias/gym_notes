@@ -57,23 +57,6 @@ function closeOpenVisibleHeaderOptionsMenu() {
     return true;
 }
 
-/** Registra una única capa para los cinco menús de cabecera compartidos. */
-function registerHeaderOptionsMenuBackHandler() {
-    const backNavigation = window.GymNotesBackNavigation;
-    if (!backNavigation) return;
-
-    backNavigation.register({
-        id: 'open-menu',
-        priority: backNavigation.PRIORITY.MENU,
-        canHandle: () => getOpenVisibleHeaderOptionsMenus().length > 0,
-        handle: () => {
-            return closeOpenVisibleHeaderOptionsMenu()
-                ? backNavigation.RESULT.CONSUMED
-                : backNavigation.RESULT.NOT_CONSUMED;
-        }
-    });
-}
-
 /**
  * Cierra un menú de cabecera antes de que un clic exterior alcance el control
  * situado debajo. Las opciones internas y el botón controlador mantienen su
@@ -106,8 +89,6 @@ function handleHeaderOptionsMenuOutsideClick(event) {
 // Un único listener cubre tanto el clic de ratón como el click sintetizado por
 // una interacción táctil, sin combinar eventos redundantes de puntero y toque.
 document.addEventListener('click', handleHeaderOptionsMenuOutsideClick, true);
-
-window.registerHeaderOptionsMenuBackHandler = registerHeaderOptionsMenuBackHandler;
 
 // Respeta la preferencia de movimiento del sistema sin alterar el destino del desplazamiento.
 function getMotionAwareScrollBehavior() {

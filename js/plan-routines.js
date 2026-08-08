@@ -255,42 +255,6 @@ const routineTransferOverlayAccessibility = (() => {
     return { setup, cleanup };
 })();
 
-/**
- * Rutinas mantiene dos selectores propios. El nucleo global de Atras los
- * trata como capas transitorias y delega el cierre en sus rutas existentes.
- */
-function registerRoutineTransferBackHandlers() {
-    const backNavigation = window.GymNotesBackNavigation;
-    if (!backNavigation) return;
-
-    [
-        {
-            id: 'routines-export-selection',
-            overlayId: 'export-routines-modal',
-            close: cerrarExportarRutinas
-        },
-        {
-            id: 'routines-import-selection',
-            overlayId: 'import-routines-modal',
-            close: cerrarImportarRutinas
-        }
-    ].forEach(({ id, overlayId, close }) => {
-        backNavigation.register({
-            id,
-            priority: backNavigation.PRIORITY.TRANSIENT_OVERLAY,
-            canHandle: () => backNavigation.isOverlayVisible(overlayId),
-            handle: () => {
-                if (!backNavigation.isOverlayVisible(overlayId)) {
-                    return backNavigation.RESULT.NOT_CONSUMED;
-                }
-
-                close();
-                return backNavigation.RESULT.CONSUMED;
-            }
-        });
-    });
-}
-
 // ==========================================================================
 // EXPORTAR RUTINAS CON SELECTOR (CHECKLIST)
 // ==========================================================================
@@ -943,7 +907,6 @@ window.seleccionarSoloNuevasImport = seleccionarSoloNuevasImport;
 window.importarRutinasSeleccionadas = importarRutinasSeleccionadas;
 window.borrarTodasRutinas = borrarTodasRutinas;
 
-registerRoutineTransferBackHandlers();
 window.createNewRoutine = createNewRoutine;
 window.moveRoutineOrder = moveRoutineOrder;
 window.renameRoutine = renameRoutine;

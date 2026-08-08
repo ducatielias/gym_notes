@@ -8,7 +8,7 @@
  * MODIFICADO: Soporte para mensaje "getVersion" que devuelve CACHE_VERSION
  */
 
-const CACHE_VERSION = 'gym-notes-v1-84';
+const CACHE_VERSION = 'gym-notes-v1-85';
 const CACHE_NAME = CACHE_VERSION;
 
 // ============================================================
@@ -58,7 +58,6 @@ const FILES_TO_CACHE = [
   'js/storage-service.js',
   'js/modal.js',
   'js/ui-helpers.js',
-  'js/back-handler.js',
   'js/wake-lock.js',
   'js/data-import-export.js',
   'js/sw-update.js',

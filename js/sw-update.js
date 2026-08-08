@@ -456,19 +456,9 @@ const swUpdateModalAccessibility = (() => {
     return { setup, addListener, cleanup };
 })();
 
-function isPwaUpdateNoticeVisible() {
-    const modal = document.getElementById('sw-update-modal');
-    const backNavigation = window.GymNotesBackNavigation;
-    return Boolean(
-        modal
-        && backNavigation?.isOverlayVisible('sw-update-modal')
-        && typeof swUpdateModalDismissActions.get(modal) === 'function'
-    );
-}
-
 /**
- * Atrás equivale a posponer el aviso, igual que Escape y el clic en backdrop:
- * nunca inicia una actualización ni modifica el Service Worker.
+ * Centraliza el cierre visible, Escape y el clic en backdrop. Posponer el
+ * aviso nunca inicia una actualización ni modifica el Service Worker.
  */
 function dismissPwaUpdateNotice(source = 'Atrás') {
     const modal = document.getElementById('sw-update-modal');
@@ -477,22 +467,6 @@ function dismissPwaUpdateNotice(source = 'Atrás') {
 
     dismiss(source);
     return true;
-}
-
-function registerPwaUpdateNoticeBackHandler() {
-    const backNavigation = window.GymNotesBackNavigation;
-    if (!backNavigation) return;
-
-    backNavigation.register({
-        id: 'pwa-update-notice',
-        priority: backNavigation.PRIORITY.PWA_UPDATE_NOTICE,
-        canHandle: isPwaUpdateNoticeVisible,
-        handle: () => {
-            return dismissPwaUpdateNotice()
-                ? backNavigation.RESULT.CONSUMED
-                : backNavigation.RESULT.NOT_CONSUMED;
-        }
-    });
 }
 
 async function showUpdateModal({ registration = null, manualCheck = false } = {}) {
@@ -862,7 +836,5 @@ window.showUpdateModal = showUpdateModal;
 window.closeUpdateModal = closeUpdateModal;
 window.checkForUpdateAndShowResult = checkForUpdateAndShowResult;
 window.fetchSWVersion = fetchSWVersion;
-
-registerPwaUpdateNoticeBackHandler();
 
 console.log('[sw-update] Módulo cargado correctamente');
