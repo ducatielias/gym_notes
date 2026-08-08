@@ -5,7 +5,6 @@
  * 
  * CORREGIDO: Separada la lógica de cierre para evitar recursión.
  * - cerrarEntrenamiento(): maneja confirmación, cierra modal y limpia estado.
- * - liberarBloqueoEntrenamiento(): se llama desde back-handler para liberar el historial.
  */
 
 // ===========================================================================
@@ -146,12 +145,6 @@ window.iniciarEntrenamiento = function(sessionData) {
         startActiveWorkoutVisualViewportSync();
     }
     
-    // Activar bloqueo del historial
-    if (typeof window.alAbrirEntrenamiento === 'function') {
-        window.alAbrirEntrenamiento();
-        console.log('[iniciarEntrenamiento] Bloqueo de historial activado.');
-    }
-    
     const timerDescansoArea = document.getElementById('timer-descanso-area');
     const timerTrabajoArea = document.getElementById('timer-trabajo-area');
     if (timerDescansoArea) {
@@ -245,12 +238,6 @@ window.finalizarEntrenamiento = async function() {
     if (modal) modal.style.display = 'none';
     stopActiveWorkoutVisualViewportSync();
     
-    // Liberar bloqueo del historial
-    if (typeof window.liberarBloqueoEntrenamiento === 'function') {
-        window.liberarBloqueoEntrenamiento();
-        console.log('[finalizarEntrenamiento] Bloqueo de historial liberado.');
-    }
-    
     // Limpiar filtros y navegar al historial
     if (typeof window.resetHistoryFilters === 'function') window.resetHistoryFilters();
     else {
@@ -309,12 +296,6 @@ window.cerrarEntrenamiento = async function() {
     const modal = document.getElementById('active-workout');
     if (modal) modal.style.display = 'none';
     stopActiveWorkoutVisualViewportSync();
-    
-    // Liberar bloqueo del historial
-    if (typeof window.liberarBloqueoEntrenamiento === 'function') {
-        window.liberarBloqueoEntrenamiento();
-        console.log('[cerrarEntrenamiento] Bloqueo de historial liberado.');
-    }
     
     // Limpiar filtros y navegar al historial
     if (typeof window.resetHistoryFilters === 'function') window.resetHistoryFilters();
@@ -504,13 +485,11 @@ window.renderExercisesListEntrenamiento = renderExercisesListEntrenamiento;
 // ===========================================================================
 
 /**
- * El modal puede ocultarse temporalmente para mostrar Historial o el visor.
- * Solo se protege el entrenamiento que sigue siendo la capa visible y tiene
- * estado real, sin crear una bandera paralela.
+ * El entrenamiento real sigue protegido aunque Historial o el visor oculten
+ * temporalmente su modal. aw_currentWorkout es la única fuente de verdad.
  */
-function isActiveWorkoutVisible() {
-    const workoutModal = document.getElementById('active-workout');
-    return Boolean(aw_currentWorkout && workoutModal?.style.display === 'flex');
+function hasActiveWorkout() {
+    return Boolean(aw_currentWorkout);
 }
 
 function registerActiveWorkoutBackHandler() {
@@ -520,7 +499,7 @@ function registerActiveWorkoutBackHandler() {
     backNavigation.register({
         id: 'active-workout',
         priority: backNavigation.PRIORITY.PROTECTED_CONTEXT,
-        canHandle: isActiveWorkoutVisible,
+        canHandle: hasActiveWorkout,
         handle: async () => {
             if (typeof window.cerrarEntrenamiento !== 'function') {
                 return backNavigation.RESULT.NOT_CONSUMED;

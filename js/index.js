@@ -34,7 +34,6 @@ function setRoutineNavigationActive(isActive) {
 }
 
 function switchTab(tabId, options = {}) {
-    const noPushState = options.noPushState || false;
     const preserveRoutineContext = options.preserveRoutineContext === true;
 
     // 1. Ocultar todas las pantallas
@@ -64,13 +63,7 @@ function switchTab(tabId, options = {}) {
         if (currentBtn) currentBtn.classList.add('active');
     }
 
-    // 6. Si es una pestaña principal, actualizar currentTab en back-handler
-    const mainTabs = ['today', 'plan', 'history', 'exercises'];
-    if (mainTabs.includes(tabId) && typeof window.setCurrentTab === 'function') {
-        window.setCurrentTab(tabId);
-    }
-
-    // 7. Lógica modular específica
+    // 6. Lógica modular específica
     if (tabId === 'plan') {
         if (!options.skipPlanRender) renderRoutineList();
     }
@@ -97,23 +90,11 @@ function switchTab(tabId, options = {}) {
 window.setRoutineNavigationActive = setRoutineNavigationActive;
 
 // ==========================================================================
-// NAVEGAR Y CAMBIAR DE PESTAÑA (CON HISTORIAL)
+// NAVEGAR Y CAMBIAR DE PESTAÑA
 // ==========================================================================
 
 function navigateAndSwitch(tabId) {
-    if (typeof window.navigateToTab === 'function') {
-        window.navigateToTab(tabId);
-    } else {
-        // Fallback
-        const mainTabs = ['today', 'plan', 'history', 'exercises'];
-        if (mainTabs.includes(tabId)) {
-            const state = { tab: tabId };
-            const url = new URL(window.location);
-            url.hash = tabId;
-            history.pushState(state, '', url.toString());
-        }
-        switchTab(tabId, { noPushState: true });
-    }
+    switchTab(tabId);
 }
 
 // ==========================================================================
@@ -129,15 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
         initialTab = hash;
     }
 
-    // Mostrar la pestaña inicial sin modificar historial (noPushState)
-    switchTab(initialTab, { noPushState: true });
-
-    // Establecer un estado inicial en el historial para que el retroceso funcione
-    // (si no hay estado, el navegador no tiene referencia)
-    if (window.history && window.history.state === null) {
-        const state = { tab: initialTab };
-        history.replaceState(state, '', '#' + initialTab);
-    }
+    // Mostrar la pestaña inicial. back-handler.js es el único propietario de
+    // la frontera ROOT + SENTINEL y no representa pestañas en History API.
+    switchTab(initialTab);
 
     // Inicializar módulos si están visibles
     const exercisesScreen = document.getElementById('screen-exercises');
