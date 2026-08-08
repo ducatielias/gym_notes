@@ -190,6 +190,9 @@ function goBackFromHistory() {
         const modal = document.getElementById('active-workout');
         if (modal) {
             modal.style.display = 'flex';
+            // El teclado puede cerrarse mientras el modal está oculto; medir de
+            // nuevo en el siguiente frame evita reutilizar su altura reducida.
+            queueActiveWorkoutVisualViewportSync();
             console.log('[goBackFromHistory] Modal de entrenamiento restaurado');
         }
         // Limpiar los filtros
