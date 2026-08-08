@@ -1,0 +1,154 @@
+/*
+ * Panel temporal de GN-21X-D-MEASURE.
+ * Solo presenta métricas; no modifica la geometría funcional de GymNotes.
+ */
+
+#gn-viewport-diagnostics[hidden] {
+    display: none;
+}
+
+#gn-viewport-diagnostics {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--gn-layer-update) + 1);
+    box-sizing: border-box;
+    display: grid;
+    place-items: stretch center;
+    padding:
+        max(var(--gn-space-sm), env(safe-area-inset-top, 0px))
+        max(var(--gn-space-sm), env(safe-area-inset-right, 0px))
+        max(var(--gn-space-sm), env(safe-area-inset-bottom, 0px))
+        max(var(--gn-space-sm), env(safe-area-inset-left, 0px));
+    background-color: rgb(48 42 37 / 72%);
+}
+
+.gn-viewport-diagnostics__panel {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: min(100%, 48rem);
+    min-height: 0;
+    overflow: hidden;
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-card);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    box-shadow: var(--gn-shadow-modal);
+}
+
+.gn-viewport-diagnostics__header,
+.gn-viewport-diagnostics__actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--gn-space-sm);
+    padding: var(--gn-space-md);
+}
+
+.gn-viewport-diagnostics__header {
+    justify-content: space-between;
+    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+}
+
+.gn-viewport-diagnostics__title {
+    margin: 0;
+    font-family: var(--gn-font-title);
+    font-size: var(--gn-font-size-md);
+    line-height: var(--gn-line-height-tight);
+}
+
+.gn-viewport-diagnostics__mode {
+    margin: 0;
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-xs);
+}
+
+.gn-viewport-diagnostics__output {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0;
+    padding: var(--gn-space-md);
+    overflow: auto;
+    background-color: var(--gn-color-background);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-numeric);
+    font-size: var(--gn-font-size-xs);
+    line-height: var(--gn-line-height-relaxed);
+    overscroll-behavior: contain;
+    user-select: text;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.gn-viewport-diagnostics__actions {
+    flex-wrap: wrap;
+    border-top: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+}
+
+.gn-viewport-diagnostics__button {
+    appearance: none;
+    min-height: 2.75rem;
+    padding: var(--gn-space-sm) var(--gn-space-md);
+    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-surface-secondary);
+    color: var(--gn-color-text);
+    font: var(--gn-font-weight-semibold) var(--gn-font-size-sm) / var(--gn-line-height-normal) var(--gn-font-body);
+    cursor: pointer;
+}
+
+.gn-viewport-diagnostics__button:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+.gn-viewport-diagnostics__status {
+    flex: 1 1 100%;
+    min-height: 1rem;
+    margin: 0;
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-xs);
+}
+
+/* Sondas efímeras: solo se insertan durante una captura y no participan en el layout. */
+.gn-viewport-diagnostics__probe,
+.gn-viewport-diagnostics__unit-probe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.gn-viewport-diagnostics__probe {
+    box-sizing: content-box;
+    width: 0;
+    height: 0;
+    padding:
+        env(safe-area-inset-top, 0px)
+        env(safe-area-inset-right, 0px)
+        env(safe-area-inset-bottom, 0px)
+        env(safe-area-inset-left, 0px);
+}
+
+.gn-viewport-diagnostics__unit-probe {
+    width: 1px;
+}
+
+.gn-viewport-diagnostics__unit-probe--vh {
+    height: 100vh;
+}
+
+.gn-viewport-diagnostics__unit-probe--dvh {
+    height: 100dvh;
+}
+
+.gn-viewport-diagnostics__unit-probe--svh {
+    height: 100svh;
+}
+
+.gn-viewport-diagnostics__unit-probe--lvh {
+    height: 100lvh;
+}
