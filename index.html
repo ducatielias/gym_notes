@@ -123,6 +123,9 @@
     <!-- MODAL DE ENTRENAMIENTO ACTIVO -->
     <div id="active-workout" class="modal-overlay" style="display:none; align-items: stretch; justify-content: stretch; background: var(--background-color);">
         <div class="aw-container">
+            <div class="aw-sticky-chrome">
+                <div class="aw-collapsible-chrome">
+                    <div class="aw-collapsible-chrome__inner">
             <div class="aw-header gn-screen-header">
                 <div class="aw-header-top">
                     <button onclick="cerrarEntrenamiento()" class="aw-close-btn gn-close-button" type="button" aria-label="Cerrar entrenamiento" title="Cerrar (sin guardar)">
@@ -190,6 +193,8 @@
                 </div>
 
             </div>
+                    </div>
+                </div>
 
             <div class="aw-tools-row">
                 <button class="aw-tool-toggle" id="aw-format-btn" data-type="format" onclick="toggleSectionEntrenamiento('format')">
@@ -219,6 +224,7 @@
                     <input type="search" class="search-input" id="aw-search-exercise" placeholder="Busca un ejercicio..." oninput="filtrarEjerciciosEntrenamiento()" onsearch="filtrarEjerciciosEntrenamiento()">
                     <ul class="exercises-list" id="aw-exercises-list"></ul>
                 </div>
+            </div>
             </div>
 
             <div class="aw-content" id="aw-content-area">

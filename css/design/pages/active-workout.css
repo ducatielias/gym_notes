@@ -17,11 +17,40 @@
 }
 
 /* El contenedor principal conserva el único scroll del entrenamiento. */
-#active-workout .aw-header,
+#active-workout .aw-sticky-chrome,
 #active-workout .aw-tools-row,
 #active-workout #aw-toolbar-wrapper,
 #active-workout #aw-exercises-wrapper {
     flex: 0 0 auto;
+}
+
+/*
+ * La safe area pertenece a la carcasa persistente: así sigue protegiendo los
+ * controles cuando la cabecera variable está colapsada.
+ */
+#active-workout .aw-sticky-chrome {
+    position: sticky;
+    top: 0;
+    z-index: var(--gn-layer-sticky);
+    display: flex;
+    flex-direction: column;
+    padding-block-start: var(--gn-safe-top);
+    background-color: var(--gn-color-background);
+}
+
+#active-workout .aw-collapsible-chrome {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows var(--gn-motion-standard) var(--gn-ease-standard);
+}
+
+#active-workout .aw-collapsible-chrome__inner {
+    min-height: 0;
+    overflow: hidden;
+}
+
+#active-workout.aw-chrome-hidden .aw-collapsible-chrome {
+    grid-template-rows: 0fr;
 }
 
 /*
@@ -41,7 +70,25 @@
     position: static;
     top: auto;
     z-index: auto;
+    padding-top: 0;
     padding-block-end: var(--gn-space-lg);
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    transition: opacity var(--gn-motion-standard) var(--gn-ease-standard),
+        transform var(--gn-motion-standard) var(--gn-ease-standard),
+        visibility 0s linear 0s;
+}
+
+#active-workout.aw-chrome-hidden .aw-header {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(calc(var(--gn-space-sm) * -1));
+    pointer-events: none;
+    transition: opacity var(--gn-motion-standard) var(--gn-ease-standard),
+        transform var(--gn-motion-standard) var(--gn-ease-standard),
+        visibility 0s linear var(--gn-motion-standard);
 }
 
 #active-workout .aw-header-top {
@@ -157,9 +204,9 @@
 
 /* Formato permanece accesible al desplazarse, sin reservar espacio al cerrarse. */
 #active-workout #aw-toolbar-wrapper.open {
-    position: sticky;
-    top: var(--gn-safe-top);
-    z-index: var(--gn-layer-sticky);
+    position: static;
+    top: auto;
+    z-index: auto;
     background-color: var(--gn-color-surface-secondary);
     border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
     box-shadow: var(--gn-shadow-none);
@@ -176,6 +223,16 @@
     outline-offset: calc(var(--gn-border-width-thin) * -1);
     border-radius: var(--gn-radius-md) var(--gn-radius-md) 0 0;
     box-shadow: var(--gn-shadow-none);
+}
+
+/* La toolbar solo pierde la curva superior cuando está acoplada. */
+#active-workout.aw-chrome-hidden #aw-toolbar-container.ql-toolbar {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+#active-workout.aw-chrome-hidden #aw-toolbar-wrapper.open {
+    border-top-color: transparent;
 }
 
 #active-workout #aw-toolbar-container.ql-toolbar .ql-formats {
@@ -357,6 +414,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+    #active-workout .aw-collapsible-chrome,
+    #active-workout .aw-header,
     #active-workout .aw-tool-toggle,
     #active-workout .aw-exercises-content .search-input {
         transition-duration: 0ms;
