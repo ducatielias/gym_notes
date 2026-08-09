@@ -182,12 +182,14 @@ function renderConfigScreen(container) {
     container.innerHTML = `
         <header class="ia-header gn-screen-header">
             <div class="ia-header-top gn-screen-header__row">
-                <button class="btn-ia-back" type="button" onclick="goBackFromIA()">
-                    <i class="fa-solid fa-chevron-left"></i> Volver
-                </button>
-                <h1><i class="fa-solid fa-robot"></i> Asistente IA</h1>
+                <div class="gn-header__leading">
+                    <button class="btn-ia-back gn-back-button" type="button" aria-label="Volver" onclick="goBackFromIA()" title="Volver">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <h1 class="gn-header__title"><i class="fa-solid fa-robot" aria-hidden="true"></i> Asistente IA</h1>
+                </div>
             </div>
-            <p>Configura tus preferencias y genera un prompt para usar con tu IA favorita.</p>
+            <p class="ia-header__description gn-header__subtitle">Configura tus preferencias y genera un prompt para usar con tu IA favorita.</p>
         </header>
 
         <div class="ia-container">
@@ -829,12 +831,14 @@ function renderPromptScreen(container) {
     container.innerHTML = `
         <header class="ia-header gn-screen-header">
             <div class="ia-header-top gn-screen-header__row">
-                <button class="btn-ia-back" type="button" onclick="goBackToConfig()">
-                    <i class="fa-solid fa-chevron-left"></i> Volver
-                </button>
-                <h1><i class="fa-solid fa-robot"></i> Asistente IA</h1>
+                <div class="gn-header__leading">
+                    <button class="btn-ia-back gn-back-button" type="button" aria-label="Volver a configuración" onclick="goBackToConfig()" title="Volver a configuración">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <h1 class="gn-header__title"><i class="fa-solid fa-robot" aria-hidden="true"></i> Asistente IA</h1>
+                </div>
             </div>
-            <p>Copia el prompt, pégalo en tu IA favorita y pega la respuesta abajo.</p>
+            <p class="ia-header__description gn-header__subtitle">Copia el prompt, pégalo en tu IA favorita y pega la respuesta abajo.</p>
         </header>
 
         <div class="ia-container">
@@ -1097,12 +1101,14 @@ function renderPreviewScreen(container) {
     container.innerHTML = `
         <header class="ia-header gn-screen-header">
             <div class="ia-header-top gn-screen-header__row">
-                <button class="btn-ia-back" type="button" onclick="goBackToPrompt()">
-                    <i class="fa-solid fa-chevron-left"></i> Volver
-                </button>
-                <h1><i class="fa-solid fa-robot"></i> Asistente IA</h1>
+                <div class="gn-header__leading">
+                    <button class="btn-ia-back gn-back-button" type="button" aria-label="Volver al prompt" onclick="goBackToPrompt()" title="Volver al prompt">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <h1 class="gn-header__title"><i class="fa-solid fa-robot" aria-hidden="true"></i> Asistente IA</h1>
+                </div>
             </div>
-            <p>Revisa el contenido generado y decide qué hacer.</p>
+            <p class="ia-header__description gn-header__subtitle">Revisa el contenido generado y decide qué hacer.</p>
         </header>
 
         <div class="ia-container">
@@ -1140,12 +1146,14 @@ function renderImportScreen(container) {
     container.innerHTML = `
         <header class="ia-header gn-screen-header">
             <div class="ia-header-top gn-screen-header__row">
-                <button class="btn-ia-back" type="button" onclick="goBackToConfig()">
-                    <i class="fa-solid fa-chevron-left"></i> Volver
-                </button>
-                <h1><i class="fa-solid fa-file-import"></i> Asistente IA</h1>
+                <div class="gn-header__leading">
+                    <button class="btn-ia-back gn-back-button" type="button" aria-label="Volver a configuración" onclick="goBackToConfig()" title="Volver a configuración">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <h1 class="gn-header__title"><i class="fa-solid fa-file-import" aria-hidden="true"></i> Asistente IA</h1>
+                </div>
             </div>
-            <p>Pega directamente el JSON generado por tu IA favorita.</p>
+            <p class="ia-header__description gn-header__subtitle">Pega directamente el JSON generado por tu IA favorita.</p>
         </header>
 
         <div class="ia-container">

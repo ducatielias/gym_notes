@@ -35,34 +35,6 @@
     padding-block-end: calc(var(--gn-space-lg) - var(--gn-border-width));
 }
 
-.ia-header-top h1 {
-    flex: 0 1 auto;
-    margin: 0;
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    order: 2;
-}
-
-.ia-header-top h1 i {
-    color: #000000;
-    font-size: 22px;
-}
-
-.ia-header p {
-    font-size: 14px;
-    color: var(--text-muted, #666666);
-    margin: 0;
-}
-
-.btn-ia-back {
-    flex-shrink: 0;
-    order: 1;
-}
-
 /* ==========================================================================
    CONTENEDOR PRINCIPAL - ESTILO APP NATIVA
    ========================================================================== */
@@ -710,14 +682,6 @@
    ========================================================================== */
 
 @media (max-width: 480px) {
-    .ia-header-top h1 {
-        font-size: 20px;
-    }
-    
-    .ia-header-top h1 i {
-        font-size: 18px;
-    }
-    
     .ia-section {
         padding: 14px 14px;
         border-radius: 10px;
