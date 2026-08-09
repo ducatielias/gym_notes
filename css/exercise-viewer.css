@@ -202,7 +202,7 @@
     flex-shrink: 0;
     background-color: #ffffff;
     border-top: 1px solid #f3f4f6;
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    padding: 12px 16px calc(12px + var(--gn-safe-bottom));
     display: flex;
     gap: 8px;
     position: sticky;
@@ -390,7 +390,7 @@
     }
     
     .exercise-viewer-full-footer {
-        padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+        padding: 10px 12px calc(10px + var(--gn-safe-bottom));
         gap: 6px;
     }
     

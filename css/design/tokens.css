@@ -59,6 +59,15 @@
     --gn-safe-bottom: env(safe-area-inset-bottom, 0px);
     --gn-safe-left: env(safe-area-inset-left, 0px);
 
+    /* 60px de navbar + 12px al borde + 8px de sombra + safe area inferior. */
+    --gn-content-bottom-clearance: calc(
+        var(--gn-space-3xl) +
+        var(--gn-space-md) +
+        var(--gn-space-md) +
+        var(--gn-space-sm) +
+        var(--gn-safe-bottom)
+    );
+
     /* Radios */
     --gn-radius-sm: 0.75rem;
     --gn-radius-md: 1rem;

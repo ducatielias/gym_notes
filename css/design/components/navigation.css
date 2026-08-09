@@ -39,10 +39,9 @@
         bottom: 0;
         left: 0;
         block-size: calc(
-            var(--gn-space-3xl) +
-            var(--gn-space-3xl) +
-            var(--gn-space-xl) +
-            var(--gn-safe-bottom)
+            var(--gn-content-bottom-clearance) +
+            var(--gn-space-2xl) +
+            var(--gn-space-sm)
         );
         background: linear-gradient(
             to bottom,

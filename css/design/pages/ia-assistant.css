@@ -82,7 +82,7 @@
     outline-offset: var(--gn-space-xs);
 }
 
-/* Flujo principal de lectura: ancho controlado y espacio seguro inferior. */
+/* Flujo principal: ancho controlado y respiración interna; .screen reserva la navbar. */
 #screen-ia-assistant .ia-container {
     box-sizing: border-box;
     width: min(100%, 48rem);
@@ -90,7 +90,7 @@
     padding:
         var(--gn-space-xl)
         calc(var(--gn-space-lg) + var(--gn-safe-right))
-        calc(7.5rem + var(--gn-safe-bottom))
+        var(--gn-space-xl)
         calc(var(--gn-space-lg) + var(--gn-safe-left));
     gap: var(--gn-space-xl);
     background-color: var(--gn-color-background);

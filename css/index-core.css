@@ -54,7 +54,14 @@ body {
     left: 0;
     overflow-y: auto;
     background-color: var(--gn-color-background);
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 20px));
+    padding-bottom: var(--gn-content-bottom-clearance);
+}
+
+/* Las vistas internas no reservan espacio para una navbar que está oculta. */
+@supports selector(body:has(.bottom-nav.hidden-nav)) {
+    body:has(.bottom-nav.hidden-nav) .screen {
+        padding-bottom: 0;
+    }
 }
 
 .screen.hidden {
