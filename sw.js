@@ -8,7 +8,7 @@
  * MODIFICADO: Soporte para mensaje "getVersion" que devuelve CACHE_VERSION
  */
 
-const CACHE_VERSION = 'gym-notes-v1-88';
+const CACHE_VERSION = 'gym-notes-v1-89';
 const CACHE_NAME = CACHE_VERSION;
 
 // ============================================================
@@ -31,7 +31,6 @@ const FILES_TO_CACHE = [
   'css/exercise-viewer.css',
   'css/ia-assistant.css',
   'css/today-dashboard.css',
-  'css/viewport-e0-metrics.css',
 
   // Design System
   'css/design/tokens.css',
@@ -98,7 +97,6 @@ const FILES_TO_CACHE = [
   'js/ia-assistant.js',
   'js/today-progress.js',
   'js/today-dashboard.js',
-  'js/viewport-e0-metrics.js',
   
   // Iconos
   'icons/icon-72x72.png',
