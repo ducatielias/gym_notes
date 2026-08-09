@@ -6,7 +6,7 @@
  * y establecer un estado inicial en el historial.
  */
 
-const internalScreens = ['editor', 'exercise-editor', 'history-detail', 'exercise-viewer'];
+const internalScreens = ['editor', 'exercise-editor', 'history-detail', 'exercise-viewer', 'ia-assistant'];
 let routineNavigationActive = false;
 
 /**
