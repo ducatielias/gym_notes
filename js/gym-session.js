@@ -12,6 +12,18 @@
 
 window.quillInstance = null;
 
+/**
+ * Sincroniza el placeholder nativo de Quill con el contenido textual real.
+ * Quill representa un editor vacío como `<p><br></p>`, por lo que el HTML no
+ * es una fuente fiable para decidir si debe mostrarse el placeholder.
+ */
+function syncSessionEditorPlaceholderState(quill) {
+    if (!quill || !quill.root) return;
+
+    const isEmpty = quill.getText().trim().length === 0;
+    quill.root.classList.toggle('ql-blank', isEmpty);
+}
+
 // Inicializar la instancia nativa del editor enriquecido Quill
 function initEditorInstance(initialContent) {
     // Evitar duplicidades si la instancia ya existía previamente
@@ -31,6 +43,13 @@ function initEditorInstance(initialContent) {
     if (initialContent) {
         window.quillInstance.clipboard.dangerouslyPasteHTML(GymNotesSafe.sanitizeRichHtml(initialContent));
     }
+
+    // El contenido, no el teclado o el navegador, gobierna el placeholder.
+    const editorInstance = window.quillInstance;
+    editorInstance.on('text-change', () => {
+        syncSessionEditorPlaceholderState(editorInstance);
+    });
+    syncSessionEditorPlaceholderState(editorInstance);
     
     // Asegurar que el listener global está configurado
     if (typeof window.configurarListenerGlobalEjercicios === 'function') {
