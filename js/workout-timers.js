@@ -132,7 +132,6 @@ window.setTiempoDescanso = function(segundos) {
     window.pausarDescanso();
     aw_descansoSeconds = segundos;
     actualizarDisplayDescanso();
-    document.getElementById('descanso-panel').style.display = 'none';
 };
 
 window.iniciarTimer = function() {
@@ -392,7 +391,6 @@ window.iniciarIntervaloPersonalizado = function() {
         return;
     }
     iniciarIntervalo({ trabajo, descanso, rondas });
-    document.getElementById('timer-panel').style.display = 'none';
 };
 
 // Alternar paneles de configuración de temporizadores

@@ -243,13 +243,39 @@
     box-shadow: var(--gn-shadow-none);
 }
 
+#active-workout .aw-timer-panel-primary-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--gn-space-sm);
+    width: 100%;
+}
+
+#active-workout .aw-timer-panel-primary-row > .custom-rest {
+    justify-self: end;
+    width: min(100%, 11rem);
+}
+
+#active-workout .aw-timer-panel-primary-row > .aw-timer-apply-button {
+    justify-self: end;
+}
+
+#active-workout #descanso-panel > .preset-buttons,
+#active-workout #timer-panel > .preset-buttons,
+#active-workout #timer-panel > .custom-interval,
+#active-workout #timer-panel > .timer-preset-info {
+    flex: 1 1 100%;
+    width: 100%;
+}
+
 #active-workout .preset-buttons {
     gap: var(--gn-space-sm);
 }
 
 #active-workout .preset-buttons button,
 #active-workout .custom-rest button,
-#active-workout .custom-interval button {
+#active-workout .custom-interval button,
+#active-workout .aw-timer-apply-button {
     min-height: 2.75rem;
     padding: var(--gn-space-sm) var(--gn-space-md);
     border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
@@ -270,7 +296,8 @@
 }
 
 #active-workout .custom-rest button,
-#active-workout .custom-interval button {
+#active-workout .custom-interval button,
+#active-workout .aw-timer-apply-button {
     background-color: var(--gn-color-accent);
 }
 
@@ -281,7 +308,8 @@
     }
 
     #active-workout .custom-rest button:hover:not(:disabled):not([aria-disabled="true"]),
-    #active-workout .custom-interval button:hover:not(:disabled):not([aria-disabled="true"]) {
+    #active-workout .custom-interval button:hover:not(:disabled):not([aria-disabled="true"]),
+    #active-workout .aw-timer-apply-button:hover:not(:disabled):not([aria-disabled="true"]) {
         border-color: var(--gn-color-text);
         background-color: var(--gn-color-accent);
     }
@@ -289,21 +317,25 @@
 
 #active-workout .preset-buttons button:active:not(:disabled):not([aria-disabled="true"]),
 #active-workout .custom-rest button:active:not(:disabled):not([aria-disabled="true"]),
-#active-workout .custom-interval button:active:not(:disabled):not([aria-disabled="true"]) {
+#active-workout .custom-interval button:active:not(:disabled):not([aria-disabled="true"]),
+#active-workout .aw-timer-apply-button:active:not(:disabled):not([aria-disabled="true"]) {
     background-color: var(--gn-color-surface-secondary);
 }
 
 #active-workout .custom-rest button:active:not(:disabled):not([aria-disabled="true"]),
-#active-workout .custom-interval button:active:not(:disabled):not([aria-disabled="true"]) {
+#active-workout .custom-interval button:active:not(:disabled):not([aria-disabled="true"]),
+#active-workout .aw-timer-apply-button:active:not(:disabled):not([aria-disabled="true"]) {
     background-color: var(--gn-color-accent);
 }
 
 #active-workout .preset-buttons button:disabled,
 #active-workout .custom-rest button:disabled,
 #active-workout .custom-interval button:disabled,
+#active-workout .aw-timer-apply-button:disabled,
 #active-workout .preset-buttons button[aria-disabled="true"],
 #active-workout .custom-rest button[aria-disabled="true"],
-#active-workout .custom-interval button[aria-disabled="true"] {
+#active-workout .custom-interval button[aria-disabled="true"],
+#active-workout .aw-timer-apply-button[aria-disabled="true"] {
     border-color: var(--gn-color-border-muted);
     background-color: var(--gn-color-disabled);
     color: var(--gn-color-disabled-text);
@@ -313,6 +345,12 @@
 #active-workout .custom-rest,
 #active-workout .custom-interval {
     gap: var(--gn-space-sm);
+}
+
+#active-workout .custom-rest {
+    display: grid;
+    grid-template-columns: minmax(0, 5rem) auto;
+    align-items: center;
 }
 
 #active-workout .custom-interval label {
@@ -339,6 +377,11 @@
     transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
         border-color var(--gn-motion-fast) var(--gn-ease-standard),
         color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#active-workout .custom-rest input {
+    width: 100%;
+    min-width: 0;
 }
 
 #active-workout .custom-rest input:disabled,
@@ -372,6 +415,7 @@
 #active-workout .preset-buttons button:focus-visible,
 #active-workout .custom-rest button:focus-visible,
 #active-workout .custom-interval button:focus-visible,
+#active-workout .aw-timer-apply-button:focus-visible,
 #active-workout .custom-rest input:focus-visible,
 #active-workout .custom-interval input:focus-visible {
     outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
@@ -409,6 +453,12 @@
         width: 3.75rem;
         min-width: 3.75rem;
     }
+
+    #active-workout #descanso-panel,
+    #active-workout #timer-panel {
+        padding-inline-start: calc(var(--gn-space-sm) + var(--gn-safe-left));
+        padding-inline-end: calc(var(--gn-space-sm) + var(--gn-safe-right));
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -418,6 +468,7 @@
     #active-workout .preset-buttons button,
     #active-workout .custom-rest button,
     #active-workout .custom-interval button,
+    #active-workout .aw-timer-apply-button,
     #active-workout .custom-rest input,
     #active-workout .custom-interval input {
         transition-duration: 0ms;
