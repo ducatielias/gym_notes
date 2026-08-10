@@ -182,16 +182,14 @@
                 </div>
 
                 <div id="descanso-panel" class="timer-panel aw-rest-panel" style="display:none;">
-                    <div class="aw-timer-panel-primary-row">
-                        <div class="timer-controls aw-timer-panel-controls">
-                            <button id="btn-descanso-play" type="button" onclick="iniciarDescanso()" aria-label="Iniciar descanso" title="Iniciar descanso"><i class="fa-solid fa-play"></i></button>
-                            <button id="btn-descanso-pause" type="button" onclick="pausarDescanso()" style="display:none;" aria-label="Pausar descanso" title="Pausar descanso"><i class="fa-solid fa-pause"></i></button>
-                            <button type="button" onclick="resetearDescanso()" aria-label="Reiniciar descanso" title="Reiniciar descanso"><i class="fa-solid fa-rotate-left"></i></button>
+                    <div class="aw-timer-panel-primary-row aw-rest-primary-row">
+                        <div class="aw-timer-primary-toggle">
+                            <button id="btn-descanso-play" class="aw-timer-control-button gn-options-button" type="button" onclick="iniciarDescanso()" aria-label="Iniciar descanso" title="Iniciar descanso"><i class="fa-solid fa-play"></i></button>
+                            <button id="btn-descanso-pause" class="aw-timer-control-button gn-options-button" type="button" onclick="pausarDescanso()" style="display:none;" aria-label="Pausar descanso" title="Pausar descanso"><i class="fa-solid fa-pause"></i></button>
                         </div>
-                        <div class="custom-rest">
-                            <input type="number" id="custom-descanso-input" value="60" min="5" max="300" aria-label="Segundos de descanso">
-                            <button class="aw-timer-apply-button" type="button" onclick="setTiempoDescanso(parseInt(document.getElementById('custom-descanso-input').value) || 60)">Aplicar</button>
-                        </div>
+                        <button class="aw-timer-control-button gn-options-button" type="button" onclick="resetearDescanso()" aria-label="Reiniciar descanso" title="Reiniciar descanso"><i class="fa-solid fa-rotate-left"></i></button>
+                        <input class="aw-rest-custom-input" type="number" id="custom-descanso-input" value="60" min="5" max="300" aria-label="Segundos de descanso">
+                        <button class="aw-timer-apply-button gn-button gn-button--primary" type="button" onclick="setTiempoDescanso(parseInt(document.getElementById('custom-descanso-input').value) || 60)">Aplicar</button>
                     </div>
                     <div class="preset-buttons">
                         <button type="button" onclick="setTiempoDescanso(30)">30s</button>
@@ -203,13 +201,13 @@
                 </div>
 
                 <div id="timer-panel" class="timer-panel aw-rest-panel" style="display:none;">
-                    <div class="aw-timer-panel-primary-row">
-                        <div class="timer-controls aw-timer-panel-controls">
-                            <button id="btn-timer-play" type="button" onclick="iniciarTimer()" aria-label="Iniciar timer" title="Iniciar timer"><i class="fa-solid fa-play"></i></button>
-                            <button id="btn-timer-pause" type="button" onclick="pausarTimer()" style="display:none;" aria-label="Pausar timer" title="Pausar timer"><i class="fa-solid fa-pause"></i></button>
-                            <button type="button" onclick="resetearTimer()" aria-label="Reiniciar timer" title="Reiniciar timer"><i class="fa-solid fa-rotate-left"></i></button>
+                    <div class="aw-timer-panel-primary-row aw-interval-primary-row">
+                        <div class="aw-timer-primary-toggle">
+                            <button id="btn-timer-play" class="aw-timer-control-button gn-options-button" type="button" onclick="iniciarTimer()" aria-label="Iniciar timer" title="Iniciar timer"><i class="fa-solid fa-play"></i></button>
+                            <button id="btn-timer-pause" class="aw-timer-control-button gn-options-button" type="button" onclick="pausarTimer()" style="display:none;" aria-label="Pausar timer" title="Pausar timer"><i class="fa-solid fa-pause"></i></button>
                         </div>
-                        <button class="aw-timer-apply-button" type="button" onclick="iniciarIntervaloPersonalizado()">Aplicar</button>
+                        <button class="aw-timer-control-button gn-options-button" type="button" onclick="resetearTimer()" aria-label="Reiniciar timer" title="Reiniciar timer"><i class="fa-solid fa-rotate-left"></i></button>
+                        <button class="aw-timer-apply-button gn-button gn-button--primary" type="button" onclick="iniciarIntervaloPersonalizado()">Aplicar</button>
                     </div>
                     <div class="preset-buttons">
                         <button type="button" onclick="aplicarPresetTimer('tabata')">Tabata</button>
