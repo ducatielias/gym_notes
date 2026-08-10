@@ -92,7 +92,7 @@ window.iniciarDescanso = function() {
     const btnPlay = document.getElementById('btn-descanso-play');
     const btnPause = document.getElementById('btn-descanso-pause');
     if (btnPlay) btnPlay.style.display = 'none';
-    if (btnPause) btnPause.style.display = 'inline-flex';
+    if (btnPause) btnPause.style.display = '';
     
     if (aw_descansoTimerInterval) clearInterval(aw_descansoTimerInterval);
     
@@ -117,7 +117,7 @@ window.pausarDescanso = function() {
     }
     const btnPlay = document.getElementById('btn-descanso-play');
     const btnPause = document.getElementById('btn-descanso-pause');
-    if (btnPlay) btnPlay.style.display = 'inline-flex';
+    if (btnPlay) btnPlay.style.display = '';
     if (btnPause) btnPause.style.display = 'none';
 };
 
@@ -147,7 +147,7 @@ window.iniciarTimer = function() {
     const btnPlay = document.getElementById('btn-timer-play');
     const btnPause = document.getElementById('btn-timer-pause');
     if (btnPlay) btnPlay.style.display = 'none';
-    if (btnPause) btnPause.style.display = 'inline-flex';
+    if (btnPause) btnPause.style.display = '';
     
     if (aw_timerTrabajoInterval) clearInterval(aw_timerTrabajoInterval);
     aw_timerTrabajoInterval = setInterval(() => {
@@ -168,7 +168,7 @@ window.pausarTimer = function() {
     }
     const btnPlay = document.getElementById('btn-timer-play');
     const btnPause = document.getElementById('btn-timer-pause');
-    if (btnPlay) btnPlay.style.display = 'inline-flex';
+    if (btnPlay) btnPlay.style.display = '';
     if (btnPause) btnPause.style.display = 'none';
 };
 
@@ -199,7 +199,7 @@ function pausarIntervalo() {
     
     const btnPlay = document.getElementById('btn-timer-play');
     const btnPause = document.getElementById('btn-timer-pause');
-    if (btnPlay) btnPlay.style.display = 'inline-flex';
+    if (btnPlay) btnPlay.style.display = '';
     if (btnPause) btnPause.style.display = 'none';
 }
 
@@ -219,7 +219,7 @@ function reanudarIntervalo() {
     const btnPlay = document.getElementById('btn-timer-play');
     const btnPause = document.getElementById('btn-timer-pause');
     if (btnPlay) btnPlay.style.display = 'none';
-    if (btnPause) btnPause.style.display = 'inline-flex';
+    if (btnPause) btnPause.style.display = '';
     
     const area = document.getElementById('timer-trabajo-area');
     if (area) area.style.background = aw_estadoIntervaloPausado.areaBackground;
@@ -274,7 +274,7 @@ function detenerIntervalo() {
     aw_intervaloPausado = false;
     const btnPlay = document.getElementById('btn-timer-play');
     const btnPause = document.getElementById('btn-timer-pause');
-    if (btnPlay) btnPlay.style.display = 'inline-flex';
+    if (btnPlay) btnPlay.style.display = '';
     if (btnPause) btnPause.style.display = 'none';
     const area = document.getElementById('timer-trabajo-area');
     if (area) area.style.background = '';
@@ -303,7 +303,7 @@ function iniciarIntervalo(config) {
     const btnPlay = document.getElementById('btn-timer-play');
     const btnPause = document.getElementById('btn-timer-pause');
     if (btnPlay) btnPlay.style.display = 'none';
-    if (btnPause) btnPause.style.display = 'inline-flex';
+    if (btnPause) btnPause.style.display = '';
     
     const actualizarDisplay = () => {
         document.getElementById('aw-timer-trabajo').innerText = formatTime(aw_tiempoActualIntervalo);

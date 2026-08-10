@@ -152,12 +152,12 @@ function resetAllTimersAndState() {
     
     const btnPlayDescanso = document.getElementById('btn-descanso-play');
     const btnPauseDescanso = document.getElementById('btn-descanso-pause');
-    if (btnPlayDescanso) btnPlayDescanso.style.display = 'inline-flex';
+    if (btnPlayDescanso) btnPlayDescanso.style.display = '';
     if (btnPauseDescanso) btnPauseDescanso.style.display = 'none';
     
     const btnPlayTimer = document.getElementById('btn-timer-play');
     const btnPauseTimer = document.getElementById('btn-timer-pause');
-    if (btnPlayTimer) btnPlayTimer.style.display = 'inline-flex';
+    if (btnPlayTimer) btnPlayTimer.style.display = '';
     if (btnPauseTimer) btnPauseTimer.style.display = 'none';
     
     const area = document.getElementById('timer-trabajo-area');

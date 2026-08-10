@@ -188,7 +188,7 @@
                             <button id="btn-descanso-pause" class="aw-timer-control-button gn-options-button" type="button" onclick="pausarDescanso()" style="display:none;" aria-label="Pausar descanso" title="Pausar descanso"><i class="fa-solid fa-pause"></i></button>
                         </div>
                         <button class="aw-timer-control-button gn-options-button" type="button" onclick="resetearDescanso()" aria-label="Reiniciar descanso" title="Reiniciar descanso"><i class="fa-solid fa-rotate-left"></i></button>
-                        <input class="aw-rest-custom-input" type="number" id="custom-descanso-input" value="60" min="5" max="300" aria-label="Segundos de descanso">
+                        <input class="aw-timer-value-input aw-rest-custom-input" type="number" id="custom-descanso-input" value="60" min="5" max="300" aria-label="Segundos de descanso">
                         <button class="aw-timer-apply-button gn-button gn-button--primary" type="button" onclick="setTiempoDescanso(parseInt(document.getElementById('custom-descanso-input').value) || 60)">Aplicar</button>
                     </div>
                     <div class="preset-buttons">
@@ -214,9 +214,9 @@
                         <button type="button" onclick="aplicarPresetTimer('emom')">EMOM</button>
                     </div>
                     <div class="custom-interval">
-                        <label>Trabajo: <input type="number" id="interval-trabajo" value="20" min="1" max="300"></label>
-                        <label>Descanso: <input type="number" id="interval-descanso" value="10" min="0" max="300"></label>
-                        <label>Rondas: <input type="number" id="interval-rondas" value="8" min="1" max="99"></label>
+                        <label>Trabajo: <input class="aw-timer-value-input" type="number" id="interval-trabajo" value="20" min="1" max="300"></label>
+                        <label>Descanso: <input class="aw-timer-value-input" type="number" id="interval-descanso" value="10" min="0" max="300"></label>
+                        <label>Rondas: <input class="aw-timer-value-input" type="number" id="interval-rondas" value="8" min="1" max="99"></label>
                     </div>
                     <span id="timer-preset-info" class="timer-preset-info">Tabata: 20" trabajo / 10" descanso x8</span>
                 </div>

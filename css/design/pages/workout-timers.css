@@ -251,19 +251,19 @@
 }
 
 #active-workout .aw-rest-primary-row {
-    grid-template-columns: 2.75rem 2.75rem minmax(0, 1fr) clamp(4rem, 18vw, 4.5rem) auto;
+    grid-template-columns: 3rem 3rem minmax(0, 1fr) 4.5rem auto;
     grid-template-areas: "toggle reset spacer input apply";
 }
 
 #active-workout .aw-interval-primary-row {
-    grid-template-columns: 2.75rem 2.75rem minmax(0, 1fr) auto;
+    grid-template-columns: 3rem 3rem minmax(0, 1fr) auto;
     grid-template-areas: "toggle reset spacer apply";
 }
 
 #active-workout .aw-timer-primary-toggle {
     grid-area: toggle;
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 3rem;
+    height: 3rem;
 }
 
 #active-workout .aw-timer-panel-primary-row > .aw-timer-control-button {
@@ -277,6 +277,42 @@
 
 #active-workout .aw-rest-custom-input {
     grid-area: input;
+}
+
+/* Primitiva local: geometría idéntica para Play/Pause y Reset. */
+#active-workout .aw-timer-control-button {
+    appearance: none;
+    box-sizing: border-box;
+    display: inline-grid;
+    place-items: center;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 3rem;
+    width: 3rem;
+    height: 3rem;
+    min-width: 3rem;
+    min-height: 3rem;
+    max-width: 3rem;
+    max-height: 3rem;
+    padding: 0;
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-circle);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-size: 1rem;
+    line-height: 1;
+    box-shadow: var(--gn-shadow-none);
+}
+
+#active-workout .aw-timer-control-button > i {
+    display: block;
+    width: 1em;
+    height: 1em;
+    margin: 0;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1;
+    text-align: center;
 }
 
 #active-workout #timer-panel > .custom-interval,
@@ -321,20 +357,40 @@
 }
 
 #active-workout .preset-buttons button {
-    min-width: 0;
-}
-
-#active-workout .aw-timer-apply-button {
     appearance: none;
     box-sizing: border-box;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    height: 2.75rem;
+    min-width: 0;
+    line-height: 1;
+}
+
+/* Primitiva local: acción estable aunque también consuma .gn-button. */
+#active-workout .aw-timer-apply-button {
+    appearance: none;
+    box-sizing: border-box;
+    display: inline-grid;
+    place-items: center;
+    align-items: center;
+    justify-content: center;
     flex: none;
     width: auto;
     min-width: 0;
-    height: 2.75rem;
+    height: 3rem;
+    min-height: 3rem;
+    max-height: 3rem;
     padding: 0 var(--gn-space-md);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-md);
+    background-color: var(--gn-color-accent);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-md);
+    font-weight: var(--gn-font-weight-semibold);
+    line-height: 1;
+    box-shadow: var(--gn-shadow-none);
     white-space: nowrap;
 }
 
@@ -414,11 +470,16 @@
     align-items: end;
 }
 
-#active-workout .custom-rest input,
-#active-workout .custom-interval input,
-#active-workout .aw-rest-custom-input {
+/* Primitiva local compartida por Descanso, Tabata y EMOM. */
+#active-workout .aw-timer-value-input {
+    appearance: textfield;
     box-sizing: border-box;
-    min-height: 2.75rem;
+    display: block;
+    height: 3rem;
+    min-height: 3rem;
+    max-height: 3rem;
+    min-width: 0;
+    padding: 0 var(--gn-space-sm);
     border: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border);
     border-radius: var(--gn-radius-md);
     background-color: var(--gn-color-surface);
@@ -427,40 +488,40 @@
     font-size: var(--gn-font-size-sm);
     font-weight: var(--gn-font-weight-semibold);
     font-variant-numeric: tabular-nums;
-    line-height: var(--gn-line-height-normal);
+    line-height: 1;
+    text-align: center;
     box-shadow: var(--gn-shadow-none);
     transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
         border-color var(--gn-motion-fast) var(--gn-ease-standard),
         color var(--gn-motion-fast) var(--gn-ease-standard);
 }
 
-#active-workout .custom-rest input {
-    width: 100%;
-    min-width: 0;
-}
-
-#active-workout .custom-interval input,
 #active-workout .aw-rest-custom-input {
-    width: 100%;
-    min-width: 0;
-    text-align: center;
+    width: 4.5rem;
+    min-width: 4.5rem;
+    max-width: 4.5rem;
 }
 
-#active-workout .custom-rest input:disabled,
-#active-workout .custom-interval input:disabled,
-#active-workout .aw-rest-custom-input:disabled,
-#active-workout .custom-rest input[aria-disabled="true"],
-#active-workout .custom-interval input[aria-disabled="true"],
-#active-workout .aw-rest-custom-input[aria-disabled="true"] {
+#active-workout .custom-interval .aw-timer-value-input {
+    width: 100%;
+    max-width: 100%;
+}
+
+#active-workout .aw-timer-value-input::-webkit-inner-spin-button,
+#active-workout .aw-timer-value-input::-webkit-outer-spin-button {
+    margin: 0;
+    appearance: none;
+}
+
+#active-workout .aw-timer-value-input:disabled,
+#active-workout .aw-timer-value-input[aria-disabled="true"] {
     border-color: var(--gn-color-border-muted);
     background-color: var(--gn-color-disabled);
     color: var(--gn-color-disabled-text);
     cursor: not-allowed;
 }
 
-#active-workout .custom-rest input[readonly],
-#active-workout .custom-interval input[readonly],
-#active-workout .aw-rest-custom-input[readonly] {
+#active-workout .aw-timer-value-input[readonly] {
     border-color: var(--gn-color-border-muted);
     background-color: var(--gn-color-surface-secondary);
     color: var(--gn-color-text-muted);
@@ -483,9 +544,7 @@
 #active-workout .preset-buttons button:focus-visible,
 #active-workout .custom-rest button:focus-visible,
 #active-workout .custom-interval button:focus-visible,
-#active-workout .custom-rest input:focus-visible,
-#active-workout .custom-interval input:focus-visible,
-#active-workout .aw-rest-custom-input:focus-visible {
+#active-workout .aw-timer-value-input:focus-visible {
     outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
     outline-offset: var(--gn-space-xs);
 }
@@ -536,7 +595,13 @@
     }
 
     #active-workout .aw-rest-primary-row {
-        grid-template-columns: 2.75rem 2.75rem minmax(0, 1fr) 3.5rem auto;
+        grid-template-columns: 3rem 3rem minmax(0, 1fr) 4rem auto;
+    }
+
+    #active-workout .aw-rest-custom-input {
+        width: 4rem;
+        min-width: 4rem;
+        max-width: 4rem;
     }
 
     #active-workout .preset-buttons button,
@@ -552,9 +617,7 @@
     #active-workout .preset-buttons button,
     #active-workout .custom-rest button,
     #active-workout .custom-interval button,
-    #active-workout .custom-rest input,
-    #active-workout .custom-interval input,
-    #active-workout .aw-rest-custom-input {
+    #active-workout .aw-timer-value-input {
         transition-duration: 0ms;
     }
 }
