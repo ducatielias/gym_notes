@@ -13,15 +13,63 @@
 window.quillInstance = null;
 
 /**
- * Sincroniza el placeholder nativo de Quill con el contenido textual real.
- * Quill representa un editor vacío como `<p><br></p>`, por lo que el HTML no
- * es una fuente fiable para decidir si debe mostrarse el placeholder.
+ * Normaliza caracteres estructurales que pueden existir en un contenteditable
+ * visualmente vacío sin representar contenido escrito por el usuario.
  */
-function syncSessionEditorPlaceholderState(quill) {
+function normalizeSessionEditorText(text) {
+    return String(text || '')
+        .replace(/[\u200B\uFEFF]/g, '')
+        .replace(/\u00A0/g, ' ')
+        .trim();
+}
+
+function isSessionEditorDomEmpty(root) {
+    return normalizeSessionEditorText(root?.textContent).length === 0;
+}
+
+function setSessionEditorPlaceholderState(root, isEmpty) {
+    if (!root) return;
+    root.classList.toggle('gn-session-editor-empty', isEmpty);
+}
+
+/**
+ * Mantiene el placeholder sincronizado con el DOM durante composición IME y
+ * con el modelo de Quill para inserciones programáticas. Los listeners viven
+ * en la instancia y su root, que se descartan juntos al remontar el editor.
+ */
+function setupSessionEditorPlaceholderSync(quill) {
     if (!quill || !quill.root) return;
 
-    const isEmpty = quill.getText().trim().length === 0;
-    quill.root.classList.toggle('ql-blank', isEmpty);
+    const root = quill.root;
+    let isComposing = false;
+
+    const syncFromDom = () => {
+        setSessionEditorPlaceholderState(root, isSessionEditorDomEmpty(root));
+    };
+
+    const syncFromQuill = () => {
+        if (isComposing) {
+            syncFromDom();
+            return;
+        }
+
+        const isEmpty = normalizeSessionEditorText(quill.getText()).length === 0;
+        setSessionEditorPlaceholderState(root, isEmpty);
+    };
+
+    root.addEventListener('input', syncFromDom);
+    root.addEventListener('compositionstart', () => {
+        isComposing = true;
+        syncFromDom();
+    });
+    root.addEventListener('compositionupdate', syncFromDom);
+    root.addEventListener('compositionend', () => {
+        isComposing = false;
+        syncFromDom();
+    });
+    quill.on('text-change', syncFromQuill);
+
+    syncFromDom();
 }
 
 // Inicializar la instancia nativa del editor enriquecido Quill
@@ -44,12 +92,8 @@ function initEditorInstance(initialContent) {
         window.quillInstance.clipboard.dangerouslyPasteHTML(GymNotesSafe.sanitizeRichHtml(initialContent));
     }
 
-    // El contenido, no el teclado o el navegador, gobierna el placeholder.
-    const editorInstance = window.quillInstance;
-    editorInstance.on('text-change', () => {
-        syncSessionEditorPlaceholderState(editorInstance);
-    });
-    syncSessionEditorPlaceholderState(editorInstance);
+    // El DOM gobierna la respuesta inmediata; Quill confirma cambios de modelo.
+    setupSessionEditorPlaceholderSync(window.quillInstance);
     
     // Asegurar que el listener global está configurado
     if (typeof window.configurarListenerGlobalEjercicios === 'function') {
