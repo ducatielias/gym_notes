@@ -123,108 +123,101 @@
     <!-- MODAL DE ENTRENAMIENTO ACTIVO -->
     <div id="active-workout" class="modal-overlay" style="display:none; align-items: stretch; justify-content: stretch; background: var(--background-color);">
         <div class="aw-container">
-            <div class="aw-sticky-chrome">
-                <div class="aw-collapsible-chrome">
-                    <div class="aw-collapsible-chrome__inner">
             <div class="aw-header gn-screen-header">
                 <div class="aw-header-top">
                     <button onclick="cerrarEntrenamiento()" class="aw-close-btn gn-close-button" type="button" aria-label="Cerrar entrenamiento" title="Cerrar (sin guardar)">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
+                    <div class="aw-total-timer" role="timer" aria-labelledby="aw-total-label aw-timer-total">
+                        <span class="aw-visually-hidden" id="aw-total-label">Tiempo total</span>
+                        <span id="aw-timer-total">00:00</span>
+                    </div>
+                    <button class="aw-finish-btn gn-header-action-button gn-header-action-button--success" type="button" onclick="finalizarEntrenamiento()" aria-label="Finalizar entrenamiento" title="Finalizar entrenamiento">
+                        <i class="fa-solid fa-flag-checkered"></i>
+                    </button>
                     <div id="aw-title-small" class="aw-title">Entrenando: <span id="aw-session-title"></span></div>
-                    <button id="aw-history-btn" class="aw-history-btn gn-options-button" title="Historial de esta sesión" style="position: relative; z-index: 10; pointer-events: auto;">
+                </div>
+            </div>
+
+            <div class="aw-sticky-tools">
+                <div class="aw-tools-row" role="toolbar" aria-label="Herramientas del entrenamiento">
+                    <button class="aw-tool-toggle aw-tool-icon-button gn-options-button" id="aw-format-btn" data-type="format" type="button" onclick="toggleSectionEntrenamiento('format')" aria-label="Formato" title="Formato" aria-controls="aw-toolbar-wrapper">
+                        <i class="fa-solid fa-sliders"></i>
+                    </button>
+                    <button class="aw-tool-toggle aw-tool-icon-button gn-options-button" id="aw-exercises-btn" data-type="exercises" type="button" onclick="toggleSectionEntrenamiento('exercises')" aria-label="Ejercicios Gym" title="Ejercicios Gym" aria-controls="aw-exercises-wrapper">
+                        <i class="fa-solid fa-dumbbell"></i>
+                    </button>
+                    <button class="aw-timer-trigger" id="timer-descanso-area" type="button" aria-labelledby="aw-rest-label aw-timer-descanso" aria-controls="descanso-panel">
+                        <span class="aw-visually-hidden" id="aw-rest-label">Descanso</span>
+                        <span id="aw-timer-descanso">01:00</span>
+                    </button>
+                    <button class="aw-timer-trigger" id="timer-trabajo-area" type="button" aria-labelledby="aw-work-label aw-timer-trabajo" aria-controls="timer-panel">
+                        <span class="aw-visually-hidden" id="aw-work-label">Timer</span>
+                        <span id="aw-timer-trabajo">00:00</span>
+                    </button>
+                    <button id="aw-history-btn" class="aw-history-btn gn-options-button" type="button" aria-label="Historial de esta sesión" title="Historial de esta sesión">
                         <i class="fa-solid fa-clock-rotate-left"></i>
                     </button>
                 </div>
-                <div class="aw-timers-container">
-                    <div class="timer-item">
-                        <span class="timer-label">TOTAL</span>
-                        <span class="timer-value" id="aw-timer-total">00:00</span>
-                        <div class="timer-controls">
-                            <button class="aw-finish-btn-inline" onclick="finalizarEntrenamiento()">Terminar</button>
-                        </div>
-                    </div>
-                    <div class="timer-item timer-clickable" id="timer-descanso-area">
-                        <span class="timer-label">DESCANSO</span>
-                        <span class="timer-value" id="aw-timer-descanso">01:00</span>
-                        <div class="timer-controls">
-                            <button id="btn-descanso-play" onclick="iniciarDescanso()"><i class="fa-solid fa-play"></i></button>
-                            <button id="btn-descanso-pause" onclick="pausarDescanso()" style="display:none;"><i class="fa-solid fa-pause"></i></button>
-                            <button onclick="resetearDescanso()"><i class="fa-solid fa-rotate-left"></i></button>
-                        </div>
-                    </div>
-                    <div class="timer-item timer-clickable" id="timer-trabajo-area">
-                        <span class="timer-label">TIMER</span>
-                        <span class="timer-value" id="aw-timer-trabajo">00:00</span>
-                        <div class="timer-controls">
-                            <button id="btn-timer-play" onclick="iniciarTimer()"><i class="fa-solid fa-play"></i></button>
-                            <button id="btn-timer-pause" onclick="pausarTimer()" style="display:none;"><i class="fa-solid fa-pause"></i></button>
-                            <button onclick="resetearTimer()"><i class="fa-solid fa-rotate-left"></i></button>
-                        </div>
+
+                <div class="expandable-wrapper" id="aw-toolbar-wrapper">
+                    <div id="aw-toolbar-container">
+                        <span class="ql-formats">
+                            <button class="ql-bold"></button>
+                            <button class="ql-italic"></button>
+                            <button class="ql-underline"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-list" value="ordered"></button>
+                            <button class="ql-list" value="bullet"></button>
+                        </span>
                     </div>
                 </div>
 
-                <div id="descanso-panel" class="timer-panel aw-rest-panel" style="display:none; flex-wrap: wrap; align-items: center; gap: 10px; background: white; padding: 10px 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+                <div class="expandable-wrapper" id="aw-exercises-wrapper">
+                    <div class="aw-exercises-content">
+                        <input type="search" class="search-input" id="aw-search-exercise" placeholder="Busca un ejercicio..." oninput="filtrarEjerciciosEntrenamiento()" onsearch="filtrarEjerciciosEntrenamiento()">
+                        <ul class="exercises-list" id="aw-exercises-list"></ul>
+                    </div>
+                </div>
+
+                <div id="descanso-panel" class="timer-panel aw-rest-panel" style="display:none;">
+                    <div class="timer-controls aw-timer-panel-controls">
+                        <button id="btn-descanso-play" type="button" onclick="iniciarDescanso()" aria-label="Iniciar descanso" title="Iniciar descanso"><i class="fa-solid fa-play"></i></button>
+                        <button id="btn-descanso-pause" type="button" onclick="pausarDescanso()" style="display:none;" aria-label="Pausar descanso" title="Pausar descanso"><i class="fa-solid fa-pause"></i></button>
+                        <button type="button" onclick="resetearDescanso()" aria-label="Reiniciar descanso" title="Reiniciar descanso"><i class="fa-solid fa-rotate-left"></i></button>
+                    </div>
                     <div class="preset-buttons">
-                        <button onclick="setTiempoDescanso(30)">30s</button>
-                        <button onclick="setTiempoDescanso(45)">45s</button>
-                        <button onclick="setTiempoDescanso(60)">60s</button>
-                        <button onclick="setTiempoDescanso(90)">90s</button>
-                        <button onclick="setTiempoDescanso(120)">120s</button>
+                        <button type="button" onclick="setTiempoDescanso(30)">30s</button>
+                        <button type="button" onclick="setTiempoDescanso(45)">45s</button>
+                        <button type="button" onclick="setTiempoDescanso(60)">60s</button>
+                        <button type="button" onclick="setTiempoDescanso(90)">90s</button>
+                        <button type="button" onclick="setTiempoDescanso(120)">120s</button>
                     </div>
                     <div class="custom-rest">
                         <input type="number" id="custom-descanso-input" value="60" min="5" max="300">
-                        <button onclick="setTiempoDescanso(parseInt(document.getElementById('custom-descanso-input').value) || 60)">Aplicar</button>
+                        <button type="button" onclick="setTiempoDescanso(parseInt(document.getElementById('custom-descanso-input').value) || 60)">Aplicar</button>
                     </div>
                 </div>
 
-                <div id="timer-panel" class="timer-panel aw-rest-panel" style="display:none; flex-wrap: wrap; align-items: center; gap: 10px; background: white; padding: 10px 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+                <div id="timer-panel" class="timer-panel aw-rest-panel" style="display:none;">
+                    <div class="timer-controls aw-timer-panel-controls">
+                        <button id="btn-timer-play" type="button" onclick="iniciarTimer()" aria-label="Iniciar timer" title="Iniciar timer"><i class="fa-solid fa-play"></i></button>
+                        <button id="btn-timer-pause" type="button" onclick="pausarTimer()" style="display:none;" aria-label="Pausar timer" title="Pausar timer"><i class="fa-solid fa-pause"></i></button>
+                        <button type="button" onclick="resetearTimer()" aria-label="Reiniciar timer" title="Reiniciar timer"><i class="fa-solid fa-rotate-left"></i></button>
+                    </div>
                     <div class="preset-buttons">
-                        <button onclick="aplicarPresetTimer('tabata')">Tabata</button>
-                        <button onclick="aplicarPresetTimer('emom')">EMOM</button>
+                        <button type="button" onclick="aplicarPresetTimer('tabata')">Tabata</button>
+                        <button type="button" onclick="aplicarPresetTimer('emom')">EMOM</button>
                     </div>
                     <div class="custom-interval">
                         <label>Trabajo: <input type="number" id="interval-trabajo" value="20" min="1" max="300"></label>
                         <label>Descanso: <input type="number" id="interval-descanso" value="10" min="0" max="300"></label>
                         <label>Rondas: <input type="number" id="interval-rondas" value="8" min="1" max="99"></label>
-                        <button onclick="iniciarIntervaloPersonalizado()">Iniciar</button>
+                        <button type="button" onclick="iniciarIntervaloPersonalizado()">Iniciar</button>
                     </div>
-                    <span id="timer-preset-info" class="timer-preset-info" style="font-size:0.7rem; color:#666; margin-left:auto;">Tabata: 20" trabajo / 10" descanso x8</span>
+                    <span id="timer-preset-info" class="timer-preset-info">Tabata: 20" trabajo / 10" descanso x8</span>
                 </div>
-
-            </div>
-                    </div>
-                </div>
-
-            <div class="aw-tools-row">
-                <button class="aw-tool-toggle" id="aw-format-btn" data-type="format" onclick="toggleSectionEntrenamiento('format')">
-                    <i class="fa-solid fa-sliders"></i> Formato
-                </button>
-                <button class="aw-tool-toggle" id="aw-exercises-btn" data-type="exercises" onclick="toggleSectionEntrenamiento('exercises')">
-                    <i class="fa-solid fa-dumbbell"></i> Ejercicios Gym
-                </button>
-            </div>
-
-            <div class="expandable-wrapper" id="aw-toolbar-wrapper">
-                <div id="aw-toolbar-container">
-                    <span class="ql-formats">
-                        <button class="ql-bold"></button>
-                        <button class="ql-italic"></button>
-                        <button class="ql-underline"></button>
-                    </span>
-                    <span class="ql-formats">
-                        <button class="ql-list" value="ordered"></button>
-                        <button class="ql-list" value="bullet"></button>
-                    </span>
-                </div>
-            </div>
-
-            <div class="expandable-wrapper" id="aw-exercises-wrapper">
-                <div class="aw-exercises-content">
-                    <input type="search" class="search-input" id="aw-search-exercise" placeholder="Busca un ejercicio..." oninput="filtrarEjerciciosEntrenamiento()" onsearch="filtrarEjerciciosEntrenamiento()">
-                    <ul class="exercises-list" id="aw-exercises-list"></ul>
-                </div>
-            </div>
             </div>
 
             <div class="aw-content" id="aw-content-area">

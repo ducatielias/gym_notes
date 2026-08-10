@@ -14,251 +14,6 @@
 let activeWorkoutViewportFrame = null;
 let stopActiveWorkoutViewportSync = null;
 
-const ACTIVE_WORKOUT_CHROME_TOP_LOCK = 16;
-const ACTIVE_WORKOUT_CHROME_MICRO_DELTA = 2;
-const ACTIVE_WORKOUT_CHROME_HIDE_DISTANCE = 32;
-const ACTIVE_WORKOUT_CHROME_REVEAL_DISTANCE = 12;
-const ACTIVE_WORKOUT_KEYBOARD_MIN_REDUCTION = 120;
-
-let activeWorkoutChromeScrollContainer = null;
-let activeWorkoutChromeLastScrollTop = 0;
-let activeWorkoutChromeDirection = 0;
-let activeWorkoutChromeDistance = 0;
-let activeWorkoutChromeTransitionGeneration = 0;
-let activeWorkoutChromeLayoutFrame = null;
-let activeWorkoutChromeLayoutSyncPending = false;
-let activeWorkoutChromeTrailingHiddenState = null;
-
-/**
- * Reinicia solo la referencia del detector para que cambios geométricos del
- * viewport no se interpreten como intención de scroll del usuario.
- */
-function resetActiveWorkoutChromeScrollReference() {
-    activeWorkoutChromeLastScrollTop = Math.max(
-        0,
-        activeWorkoutChromeScrollContainer?.scrollTop || 0
-    );
-    activeWorkoutChromeDirection = 0;
-    activeWorkoutChromeDistance = 0;
-}
-
-/**
- * Detecta el teclado únicamente en pantallas táctiles y con un control editable
- * enfocado. Así, una variación normal del viewport no congela el detector.
- */
-function isActiveWorkoutVirtualKeyboardOpen() {
-    const viewport = window.visualViewport;
-    const activeElement = document.activeElement;
-    const isCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches;
-    const isEditableFocus = activeElement?.matches?.(
-        'input, textarea, select, [contenteditable="true"]'
-    );
-
-    if (!viewport || !isCoarsePointer || !isEditableFocus) return false;
-
-    return window.innerHeight - viewport.height >= ACTIVE_WORKOUT_KEYBOARD_MIN_REDUCTION;
-}
-
-/**
- * Cambia el único estado visual del chrome superior.
- */
-function setActiveWorkoutChromeHidden(hidden) {
-    const modal = document.getElementById('active-workout');
-    if (!modal || modal.classList.contains('aw-chrome-hidden') === hidden) return;
-
-    const transitionGeneration = beginActiveWorkoutChromeLayoutChange();
-    modal.classList.toggle('aw-chrome-hidden', hidden);
-    synchronizeActiveWorkoutChromeAfterLayoutChange(transitionGeneration);
-}
-
-/**
- * Devuelve las transiciones que pueden cambiar la altura de la carcasa sticky.
- */
-function getActiveWorkoutChromeLayoutAnimations(modal) {
-    const animatedElements = modal.querySelectorAll(
-        '.aw-collapsible-chrome, #aw-toolbar-wrapper, #aw-exercises-wrapper'
-    );
-
-    return Array.from(animatedElements).flatMap(element => {
-        if (typeof element.getAnimations !== 'function') return [];
-        return element.getAnimations().filter(animation => animation.playState === 'running');
-    });
-}
-
-/**
- * Activa la guardia antes de alterar el layout para cubrir también el primer
- * ajuste de scroll anchoring que pueda producirse en ese mismo ciclo.
- */
-function beginActiveWorkoutChromeLayoutChange() {
-    resetActiveWorkoutChromeScrollReference();
-    activeWorkoutChromeLayoutSyncPending = true;
-
-    if (activeWorkoutChromeLayoutFrame !== null) {
-        window.cancelAnimationFrame(activeWorkoutChromeLayoutFrame);
-        activeWorkoutChromeLayoutFrame = null;
-    }
-
-    return ++activeWorkoutChromeTransitionGeneration;
-}
-
-/**
- * El chrome y sus paneles alteran la altura situada antes del contenido. Se
- * deja actuar al scroll anchoring nativo y se descartan únicamente sus deltas.
- */
-function synchronizeActiveWorkoutChromeAfterLayoutChange(
-    transitionGeneration,
-    preservedHiddenState = null
-) {
-    const modal = document.getElementById('active-workout');
-    if (!modal) return;
-
-    const animations = getActiveWorkoutChromeLayoutAnimations(modal);
-    const completeSynchronization = () => {
-        if (transitionGeneration !== activeWorkoutChromeTransitionGeneration) return;
-
-        activeWorkoutChromeLayoutFrame = window.requestAnimationFrame(() => {
-            activeWorkoutChromeLayoutFrame = window.requestAnimationFrame(() => {
-                activeWorkoutChromeLayoutFrame = null;
-                if (transitionGeneration !== activeWorkoutChromeTransitionGeneration) return;
-
-                if (preservedHiddenState !== null) {
-                    modal.classList.toggle('aw-chrome-hidden', preservedHiddenState);
-                    activeWorkoutChromeTrailingHiddenState = preservedHiddenState;
-                }
-
-                activeWorkoutChromeLayoutSyncPending = false;
-                resetActiveWorkoutChromeScrollReference();
-            });
-        });
-    };
-
-    if (animations.length > 0) {
-        Promise.allSettled(animations.map(animation => animation.finished)).then(completeSynchronization);
-        return;
-    }
-
-    completeSynchronization();
-}
-
-/**
- * Indica si un cambio de layout propio sigue en curso.
- */
-function isActiveWorkoutChromeTransitioning(modal) {
-    if (activeWorkoutChromeLayoutSyncPending) return true;
-
-    return getActiveWorkoutChromeLayoutAnimations(modal).length > 0;
-}
-
-/**
- * Interpreta únicamente cambios reales de scrollTop del propietario vertical.
- */
-function handleActiveWorkoutChromeScroll() {
-    const container = activeWorkoutChromeScrollContainer;
-    const modal = document.getElementById('active-workout');
-    if (!container || !modal) return;
-
-    const scrollTop = Math.max(0, container.scrollTop);
-
-    if (isActiveWorkoutVirtualKeyboardOpen()) {
-        resetActiveWorkoutChromeScrollReference();
-        return;
-    }
-
-    if (activeWorkoutChromeTrailingHiddenState !== null) {
-        modal.classList.toggle('aw-chrome-hidden', activeWorkoutChromeTrailingHiddenState);
-        activeWorkoutChromeTrailingHiddenState = null;
-        resetActiveWorkoutChromeScrollReference();
-        return;
-    }
-
-    if (isActiveWorkoutChromeTransitioning(modal)) {
-        resetActiveWorkoutChromeScrollReference();
-        return;
-    }
-
-    if (container.scrollHeight <= container.clientHeight || scrollTop <= ACTIVE_WORKOUT_CHROME_TOP_LOCK) {
-        setActiveWorkoutChromeHidden(false);
-        resetActiveWorkoutChromeScrollReference();
-        return;
-    }
-
-    const delta = scrollTop - activeWorkoutChromeLastScrollTop;
-    activeWorkoutChromeLastScrollTop = scrollTop;
-
-    if (Math.abs(delta) < ACTIVE_WORKOUT_CHROME_MICRO_DELTA) return;
-
-    const direction = delta > 0 ? 1 : -1;
-    if (direction !== activeWorkoutChromeDirection) {
-        activeWorkoutChromeDirection = direction;
-        activeWorkoutChromeDistance = 0;
-    }
-
-    activeWorkoutChromeDistance += Math.abs(delta);
-
-    if (direction > 0 && !modal.classList.contains('aw-chrome-hidden')) {
-        const header = modal.querySelector('.aw-header');
-        if (header?.contains(document.activeElement)) {
-            activeWorkoutChromeDistance = 0;
-            return;
-        }
-
-        if (activeWorkoutChromeDistance >= ACTIVE_WORKOUT_CHROME_HIDE_DISTANCE) {
-            setActiveWorkoutChromeHidden(true);
-            activeWorkoutChromeDistance = 0;
-        }
-        return;
-    }
-
-    if (
-        direction < 0
-        && modal.classList.contains('aw-chrome-hidden')
-        && activeWorkoutChromeDistance >= ACTIVE_WORKOUT_CHROME_REVEAL_DISTANCE
-    ) {
-        setActiveWorkoutChromeHidden(false);
-        activeWorkoutChromeDistance = 0;
-    }
-}
-
-/**
- * Registra una sola vez el detector después del foco inicial de Quill.
- */
-function startActiveWorkoutChromeTracking() {
-    stopActiveWorkoutChromeTracking();
-
-    const modal = document.getElementById('active-workout');
-    const container = modal?.querySelector('.aw-container');
-    if (!modal || modal.style.display !== 'flex' || !container) return;
-
-    setActiveWorkoutChromeHidden(false);
-    activeWorkoutChromeScrollContainer = container;
-    resetActiveWorkoutChromeScrollReference();
-    container.addEventListener('scroll', handleActiveWorkoutChromeScroll, { passive: true });
-}
-
-/**
- * Retira el listener y deja preparada la siguiente apertura en estado visible.
- */
-function stopActiveWorkoutChromeTracking() {
-    activeWorkoutChromeTransitionGeneration += 1;
-    activeWorkoutChromeLayoutSyncPending = false;
-    activeWorkoutChromeTrailingHiddenState = null;
-
-    if (activeWorkoutChromeLayoutFrame !== null) {
-        window.cancelAnimationFrame(activeWorkoutChromeLayoutFrame);
-        activeWorkoutChromeLayoutFrame = null;
-    }
-
-    activeWorkoutChromeScrollContainer?.removeEventListener(
-        'scroll',
-        handleActiveWorkoutChromeScroll
-    );
-    activeWorkoutChromeScrollContainer = null;
-    activeWorkoutChromeLastScrollTop = 0;
-    activeWorkoutChromeDirection = 0;
-    activeWorkoutChromeDistance = 0;
-    document.getElementById('active-workout')?.classList.remove('aw-chrome-hidden');
-}
-
 /**
  * Ajusta exclusivamente la carcasa de Entrenamiento Activo al viewport visual
  * móvil, sin controlar el scroll ni la visibilidad de sus controles.
@@ -277,7 +32,6 @@ function syncActiveWorkoutVisualViewport() {
     modal.style.setProperty('--aw-visual-viewport-height', `${viewportHeight}px`);
     modal.style.setProperty('--aw-visual-viewport-offset-top', `${viewportOffsetTop}px`);
     modal.classList.add('aw-visual-viewport-active');
-    resetActiveWorkoutChromeScrollReference();
 }
 
 function queueActiveWorkoutVisualViewportSync() {
@@ -324,6 +78,57 @@ function stopActiveWorkoutVisualViewportSync() {
 }
 
 // ===========================================================================
+// PANELES AUXILIARES DEL ENTRENAMIENTO
+// ===========================================================================
+
+/**
+ * Cierra Formato y Ejercicios sin alterar Quill ni el contenido del editor.
+ */
+function closeActiveWorkoutExpandablePanels() {
+    const panels = [
+        ['aw-toolbar-wrapper', 'aw-format-btn'],
+        ['aw-exercises-wrapper', 'aw-exercises-btn']
+    ];
+
+    panels.forEach(([wrapperId, buttonId]) => {
+        const wrapper = document.getElementById(wrapperId);
+        const button = document.getElementById(buttonId);
+        wrapper?.classList.remove('open');
+        if (wrapper) wrapper.style.maxHeight = '0px';
+        button?.classList.remove('active');
+    });
+}
+
+/**
+ * Oculta únicamente la presentación de los paneles de tiempo.
+ * Los temporizadores siguen ejecutándose y conservan todo su estado.
+ */
+function closeActiveWorkoutTimerPanels() {
+    document.querySelectorAll('#active-workout .timer-panel').forEach(panel => {
+        panel.style.display = 'none';
+    });
+}
+
+function closeActiveWorkoutAuxiliaryPanels() {
+    closeActiveWorkoutExpandablePanels();
+    closeActiveWorkoutTimerPanels();
+}
+
+/**
+ * Abre Descanso o Timer como panel único de la barra sticky.
+ */
+function toggleActiveWorkoutTimerPanel(panelId) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+
+    const shouldOpen = panel.style.display === 'none' || panel.style.display === '';
+    closeActiveWorkoutExpandablePanels();
+    closeActiveWorkoutTimerPanels();
+
+    if (shouldOpen) togglePanel(panelId);
+}
+
+// ===========================================================================
 // FUNCIONES DE RESETEO DE ESTADO
 // ===========================================================================
 
@@ -364,8 +169,8 @@ function resetAllTimersAndState() {
 // ==========================================================================
 
 window.iniciarEntrenamiento = function(sessionData) {
-    stopActiveWorkoutChromeTracking();
     resetAllTimersAndState();
+    closeActiveWorkoutAuxiliaryPanels();
     
     if (aw_quillInstance) {
         aw_quillInstance = null;
@@ -395,45 +200,17 @@ window.iniciarEntrenamiento = function(sessionData) {
     const timerDescansoArea = document.getElementById('timer-descanso-area');
     const timerTrabajoArea = document.getElementById('timer-trabajo-area');
     if (timerDescansoArea) {
-        timerDescansoArea.onclick = (e) => {
-            if (!e.target.closest('button')) {
-                const preserveChromeHidden = document.getElementById('active-workout')
-                    ?.classList.contains('aw-chrome-hidden') || false;
-                const transitionGeneration = beginActiveWorkoutChromeLayoutChange();
-                togglePanel('descanso-panel');
-                synchronizeActiveWorkoutChromeAfterLayoutChange(
-                    transitionGeneration,
-                    preserveChromeHidden
-                );
-            }
-        };
+        timerDescansoArea.onclick = () => toggleActiveWorkoutTimerPanel('descanso-panel');
     }
     if (timerTrabajoArea) {
-        timerTrabajoArea.onclick = (e) => {
-            if (!e.target.closest('button')) {
-                const preserveChromeHidden = document.getElementById('active-workout')
-                    ?.classList.contains('aw-chrome-hidden') || false;
-                const transitionGeneration = beginActiveWorkoutChromeLayoutChange();
-                togglePanel('timer-panel');
-                synchronizeActiveWorkoutChromeAfterLayoutChange(
-                    transitionGeneration,
-                    preserveChromeHidden
-                );
-            }
-        };
+        timerTrabajoArea.onclick = () => toggleActiveWorkoutTimerPanel('timer-panel');
     }
-    
-    const descansoPanel = document.getElementById('descanso-panel');
-    const timerPanel = document.getElementById('timer-panel');
-    if (descansoPanel) descansoPanel.style.display = 'none';
-    if (timerPanel) timerPanel.style.display = 'none';
     
     setTimeout(() => {
         inicializarEditorEntrenamiento();
         if (typeof window.configurarListenerGlobalEjercicios === 'function') {
             window.configurarListenerGlobalEjercicios();
         }
-        startActiveWorkoutChromeTracking();
     }, 50);
     
     iniciarTotalTimer();
@@ -498,8 +275,6 @@ window.finalizarEntrenamiento = async function() {
     window.pausarDescanso();
     window.pausarTimer();
     detenerIntervalo();
-    stopActiveWorkoutChromeTracking();
-    
     // Cerrar el modal
     const modal = document.getElementById('active-workout');
     if (modal) modal.style.display = 'none';
@@ -558,8 +333,6 @@ window.cerrarEntrenamiento = async function() {
     window.pausarDescanso();
     window.pausarTimer();
     detenerIntervalo();
-    stopActiveWorkoutChromeTracking();
-    
     // Cerrar modal
     const modal = document.getElementById('active-workout');
     if (modal) modal.style.display = 'none';
@@ -703,10 +476,7 @@ window.toggleSectionEntrenamiento = function(type) {
     const exercisesBtn = document.getElementById('aw-exercises-btn');
 
     if (!toolbarWrapper || !exercisesWrapper || !formatBtn || !exercisesBtn) return;
-
-    const preserveChromeHidden = document.getElementById('active-workout')
-        ?.classList.contains('aw-chrome-hidden') || false;
-    const transitionGeneration = beginActiveWorkoutChromeLayoutChange();
+    closeActiveWorkoutTimerPanels();
 
     if (type === 'format') {
         if (toolbarWrapper.classList.contains('open')) {
@@ -741,10 +511,6 @@ window.toggleSectionEntrenamiento = function(type) {
         }
     }
 
-    synchronizeActiveWorkoutChromeAfterLayoutChange(
-        transitionGeneration,
-        preserveChromeHidden
-    );
 };
 
 // ==========================================================================

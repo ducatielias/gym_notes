@@ -3,7 +3,10 @@
  * Se limita a #active-workout y conserva los estados controlados por JavaScript.
  */
 
-/* Bloques de total, descanso y trabajo. */
+/*
+ * Deuda técnica: estas reglas pertenecen a las tarjetas de tiempo anteriores.
+ * El DOM compacto ya no las consume, pero se conservan fuera de esta fase.
+ */
 #active-workout .aw-timers-container {
     max-width: 52rem;
     margin-inline: auto;
@@ -18,14 +21,6 @@
     background-color: var(--gn-color-surface);
     color: var(--gn-color-text);
     box-shadow: var(--gn-shadow-none);
-}
-
-#active-workout #timer-descanso-area {
-    border-color: var(--gn-color-info-text);
-}
-
-#active-workout #timer-trabajo-area {
-    border-color: var(--gn-color-success-text);
 }
 
 #active-workout .timer-clickable {
@@ -56,6 +51,65 @@
     line-height: var(--gn-line-height-tight);
 }
 
+/* Cápsulas compactas que abren los paneles de Descanso y Timer. */
+#active-workout .aw-timer-trigger {
+    appearance: none;
+    box-sizing: border-box;
+    display: inline-grid;
+    place-items: center;
+    width: 4rem;
+    height: 2.75rem;
+    min-width: 4rem;
+    min-height: 2.75rem;
+    padding: 0 var(--gn-space-sm);
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-pill);
+    background-color: var(--gn-color-surface);
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-numeric);
+    font-size: var(--gn-font-size-sm);
+    font-weight: var(--gn-font-weight-bold);
+    font-variant-numeric: tabular-nums;
+    line-height: var(--gn-line-height-tight);
+    box-shadow: var(--gn-shadow-none);
+    cursor: pointer;
+    transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
+        border-color var(--gn-motion-fast) var(--gn-ease-standard),
+        color var(--gn-motion-fast) var(--gn-ease-standard);
+}
+
+#active-workout #timer-descanso-area {
+    border-color: var(--gn-color-info-text);
+}
+
+#active-workout #timer-trabajo-area {
+    border-color: var(--gn-color-success-text);
+}
+
+#active-workout .aw-timer-trigger:active:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--gn-color-surface-secondary);
+}
+
+@media (hover: hover) {
+    #active-workout .aw-timer-trigger:hover:not(:disabled):not([aria-disabled="true"]) {
+        border-color: var(--gn-color-text);
+        background-color: var(--gn-color-surface-secondary);
+    }
+}
+
+#active-workout .aw-timer-trigger:focus-visible {
+    outline: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-accent);
+    outline-offset: var(--gn-space-xs);
+}
+
+#active-workout .aw-timer-trigger:disabled,
+#active-workout .aw-timer-trigger[aria-disabled="true"] {
+    border-color: var(--gn-color-border-muted);
+    background-color: var(--gn-color-disabled);
+    color: var(--gn-color-disabled-text);
+    cursor: not-allowed;
+}
+
 /* Controles existentes: los IDs y el cambio de visibilidad siguen intactos. */
 #active-workout .timer-controls {
     gap: var(--gn-space-sm);
@@ -81,6 +135,20 @@
 
 #active-workout .timer-controls button i {
     font-size: var(--gn-font-size-sm);
+}
+
+#active-workout .aw-timer-panel-controls {
+    flex: 0 0 auto;
+    width: auto;
+    margin-top: 0;
+}
+
+#active-workout .aw-timer-panel-controls button {
+    flex: 0 0 2.75rem;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    padding: 0;
+    border-radius: var(--gn-radius-circle);
 }
 
 #active-workout #btn-descanso-play,
@@ -124,6 +192,7 @@
         border-color: var(--gn-color-danger-text);
         background-color: var(--gn-color-danger);
     }
+
 }
 
 #active-workout .timer-controls button:active:not(:disabled):not([aria-disabled="true"]) {
@@ -152,14 +221,23 @@
     cursor: not-allowed;
 }
 
-/* Paneles de configuración ya existentes; display y estilos inline se preservan. */
+/* Panel único expandible bajo la fila sticky. */
 #active-workout #descanso-panel,
 #active-workout #timer-panel {
+    box-sizing: border-box;
+    width: 100%;
     max-width: 52rem;
     margin-inline: auto;
-    outline: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
-    outline-offset: calc(var(--gn-border-width-thin) * -1);
-    border-radius: var(--gn-radius-md);
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--gn-space-md);
+    padding-block: var(--gn-space-md);
+    padding-inline-start: calc(var(--gn-space-lg) + var(--gn-safe-left));
+    padding-inline-end: calc(var(--gn-space-lg) + var(--gn-safe-right));
+    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    background-color: var(--gn-color-surface-secondary);
+    outline: 0;
+    border-radius: 0;
     color: var(--gn-color-text);
     font-family: var(--gn-font-body);
     box-shadow: var(--gn-shadow-none);
@@ -319,12 +397,23 @@
 
     #active-workout #descanso-panel,
     #active-workout #timer-panel {
-        border-radius: var(--gn-radius-sm);
+        gap: var(--gn-space-sm);
+        padding-block: var(--gn-space-md);
+        padding-inline-start: calc(var(--gn-space-md) + var(--gn-safe-left));
+        padding-inline-end: calc(var(--gn-space-md) + var(--gn-safe-right));
+    }
+}
+
+@media (max-width: 21rem) {
+    #active-workout .aw-timer-trigger {
+        width: 3.75rem;
+        min-width: 3.75rem;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     #active-workout .timer-clickable,
+    #active-workout .aw-timer-trigger,
     #active-workout .timer-controls button,
     #active-workout .preset-buttons button,
     #active-workout .custom-rest button,

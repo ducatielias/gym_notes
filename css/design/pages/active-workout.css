@@ -1,7 +1,4 @@
-/*
- * Capa visual de la estructura del entrenamiento activo.
- * Se limita a #active-workout y deja intactos los controles de tiempo.
- */
+/* Capa visual de la estructura compacta del entrenamiento activo. */
 
 #active-workout {
     color: var(--gn-color-text);
@@ -16,41 +13,19 @@
     padding-bottom: var(--gn-safe-bottom);
 }
 
-/* El contenedor principal conserva el único scroll del entrenamiento. */
-#active-workout .aw-sticky-chrome,
-#active-workout .aw-tools-row,
-#active-workout #aw-toolbar-wrapper,
-#active-workout #aw-exercises-wrapper {
+/* El contenedor principal conserva el único scroll vertical de pantalla. */
+#active-workout .aw-header,
+#active-workout .aw-sticky-tools {
     flex: 0 0 auto;
 }
 
-/*
- * La safe area pertenece a la carcasa persistente: así sigue protegiendo los
- * controles cuando la cabecera variable está colapsada.
- */
-#active-workout .aw-sticky-chrome {
+#active-workout .aw-sticky-tools {
     position: sticky;
-    top: 0;
+    top: var(--gn-safe-top);
     z-index: var(--gn-layer-sticky);
     display: flex;
     flex-direction: column;
-    padding-block-start: var(--gn-safe-top);
     background-color: var(--gn-color-background);
-}
-
-#active-workout .aw-collapsible-chrome {
-    display: grid;
-    grid-template-rows: 1fr;
-    transition: grid-template-rows var(--gn-motion-standard) var(--gn-ease-standard);
-}
-
-#active-workout .aw-collapsible-chrome__inner {
-    min-height: 0;
-    overflow: hidden;
-}
-
-#active-workout.aw-chrome-hidden .aw-collapsible-chrome {
-    grid-template-rows: 0fr;
 }
 
 /*
@@ -65,53 +40,45 @@
 
 }
 
-/* La cabecera se desplaza con el resto del contenido; no controla el scroll. */
+/* La cabecera compacta sale naturalmente al desplazar el contenido. */
 #active-workout .aw-header {
     position: static;
     top: auto;
     z-index: auto;
-    padding-top: 0;
-    padding-block-end: var(--gn-space-lg);
-    visibility: visible;
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-    transition: opacity var(--gn-motion-standard) var(--gn-ease-standard),
-        transform var(--gn-motion-standard) var(--gn-ease-standard),
-        visibility 0s linear 0s;
-}
-
-#active-workout.aw-chrome-hidden .aw-header {
-    visibility: hidden;
-    opacity: 0;
-    transform: translateY(calc(var(--gn-space-sm) * -1));
-    pointer-events: none;
-    transition: opacity var(--gn-motion-standard) var(--gn-ease-standard),
-        transform var(--gn-motion-standard) var(--gn-ease-standard),
-        visibility 0s linear var(--gn-motion-standard);
+    padding-block-end: var(--gn-space-md);
 }
 
 #active-workout .aw-header-top {
     display: grid;
     grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
     grid-template-areas:
-        "close spacer history"
+        "close total finish"
         "title title title";
     align-items: center;
     column-gap: var(--gn-space-md);
-    row-gap: var(--gn-space-md);
-    /* Mitad superior de la fila canónica gn-screen-header__row. */
-    padding-block-start: calc(var(--gn-space-lg) - var(--gn-border-width-thin));
-    margin-bottom: var(--gn-space-lg);
+    row-gap: var(--gn-space-sm);
+    padding-block-start: var(--gn-space-md);
 }
 
 #active-workout .aw-close-btn {
     grid-area: close;
 }
 
-#active-workout .aw-history-btn {
-    grid-area: history;
+#active-workout .aw-finish-btn {
+    grid-area: finish;
     justify-self: end;
+}
+
+#active-workout .aw-total-timer {
+    grid-area: total;
+    justify-self: center;
+    color: var(--gn-color-text);
+    font-family: var(--gn-font-numeric);
+    font-size: var(--gn-font-size-xl);
+    font-weight: var(--gn-font-weight-bold);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.04em;
+    line-height: var(--gn-line-height-tight);
 }
 
 #active-workout .aw-title {
@@ -120,10 +87,14 @@
     overflow-wrap: anywhere;
     color: var(--gn-color-text);
     font-family: var(--gn-font-title);
-    font-size: var(--gn-font-size-md);
+    font-size: var(--gn-font-size-sm);
     font-weight: var(--gn-font-weight-bold);
     letter-spacing: 0;
     line-height: var(--gn-line-height-tight);
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
 #active-workout #aw-session-title {
@@ -132,11 +103,29 @@
     font-weight: var(--gn-font-weight-bold);
 }
 
-/* Controles expandibles de formato y selector de ejercicios. */
+#active-workout .aw-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Fila única y persistente de herramientas. */
 #active-workout .aw-tools-row {
+    display: grid;
+    grid-template-columns: 2.75rem 2.75rem 4rem 4rem 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gn-space-sm);
     background-color: var(--gn-color-background);
-    border-top-color: var(--gn-color-border-muted);
-    border-bottom-color: var(--gn-color-border-muted);
+    border-top: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    padding-block: var(--gn-space-sm);
     padding-inline-start: calc(1rem + var(--gn-safe-left));
     padding-inline-end: calc(1rem + var(--gn-safe-right));
 }
@@ -148,15 +137,15 @@
 }
 
 #active-workout .aw-tool-toggle {
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 2.75rem;
     min-height: 2.75rem;
-    border: var(--gn-border-width) var(--gn-border-style) var(--gn-color-border);
-    border-radius: var(--gn-radius-md);
+    padding: 0;
+    border: var(--gn-border-width-strong) var(--gn-border-style) var(--gn-color-border);
+    border-radius: var(--gn-radius-circle);
     background-color: var(--gn-color-surface);
     color: var(--gn-color-text);
-    font-family: var(--gn-font-body);
-    font-size: var(--gn-font-size-sm);
-    font-weight: var(--gn-font-weight-semibold);
-    line-height: var(--gn-line-height-normal);
     box-shadow: var(--gn-shadow-none);
     transition: background-color var(--gn-motion-fast) var(--gn-ease-standard),
         border-color var(--gn-motion-fast) var(--gn-ease-standard),
@@ -199,7 +188,7 @@
 
 #active-workout #aw-toolbar-wrapper.open,
 #active-workout #aw-exercises-wrapper.open {
-    border-top-color: var(--gn-color-border-muted);
+    border-top: 0;
 }
 
 /* Formato permanece accesible al desplazarse, sin reservar espacio al cerrarse. */
@@ -208,7 +197,7 @@
     top: auto;
     z-index: auto;
     background-color: var(--gn-color-surface-secondary);
-    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
+    border-bottom: 0;
     box-shadow: var(--gn-shadow-none);
 }
 
@@ -218,21 +207,12 @@
 }
 
 #active-workout #aw-toolbar-container.ql-toolbar {
+    border: 0;
+    border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
     background-color: var(--gn-color-surface-secondary);
-    outline: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
-    outline-offset: calc(var(--gn-border-width-thin) * -1);
-    border-radius: var(--gn-radius-md) var(--gn-radius-md) 0 0;
+    outline: 0;
+    border-radius: 0;
     box-shadow: var(--gn-shadow-none);
-}
-
-/* La toolbar solo pierde la curva superior cuando está acoplada. */
-#active-workout.aw-chrome-hidden #aw-toolbar-container.ql-toolbar {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-}
-
-#active-workout.aw-chrome-hidden #aw-toolbar-wrapper.open {
-    border-top-color: transparent;
 }
 
 #active-workout #aw-toolbar-container.ql-toolbar .ql-formats {
@@ -277,7 +257,7 @@
 #active-workout #aw-editor-container .ql-container {
     outline: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
     outline-offset: calc(var(--gn-border-width-thin) * -1);
-    border-radius: 0 0 var(--gn-radius-md) var(--gn-radius-md);
+    border-radius: var(--gn-radius-md);
 }
 
 #active-workout #aw-editor-container .ql-container:focus-within {
@@ -393,29 +373,29 @@
     outline-offset: var(--gn-space-xs);
 }
 
-@media (max-width: 30rem) {
-    #active-workout .aw-title {
-        font-size: var(--gn-font-size-sm);
-    }
-
+@media (max-width: 23rem) {
     #active-workout .aw-tools-row {
         gap: var(--gn-space-sm);
-        padding-inline: var(--gn-space-md);
-    }
-
-    #active-workout .aw-tool-toggle {
-        padding-inline: var(--gn-space-sm);
-        font-size: var(--gn-font-size-xs);
+        padding-inline-start: calc(var(--gn-space-md) + var(--gn-safe-left));
+        padding-inline-end: calc(var(--gn-space-md) + var(--gn-safe-right));
     }
 
     #active-workout .aw-exercises-content {
-        padding-inline: var(--gn-space-md);
+        padding-inline-start: calc(var(--gn-space-md) + var(--gn-safe-left));
+        padding-inline-end: calc(var(--gn-space-md) + var(--gn-safe-right));
+    }
+}
+
+@media (max-width: 21rem) {
+    #active-workout .aw-tools-row {
+        grid-template-columns: 2.75rem 2.75rem 3.75rem 3.75rem 2.75rem;
+        gap: var(--gn-space-xs);
+        padding-inline-start: calc(var(--gn-space-sm) + var(--gn-safe-left));
+        padding-inline-end: calc(var(--gn-space-sm) + var(--gn-safe-right));
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #active-workout .aw-collapsible-chrome,
-    #active-workout .aw-header,
     #active-workout .aw-tool-toggle,
     #active-workout .aw-exercises-content .search-input {
         transition-duration: 0ms;
