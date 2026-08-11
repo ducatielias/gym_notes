@@ -206,6 +206,9 @@ function closeExerciseViewerFull() {
         const modal = document.getElementById('active-workout');
         if (modal) {
             modal.style.display = 'flex';
+            // El teclado puede cerrarse mientras el entrenamiento está oculto;
+            // medir de nuevo evita restaurar una geometría de viewport obsoleta.
+            queueActiveWorkoutVisualViewportSync();
             console.log('[exercise-viewer] Modal de entrenamiento restaurado');
         }
         // Ocultar el menú inferior (el entrenamiento lo oculta)

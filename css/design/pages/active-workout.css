@@ -237,6 +237,7 @@
     display: flex;
     flex: 1 0 auto;
     min-height: 0;
+    min-width: 0;
     background-color: var(--gn-color-background);
 }
 
@@ -246,6 +247,8 @@
     flex: 1 0 auto;
     flex-direction: column;
     min-height: 0;
+    min-width: 0;
+    max-width: 100%;
 }
 
 #active-workout .aw-editor-container,
@@ -268,6 +271,10 @@
 #active-workout #aw-editor-container .ql-editor {
     flex: 1 0 auto;
     min-height: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: normal;
     color: var(--gn-color-text);
     font-family: var(--gn-font-body);
     font-size: var(--gn-font-size-md);
