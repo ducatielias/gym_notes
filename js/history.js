@@ -321,6 +321,8 @@ function viewHistoryDetail(id) {
     
     const contenidoEditado = item.contenido_editado || 'Sin anotaciones';
     const contenidoOriginal = item.contenido_original || 'Sin contenido original';
+    const contenidoEditadoPreparado = prepareHistoryContent(contenidoEditado);
+    const contenidoOriginalPreparado = prepareHistoryContent(contenidoOriginal);
     const itemIdHandler = GymNotesSafe.escapeInlineHandlerArgument(item.id);
     const sessionName = GymNotesSafe.escapeText(item.nombre_sesion || 'Sesión sin título');
     const routineName = GymNotesSafe.escapeText(item.nombre_rutina || 'Sin rutina');
@@ -361,8 +363,8 @@ function viewHistoryDetail(id) {
             </div>
 
             <div class="history-detail-body">
-                <div class="history-detail-content">
-                    ${linkifyHistoryHTML(contenidoEditado)}
+                <div class="history-detail-content history-content--${contenidoEditadoPreparado.variant}">
+                    ${contenidoEditadoPreparado.html}
                 </div>
                 
                 ${item.contenido_original && item.contenido_original !== item.contenido_editado ? `
@@ -370,8 +372,8 @@ function viewHistoryDetail(id) {
                         <div class="history-detail-original-label">
                             <i class="fa-solid fa-file-lines"></i> Contenido original de la sesión
                         </div>
-                        <div class="history-detail-original-content">
-                            ${linkifyHistoryHTML(contenidoOriginal)}
+                        <div class="history-detail-original-content history-content--${contenidoOriginalPreparado.variant}">
+                            ${contenidoOriginalPreparado.html}
                         </div>
                     </div>
                 ` : ''}

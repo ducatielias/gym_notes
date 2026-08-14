@@ -316,6 +316,32 @@ function linkifyHistoryHTML(html) {
     return GymNotesSafe.sanitizeRichHtml(String(html).replace(/\n/g, '<br>'), { linkify: true });
 }
 
+/**
+ * Prepara contenido persistido para el viewer de Historial sin mezclar el
+ * tratamiento de HTML semántico con el de texto plano legacy.
+ *
+ * La clasificación se realiza en un template desconectado: interpreta la
+ * estructura, pero no inserta ni ejecuta el contenido en el documento visible.
+ * Ambos caminos terminan siempre en el sanitizador compartido.
+ */
+function prepareHistoryContent(rawContent) {
+    const source = String(rawContent ?? '');
+    const template = document.createElement('template');
+    template.innerHTML = source;
+
+    const isRich = Array.from(template.content.childNodes).some(node =>
+        node.nodeType === Node.ELEMENT_NODE
+    );
+    const sourceHtml = isRich
+        ? source
+        : GymNotesSafe.textToHtml(source);
+
+    return {
+        html: GymNotesSafe.sanitizeRichHtml(sourceHtml, { linkify: true }),
+        variant: isRich ? 'rich' : 'plain'
+    };
+}
+
 // ==========================================================================
 // BÚSQUEDA Y FILTROS
 // ==========================================================================
