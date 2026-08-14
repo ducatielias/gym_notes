@@ -116,7 +116,7 @@ async function clearAllHistoryConfirm() {
 
 async function deleteHistoryItem(id) {
     const item = getHistoryRecord(id);
-    if (!item) return;
+    if (!item) return false;
 
     const confirm = await window.showConfirm(
         `¿Eliminar el entrenamiento de "${item.nombre_sesion}" del ${new Date(item.fecha).toLocaleDateString('es-ES')}?`,
@@ -127,12 +127,15 @@ async function deleteHistoryItem(id) {
         if (!persistenceResult.ok) {
             console.error('[history-export] No se pudo eliminar el registro.', persistenceResult);
             window.showAlert(`No se pudo eliminar el registro: ${persistenceResult.error || persistenceResult.status}.`, 'Error');
-            return;
+            return false;
         }
 
         renderHistory();
         window.showAlert('Registro eliminado.', 'Eliminado');
+        return true;
     }
+
+    return false;
 }
 
 // ==========================================================================

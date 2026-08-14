@@ -4,7 +4,7 @@
  * 
  * MODIFICADO: Menú de opciones simplificado: Exportar JSON, Importar Historial, Borrar todo
  * MODIFICADO: Eliminado el botón "Editar" de las tarjetas del historial
- * MODIFICADO: Animación de expansión mejorada (solución Gemini - sin layout thrashing)
+ * MODIFICADO: Cada tarjeta abre directamente el detalle sin estado expandido.
  * 
  * MODIFICADO: Header con icono de la app y título "Historial" (estilo Hoy)
  */
@@ -152,7 +152,7 @@ function renderHistory() {
         `;
     } else {
         html += `<div class="history-grid">`;
-        filtered.forEach((item, index) => {
+        filtered.forEach(item => {
             const fecha = new Date(item.fecha);
             const fechaFormateada = fecha.toLocaleDateString('es-ES', { 
                 weekday: 'long', 
@@ -163,43 +163,25 @@ function renderHistory() {
             const horaFormateada = fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
             const duracion = item.duracion_minutos || 0;
             const duracionTexto = duracion < 60 ? `${duracion} min` : `${Math.floor(duracion / 60)}h ${duracion % 60}min`;
-            const tieneContenido = item.contenido_editado && item.contenido_editado.trim() !== '';
             const historyIdAttribute = GymNotesSafe.escapeText(item.id);
             const historyIdHandler = GymNotesSafe.escapeInlineHandlerArgument(item.id);
             const sessionName = GymNotesSafe.escapeText(item.nombre_sesion || 'Sesión sin título');
             const routineName = GymNotesSafe.escapeText(item.nombre_rutina || 'Sin rutina');
             
             html += `
-                <div class="card-history" id="history-card-${historyIdAttribute}">
-                    <div class="card-history-header" onclick="toggleHistoryCard('${historyIdHandler}')">
-                        <div class="card-history-icon">
+                <button class="card-history" id="history-card-${historyIdAttribute}" type="button" onclick="viewHistoryDetail('${historyIdHandler}')" aria-label="Abrir entrenamiento ${sessionName}, ${GymNotesSafe.escapeText(fechaFormateada)}">
+                    <span class="card-history-header">
+                        <span class="card-history-icon">
                             <i class="fa-solid fa-dumbbell"></i>
-                        </div>
-                        <div class="card-history-info">
-                            <div class="card-history-date">${fechaFormateada} · ${horaFormateada}</div>
-                            <div class="card-history-title">${sessionName}</div>
-                            <div class="card-history-subtitle">${routineName}</div>
-                        </div>
-                        <div class="card-history-duration">⏱ ${duracionTexto}</div>
-                        <i class="fa-solid fa-chevron-down card-history-chevron"></i>
-                    </div>
-                    <div class="card-history-body">
-                        <div class="card-history-inner">
-                            <div class="card-history-content">${tieneContenido ? linkifyHistoryHTML(item.contenido_editado) : '<em>Sin anotaciones</em>'}</div>
-                            <div class="card-history-actions">
-                                <button class="btn-history-action btn-history-action-view" onclick="event.stopPropagation(); viewHistoryDetail('${historyIdHandler}')">
-                                    <i class="fa-solid fa-eye"></i> Ver
-                                </button>
-                                <button class="btn-history-action btn-history-action-share" onclick="event.stopPropagation(); shareHistoryItem('${historyIdHandler}')">
-                                    <i class="fa-solid fa-share-nodes"></i> Compartir
-                                </button>
-                                <button class="btn-history-action btn-history-action-delete" onclick="event.stopPropagation(); deleteHistoryItem('${historyIdHandler}')">
-                                    <i class="fa-solid fa-trash-can"></i> Eliminar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                        </span>
+                        <span class="card-history-info">
+                            <span class="card-history-date">${fechaFormateada} · ${horaFormateada}</span>
+                            <span class="card-history-title">${sessionName}</span>
+                            <span class="card-history-subtitle">${routineName}</span>
+                        </span>
+                        <span class="card-history-duration">⏱ ${duracionTexto}</span>
+                    </span>
+                </button>
             `;
         });
         html += `</div>`;
@@ -286,73 +268,6 @@ function linkifyHistoryHTML(html) {
 }
 
 // ==========================================================================
-// TARJETAS EXPANDIBLES (VERSIÓN MEJORADA - SOLUCIÓN GEMINI)
-// ==========================================================================
-
-function toggleHistoryCard(id) {
-    const card = document.getElementById(`history-card-${id}`);
-    if (!card) return;
-
-    // Cerrar otras tarjetas expandidas
-    document.querySelectorAll('.card-history.expanded').forEach(el => {
-        if (el.id !== `history-card-${id}`) {
-            el.classList.remove('expanded');
-            const body = el.querySelector('.card-history-body');
-            if (body) {
-                body.style.maxHeight = '0px';
-                body.style.overflow = 'hidden';
-            }
-        }
-    });
-
-    const isExpanding = !card.classList.contains('expanded');
-    const body = card.querySelector('.card-history-body');
-    
-    if (!body) return;
-
-    if (isExpanding) {
-        // Añadir la clase expanded primero (para que el inner se muestre)
-        card.classList.add('expanded');
-        
-        // Forzar un reflow rápido antes de medir
-        void body.offsetHeight;
-        
-        // Medir el scrollHeight real (el inner tiene el padding fijo)
-        const height = body.scrollHeight;
-        body.style.maxHeight = height + 'px';
-        body.style.overflow = 'hidden';
-        
-        // Cuando termine la animación, remover max-height para que sea 100% responsivo
-        // y permitir que el contenido crezca dinámicamente si es necesario
-        const onTransitionEnd = function(e) {
-            if (e.propertyName === 'max-height' && card.classList.contains('expanded')) {
-                body.style.maxHeight = 'none';
-                body.style.overflow = 'visible';
-                body.removeEventListener('transitionend', onTransitionEnd);
-            }
-        };
-        body.addEventListener('transitionend', onTransitionEnd);
-        
-    } else {
-        // Si estaba en 'none', primero reasignamos la altura actual en px
-        // para que haya transición al colapsar
-        if (body.style.maxHeight === 'none' || !body.style.maxHeight) {
-            body.style.maxHeight = body.scrollHeight + 'px';
-            // Forzar un único reflow rápido antes de colapsar
-            void body.offsetHeight;
-        }
-        
-        card.classList.remove('expanded');
-        
-        // Usar requestAnimationFrame para asegurar que el navegador procese el cambio a 0
-        requestAnimationFrame(() => {
-            body.style.maxHeight = '0px';
-            body.style.overflow = 'hidden';
-        });
-    }
-}
-
-// ==========================================================================
 // BÚSQUEDA Y FILTROS
 // ==========================================================================
 
@@ -433,7 +348,6 @@ document.addEventListener('click', function() {
 // ==========================================================================
 
 window.renderHistory = renderHistory;
-window.toggleHistoryCard = toggleHistoryCard;
 window.onHistorySearch = onHistorySearch;
 window.clearHistorySearch = clearHistorySearch;
 window.onHistoryFilterChange = onHistoryFilterChange;

@@ -257,7 +257,13 @@ function viewHistoryDetail(id) {
                             <i class="fa-solid fa-chevron-left"></i>
                         </button>
                         <div class="gn-header-actions">
-                            <button class="btn-history-detail-edit gn-header-action-button gn-header-action-button--accent" type="button" aria-label="Editar historial" onclick="openHistoryEditFromDetail('${itemIdHandler}')" title="Editar">
+                            <button class="gn-options-button" type="button" aria-label="Compartir entrenamiento" onclick="shareHistoryItem('${itemIdHandler}')" title="Compartir entrenamiento">
+                                <i class="fa-solid fa-share-nodes"></i>
+                            </button>
+                            <button class="gn-options-button" type="button" aria-label="Eliminar entrenamiento" onclick="deleteHistoryItemFromDetail('${itemIdHandler}')" title="Eliminar entrenamiento">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                            <button class="gn-options-button" type="button" aria-label="Editar entrenamiento" onclick="openHistoryEditFromDetail('${itemIdHandler}')" title="Editar entrenamiento">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
                         </div>
@@ -305,6 +311,14 @@ function closeHistoryDetail() {
     renderHistory();
 }
 
+async function deleteHistoryItemFromDetail(id) {
+    const deleted = await deleteHistoryItem(id);
+    if (!deleted) return false;
+
+    closeHistoryDetail();
+    return true;
+}
+
 // ==========================================================================
 // FUNCIÓN PARA ABRIR EDICIÓN DESDE EL DETALLE (INTEGRACIÓN)
 // ==========================================================================
@@ -329,4 +343,5 @@ window.cerrarModalHistorialEntrenoActual = cerrarModalHistorialEntrenoActual;
 window.goBackFromHistory = goBackFromHistory;
 window.viewHistoryDetail = viewHistoryDetail;
 window.closeHistoryDetail = closeHistoryDetail;
+window.deleteHistoryItemFromDetail = deleteHistoryItemFromDetail;
 window.openHistoryEditFromDetail = openHistoryEditFromDetail;
