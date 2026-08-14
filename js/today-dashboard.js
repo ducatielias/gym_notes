@@ -15,6 +15,10 @@ let todayDashboardInitializationStarted = false;
 let todaySwitchTabHookInstalled = false;
 let todayRenderQueued = false;
 let todayGlobalDataClearInProgress = false;
+const TODAY_CREATOR_TAP_WINDOW_MS = 2000;
+const TODAY_CREATOR_TAP_TARGET = 5;
+let todayCreatorTapCount = 0;
+let todayCreatorTapStartedAt = 0;
 
 function getHistoryDB() {
     try {
@@ -134,6 +138,44 @@ function cambiarMesToday(delta) {
 // RENDERIZAR DASHBOARD DE "HOY"
 // ==========================================================================
 
+function resetTodayCreatorTapSequence() {
+    todayCreatorTapCount = 0;
+    todayCreatorTapStartedAt = 0;
+}
+
+/**
+ * Activa el crédito oculto solo cuando cinco clicks llegan dentro de la misma
+ * ventana temporal. El estado se limpia antes de abrir el modal para impedir
+ * activaciones consecutivas con clicks residuales.
+ */
+function handleTodayTitleCreatorTap() {
+    const currentTimestamp = Date.now();
+    const sequenceExpired = todayCreatorTapCount === 0 ||
+        currentTimestamp - todayCreatorTapStartedAt > TODAY_CREATOR_TAP_WINDOW_MS;
+
+    if (sequenceExpired) {
+        todayCreatorTapCount = 1;
+        todayCreatorTapStartedAt = currentTimestamp;
+        return;
+    }
+
+    todayCreatorTapCount += 1;
+    if (todayCreatorTapCount < TODAY_CREATOR_TAP_TARGET) return;
+
+    resetTodayCreatorTapSequence();
+    if (typeof window.showAlert === 'function') {
+        window.showAlert('Creado por Eli@s', 'Gym Notes');
+    }
+}
+
+function bindTodayTitleCreatorTap(header) {
+    const title = header?.querySelector('.today-header__title');
+    if (!title || title.dataset.creatorTapBound === 'true') return;
+
+    title.addEventListener('click', handleTodayTitleCreatorTap);
+    title.dataset.creatorTapBound = 'true';
+}
+
 function renderTodayDashboard() {
     console.log('[today-dashboard] Renderizando dashboard...');
     
@@ -142,6 +184,8 @@ function renderTodayDashboard() {
         console.error('[today-dashboard] Contenedor screen-today no encontrado');
         return;
     }
+
+    resetTodayCreatorTapSequence();
 
     // Crear o actualizar el header con el botón de opciones
     let header = container.querySelector('.screen-header');
@@ -192,6 +236,8 @@ function renderTodayDashboard() {
         `;
     }
 
+    bindTodayTitleCreatorTap(header);
+
     // Ocultar el empty state si existe
     const emptyState = container.querySelector('.empty-state');
     if (emptyState) emptyState.style.display = 'none';
@@ -221,7 +267,7 @@ function renderTodayDashboard() {
 
                 <div class="today-data-buttons-row today-data-buttons-row--single">
                     <button class="btn-today-entrenamiento-libre" onclick="openIAAssistant('today')">
-                        <i class="fa-solid fa-robot"></i> Crear rutina con IA
+                        <i class="fa-solid fa-robot"></i> Asistente IA
                     </button>
                 </div>
             </div>

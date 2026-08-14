@@ -1,6 +1,6 @@
 /**
  * MÓDULO: today-progress.js
- * Resume el historial reciente en la pantalla Hoy sin modificar ni persistir datos.
+ * Resume el progreso del historial en la pantalla Hoy sin modificar ni persistir datos.
  */
 
 (function initializeTodayProgress() {
@@ -8,10 +8,6 @@
 
     const DEFAULT_PERIOD_DAYS = 7;
     const SUPPORTED_PERIODS = new Set([7, 30]);
-    const RECENT_RECORD_LIMIT = 3;
-    const WEEKDAY_LABELS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
-    const MONTH_LABELS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
-    const SESSION_ID_FIELDS = ['sessionId', 'session_id', 'id_sesion'];
     const STORED_VOLUME_FIELDS = ['volumen_total', 'volumenTotal', 'volumen'];
 
     let selectedPeriodDays = DEFAULT_PERIOD_DAYS;
@@ -313,106 +309,6 @@
         return `${prefix}, sin cambio frente a los ${days} días anteriores`;
     }
 
-    function getSessionChangeAriaLabel(value) {
-        if (value > 0) return `Volumen de esta sesión, ${value} por ciento más que la sesión anterior comparable`;
-        if (value < 0) return `Volumen de esta sesión, ${Math.abs(value)} por ciento menos que la sesión anterior comparable`;
-        return 'Volumen de esta sesión, sin cambio frente a la sesión anterior comparable';
-    }
-
-    function getRecordExerciseCount(record) {
-        return Array.isArray(record.ejercicios) ? record.ejercicios.length : null;
-    }
-
-    function getRecordBlockCount(record) {
-        if (Array.isArray(record.bloques)) return record.bloques.length;
-        const blockCount = getNonNegativeNumber(record.bloques);
-        return Number.isInteger(blockCount) ? blockCount : null;
-    }
-
-    function isSameLocalDay(left, right) {
-        return left.getFullYear() === right.getFullYear() &&
-            left.getMonth() === right.getMonth() &&
-            left.getDate() === right.getDate();
-    }
-
-    function formatRelativeTrainingDate(date, now) {
-        const dayLabel = isSameLocalDay(date, now) ? 'HOY' : WEEKDAY_LABELS[date.getDay()];
-        const dateLabel = `${date.getDate()} ${MONTH_LABELS[date.getMonth()]}`;
-        const accessibleDate = date.toLocaleDateString('es-ES', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        });
-
-        return { dayLabel, dateLabel, accessibleDate };
-    }
-
-    function getRecordIdentity(record) {
-        for (const field of SESSION_ID_FIELDS) {
-            const identifier = String(record[field] ?? '').trim();
-            if (identifier) return { kind: 'session-id', sessionId: identifier };
-        }
-
-        const sessionName = String(record.nombre_sesion ?? '').trim();
-        const routineName = String(record.nombre_rutina ?? '').trim();
-
-        if (sessionName) return { kind: 'names', sessionName, routineName };
-        if (routineName) return { kind: 'routine-name', routineName };
-        return null;
-    }
-
-    function hasSameRecordIdentity(record, identity) {
-        if (!identity) return false;
-
-        if (identity.kind === 'session-id') {
-            return SESSION_ID_FIELDS.some(field => String(record[field] ?? '').trim() === identity.sessionId);
-        }
-
-        const sessionName = String(record.nombre_sesion ?? '').trim();
-        const routineName = String(record.nombre_rutina ?? '').trim();
-
-        if (identity.kind === 'names') {
-            return sessionName === identity.sessionName && routineName === identity.routineName;
-        }
-
-        return !sessionName && routineName === identity.routineName;
-    }
-
-    function getPreviousComparableChange(item, allRecordsNewestFirst) {
-        const currentIndex = allRecordsNewestFirst.indexOf(item);
-        const currentMetric = getRecordVolume(item.record);
-        const identity = getRecordIdentity(item.record);
-        if (currentIndex < 0 || !currentMetric || !identity) return null;
-
-        for (let index = currentIndex + 1; index < allRecordsNewestFirst.length; index += 1) {
-            const candidate = allRecordsNewestFirst[index];
-            if (!hasSameRecordIdentity(candidate.record, identity)) continue;
-
-            const previousMetric = getRecordVolume(candidate.record);
-            if (!previousMetric || previousMetric.kind !== currentMetric.kind) continue;
-
-            return calculatePercentageChange(currentMetric.value, previousMetric.value);
-        }
-
-        return null;
-    }
-
-    function getRecordDetail(record) {
-        const detailParts = [];
-        const exerciseCount = getRecordExerciseCount(record);
-        const blockCount = getRecordBlockCount(record);
-        const duration = getRecordDuration(record);
-
-        if (exerciseCount !== null && exerciseCount > 0) {
-            detailParts.push(`${exerciseCount} ${exerciseCount === 1 ? 'ejercicio' : 'ejercicios'}`);
-        } else if (blockCount !== null && blockCount > 0) {
-            detailParts.push(`${blockCount} ${blockCount === 1 ? 'bloque' : 'bloques'}`);
-        }
-
-        if (duration !== null) detailParts.push(formatDuration(duration));
-        return detailParts.join(' · ');
-    }
-
     function getConsistencyMessage(allDatedRecords, now) {
         if (allDatedRecords.length === 0) {
             return 'Tu progreso aparecerá aquí cuando completes tu primer entrenamiento.';
@@ -437,54 +333,8 @@
         return 'Esta semana todavía está por empezar. Tu próximo entrenamiento cuenta.';
     }
 
-    function buildRecentCard(item, allRecordsNewestFirst, now) {
-        const record = item.record;
-        const name = String(record.nombre_sesion || record.nombre_rutina || 'Entrenamiento');
-        const safeName = escapeText(name);
-        const dateParts = formatRelativeTrainingDate(item.date, now);
-        const detail = getRecordDetail(record);
-        const comparison = getPreviousComparableChange(item, allRecordsNewestFirst);
-        const hasPublicDetailAction = typeof window.openHistoryDetailFromToday === 'function' &&
-            typeof record.id === 'string' && record.id.trim() !== '';
-        const tagName = hasPublicDetailAction ? 'button' : 'article';
-        const actionAttributes = hasPublicDetailAction
-            ? ` type="button" data-history-id="${escapeText(record.id)}" aria-label="Ver detalle de ${safeName}, ${escapeText(dateParts.accessibleDate)}"`
-            : '';
-        const detailMarkup = detail
-            ? `<span class="today-progress__recent-detail">${escapeText(detail)}</span>`
-            : '';
-        const badgeMarkup = Number.isFinite(comparison)
-            ? `<span class="today-progress__change-badge" aria-label="${escapeText(getSessionChangeAriaLabel(comparison))}">${formatPercentage(comparison)}</span>`
-            : '';
-
-        return `
-            <li class="today-progress__recent-item">
-                <${tagName} class="today-progress__recent-card gn-elevated-card${hasPublicDetailAction ? ' today-progress__recent-card--interactive' : ''}"${actionAttributes}>
-                    <span class="today-progress__recent-date" aria-label="${escapeText(dateParts.accessibleDate)}">
-                        <span class="today-progress__recent-day">${dateParts.dayLabel}</span>
-                        <span class="today-progress__recent-date-label">${dateParts.dateLabel}</span>
-                    </span>
-                    <span class="today-progress__recent-content">
-                        <span class="today-progress__recent-name">${safeName}</span>
-                        ${detailMarkup}
-                    </span>
-                    ${badgeMarkup}
-                </${tagName}>
-            </li>
-        `;
-    }
-
     function buildPanelMarkup(model) {
         const periodLabel = `${model.periodDays} días`;
-        const sessionsLabel = model.sessionCount === 1 ? '1 ENTRADA' : `${model.sessionCount} ENTRADAS`;
-        const recentMarkup = model.recentRecords.length > 0
-            ? `<ul class="today-progress__recent-list">
-                ${model.recentRecords.map(item => buildRecentCard(item, model.allRecordsNewestFirst, model.now)).join('')}
-               </ul>`
-            : `<div class="today-progress__empty gn-elevated-card">
-                <p>Aún no hay entrenamientos en este periodo.</p>
-                <p>Completa una sesión para empezar a ver tu progreso.</p>
-               </div>`;
 
         return `
             <section class="today-progress__summary gn-elevated-card" aria-labelledby="today-progress-title">
@@ -518,14 +368,6 @@
                 `).join('')}
             </div>
 
-            <section class="today-progress__recent" aria-labelledby="today-recent-title">
-                <div class="today-progress__recent-header">
-                    <h3 id="today-recent-title" class="today-section-heading">ENTRENAMIENTOS RECIENTES</h3>
-                    <span class="today-progress__recent-count today-section-meta">${sessionsLabel}</span>
-                </div>
-                ${recentMarkup}
-            </section>
-
             <section class="today-progress__motivation" aria-labelledby="today-motivation-title">
                 <h3 id="today-motivation-title" class="today-section-heading">MOTIVACIÓN</h3>
                 <p class="today-progress__consistency gn-elevated-card">${escapeText(model.consistencyMessage)}</p>
@@ -536,7 +378,6 @@
     function createViewModel(periodDays) {
         const now = new Date();
         const allDatedRecords = prepareDatedRecords(readHistory());
-        const allRecordsNewestFirst = sortDatedRecordsNewestFirst(allDatedRecords);
         const currentRecords = sortDatedRecordsNewestFirst(
             filterRecordsByRange(allDatedRecords, getPeriodRange(periodDays, now))
         );
@@ -554,8 +395,6 @@
             durationText: formatDuration(duration),
             volumeChange,
             volumeAriaLabel: getPercentageAriaLabel(volumeChange, periodDays),
-            recentRecords: currentRecords.slice(0, RECENT_RECORD_LIMIT),
-            allRecordsNewestFirst,
             consistencyMessage: getConsistencyMessage(allDatedRecords, now)
         };
     }
@@ -576,15 +415,6 @@
                 refresh(container);
             }
             return;
-        }
-
-        const historyCard = event.target.closest('[data-history-id]');
-        if (
-            historyCard &&
-            container.contains(historyCard) &&
-            typeof window.openHistoryDetailFromToday === 'function'
-        ) {
-            window.openHistoryDetailFromToday(historyCard.dataset.historyId);
         }
     }
 
