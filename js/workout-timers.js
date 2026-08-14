@@ -3,8 +3,9 @@
  * Controla todos los temporizadores del entrenamiento activo
  */
 
-// Estado privado: la preparación no es todavía una fase de trabajo pausable.
+// Estados privados: una preparación no es todavía una fase pausable.
 let aw_intervaloPreparando = false;
+let aw_descansoPreparando = false;
 
 // ==================== FUNCIONES AUXILIARES ====================
 function formatTime(s) {
@@ -63,6 +64,27 @@ function actualizarDisplayDescanso() {
     if (el) el.innerText = formatTime(aw_descansoSeconds);
 }
 
+function actualizarControlesDescanso({ activo = false, preparando = false } = {}) {
+    const btnPlay = document.getElementById('btn-descanso-play');
+    const btnPause = document.getElementById('btn-descanso-pause');
+    if (btnPlay) btnPlay.style.display = activo || preparando ? 'none' : '';
+    if (btnPause) {
+        btnPause.style.display = activo || preparando ? '' : 'none';
+        btnPause.disabled = preparando;
+    }
+}
+
+// Cancela indistintamente la preparación o la ejecución con su único intervalo.
+function cancelarDescanso() {
+    if (aw_descansoTimerInterval) {
+        clearInterval(aw_descansoTimerInterval);
+        aw_descansoTimerInterval = null;
+    }
+    aw_descansoPreparando = false;
+    aw_descansoActivo = false;
+    actualizarControlesDescanso();
+}
+
 function actualizarDisplayTrabajo() {
     const el = document.getElementById('aw-timer-trabajo');
     if (el) el.innerText = formatTime(aw_trabajoSeconds);
@@ -92,16 +114,13 @@ function detenerTotalTimer() {
 // ==================== TEMPORIZADORES ====================
 window.iniciarDescanso = function() {
     initAudio();
-    if (aw_descansoActivo) return;
+    if (aw_descansoPreparando || aw_descansoActivo) return;
     if (aw_descansoSeconds <= 0) {
         aw_descansoSeconds = 60;
         actualizarDisplayDescanso();
     }
     aw_descansoActivo = true;
-    const btnPlay = document.getElementById('btn-descanso-play');
-    const btnPause = document.getElementById('btn-descanso-pause');
-    if (btnPlay) btnPlay.style.display = 'none';
-    if (btnPause) btnPause.style.display = '';
+    actualizarControlesDescanso({ activo: true });
     
     if (aw_descansoTimerInterval) clearInterval(aw_descansoTimerInterval);
     
@@ -118,16 +137,9 @@ window.iniciarDescanso = function() {
     }, 1000);
 };
 
-window.pausarDescanso = function() {
-    aw_descansoActivo = false;
-    if (aw_descansoTimerInterval) {
-        clearInterval(aw_descansoTimerInterval);
-        aw_descansoTimerInterval = null;
-    }
-    const btnPlay = document.getElementById('btn-descanso-play');
-    const btnPause = document.getElementById('btn-descanso-pause');
-    if (btnPlay) btnPlay.style.display = '';
-    if (btnPause) btnPause.style.display = 'none';
+window.pausarDescanso = function(esAccionUsuario = false) {
+    if (esAccionUsuario && aw_descansoPreparando) return;
+    cancelarDescanso();
 };
 
 window.resetearDescanso = function() {
@@ -141,6 +153,50 @@ window.setTiempoDescanso = function(segundos) {
     window.pausarDescanso();
     aw_descansoSeconds = segundos;
     actualizarDisplayDescanso();
+};
+
+window.seleccionarTiempoDescanso = function(segundos) {
+    const input = document.getElementById('custom-descanso-input');
+    if (input) input.value = segundos;
+};
+
+// Confirma el valor pendiente y lo captura antes de iniciar la preparación 5→1.
+window.aplicarTiempoDescanso = function() {
+    initAudio();
+
+    const input = document.getElementById('custom-descanso-input');
+    const min = Number.parseInt(input?.min, 10) || 5;
+    const max = Number.parseInt(input?.max, 10) || 300;
+    const valorIntroducido = Number.parseInt(input?.value, 10);
+    const duracionObjetivo = Number.isFinite(valorIntroducido)
+        ? Math.min(max, Math.max(min, valorIntroducido))
+        : 60;
+
+    if (input) input.value = duracionObjetivo;
+    cancelarDescanso();
+
+    aw_descansoPreparando = true;
+    aw_descansoSeconds = 5;
+    actualizarDisplayDescanso();
+    actualizarControlesDescanso({ preparando: true });
+
+    aw_descansoTimerInterval = setInterval(() => {
+        aw_descansoSeconds--;
+
+        if (aw_descansoSeconds > 0) {
+            actualizarDisplayDescanso();
+            if (aw_descansoSeconds <= 3) reproducirSonido('bip');
+            return;
+        }
+
+        clearInterval(aw_descansoTimerInterval);
+        aw_descansoTimerInterval = null;
+        aw_descansoPreparando = false;
+        reproducirSonido('cambio');
+        aw_descansoSeconds = duracionObjetivo;
+        actualizarDisplayDescanso();
+        window.iniciarDescanso();
+    }, 1000);
 };
 
 window.iniciarTimer = function() {
