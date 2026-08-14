@@ -172,6 +172,10 @@
     white-space: normal;
 }
 
+#screen-history-detail :is(.history-detail-content, .history-detail-original-content).history-content--rich > p:empty {
+    min-block-size: 1lh;
+}
+
 #screen-history-detail :is(.history-detail-content, .history-detail-original-content)
     :is(p, ul, ol, blockquote, pre, h1, h2, h3, h4, h5, h6) {
     margin: 0 0 var(--gn-space-md);
