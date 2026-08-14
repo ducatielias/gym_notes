@@ -16,17 +16,6 @@ let todaySwitchTabHookInstalled = false;
 let todayRenderQueued = false;
 let todayGlobalDataClearInProgress = false;
 
-// ==========================================================================
-// FUNCIONES AUXILIARES
-// ==========================================================================
-
-function formatLocalDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
 function getHistoryDB() {
     try {
         return getHistory();
@@ -51,7 +40,7 @@ function renderTodayCalendar() {
     let offset = startWeekday === 0 ? 6 : startWeekday - 1;
 
     const today = new Date();
-    const todayKey = formatLocalDate(today);
+    const todayKey = formatHistoryLocalDateKey(today);
 
     let daysArray = [];
 
@@ -88,18 +77,15 @@ function renderTodayCalendar() {
     daysArray.forEach(dayObj => {
         const day = dayObj.day;
         const isCurrentMonth = dayObj.currentMonth;
-        const dateKey = formatLocalDate(dayObj.date);
+        const dateKey = formatHistoryLocalDateKey(dayObj.date);
         
         let hasWorkout = false;
-        let workoutId = null;
         if (historyDB && historyDB.length > 0) {
             const found = historyDB.find(h => {
-                const hDate = new Date(h.fecha);
-                return formatLocalDate(hDate) === dateKey;
+                return formatHistoryLocalDateKey(h.fecha) === dateKey;
             });
             if (found) {
                 hasWorkout = true;
-                workoutId = found.id;
             }
         }
 
@@ -127,94 +113,12 @@ function renderTodayCalendar() {
 // ==========================================================================
 
 function irAlHistorialDesdeCalendario(dateKey) {
-    console.log('[today-dashboard] Buscando entrenamientos para la fecha:', dateKey);
-    
-    const historyDB = getHistoryDB();
-    const entrenamientos = historyDB.filter(h => {
-        const hDate = new Date(h.fecha);
-        return formatLocalDate(hDate) === dateKey;
-    });
-    
-    if (entrenamientos.length === 0) {
-        console.warn('[today-dashboard] No hay entrenamientos en esta fecha');
-        return;
+    if (typeof window.openHistoryFromTodayDate !== 'function') {
+        console.warn('[today-dashboard] La integración de Historial desde Hoy no está disponible');
+        return false;
     }
-    
-    console.log('[today-dashboard] Entrenamientos encontrados:', entrenamientos.length);
-    
-    if (typeof window.switchTab === 'function') {
-        window.switchTab('history');
-    } else {
-        const historyScreen = document.getElementById('screen-history');
-        if (historyScreen) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-            historyScreen.classList.remove('hidden');
-        }
-    }
-    
-    setTimeout(function() {
-        const historyContainer = document.getElementById('history-container');
-        if (!historyContainer) {
-            console.warn('[today-dashboard] history-container no encontrado');
-            return;
-        }
-        
-        const historyScreen = document.getElementById('screen-history');
-        if (!historyScreen) {
-            console.warn('[today-dashboard] screen-history no encontrado');
-            return;
-        }
-        
-        let tarjetasEncontradas = [];
-        
-        entrenamientos.forEach(entreno => {
-            const cardId = entreno.id;
-            const card = document.getElementById(`history-card-${cardId}`);
-            if (card) {
-                console.log('[today-dashboard] Expandiendo tarjeta:', cardId);
-                tarjetasEncontradas.push(card);
-            } else {
-                const sessionTitle = entreno.nombre_sesion || entreno.nombre_rutina || '';
-                if (sessionTitle) {
-                    const allCards = document.querySelectorAll('.card-history');
-                    allCards.forEach(c => {
-                        const titleEl = c.querySelector('.card-history-title');
-                        if (titleEl && titleEl.textContent === sessionTitle) {
-                            console.log('[today-dashboard] Encontrada tarjeta por título:', sessionTitle);
-                            tarjetasEncontradas.push(c);
-                        }
-                    });
-                }
-            }
-        });
-        
-        if (tarjetasEncontradas.length === 0) {
-            console.warn('[today-dashboard] No se encontraron tarjetas para expandir');
-            return;
-        }
-        
-        tarjetasEncontradas.forEach(card => {
-            if (!card.classList.contains('expanded')) {
-                card.classList.add('expanded');
-                const body = card.querySelector('.card-history-body');
-                if (body) {
-                    body.style.maxHeight = body.scrollHeight + 60 + 'px';
-                }
-            }
-        });
-        
-        const primeraTarjeta = tarjetasEncontradas[0];
-        void primeraTarjeta.offsetHeight;
-        primeraTarjeta.scrollIntoView({
-            behavior: typeof window.matchMedia === 'function' &&
-                window.matchMedia('(prefers-reduced-motion: reduce)').matches
-                ? 'auto'
-                : 'smooth',
-            block: 'center',
-            inline: 'nearest'
-        });
-        
-    }, 500);
+
+    return window.openHistoryFromTodayDate(dateKey);
 }
 
 // ==========================================================================

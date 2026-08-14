@@ -15,6 +15,80 @@ function initHistoryPage() {
 }
 
 // ==========================================================================
+// INTEGRACIÓN CON HOY
+// ==========================================================================
+
+/**
+ * Prepara un origen limpio desde Hoy sin persistir estado de navegación.
+ */
+function setHistoryTodayContext(dateKey = null) {
+    resetHistoryFilters();
+    historyReturnScreen = 'today';
+    window.historyReturnScreen = 'today';
+
+    if (!setHistoryContextDate(dateKey)) {
+        resetHistoryFilters();
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Abre el viewer existente desde Hoy y permite volver directamente a esa raíz.
+ */
+function openHistoryDetailFromToday(id) {
+    if (!getHistoryRecord(id)) {
+        console.warn('[history] No se encontró el registro solicitado desde Hoy:', id);
+        return false;
+    }
+
+    if (!setHistoryTodayContext(null)) return false;
+
+    viewHistoryDetail(id);
+    return true;
+}
+
+/**
+ * Aplica la política del calendario: nada, viewer directo o lista contextual.
+ */
+function openHistoryFromTodayDate(dateKey) {
+    const records = getHistoryRecordsByDateKey(dateKey);
+    if (records.length === 0) return false;
+
+    if (records.length === 1) {
+        return openHistoryDetailFromToday(records[0].id);
+    }
+
+    if (!setHistoryTodayContext(dateKey)) return false;
+
+    switchTab('history');
+    return true;
+}
+
+/**
+ * Abandona el contexto de un día sin pasar antes por Hoy.
+ */
+function showAllHistory() {
+    resetHistoryFilters();
+    switchTab('history');
+}
+
+/**
+ * Mantiene el padre correcto después de guardar el editor de Historial.
+ */
+function finishHistoryEditSaveNavigation() {
+    if (historyReturnScreen === 'today' && !historyContextDate) {
+        resetHistoryFilters();
+        switchTab('today');
+        return;
+    }
+
+    switchTab('history');
+    renderHistory();
+}
+
+// ==========================================================================
 // FUNCIONES DE INTEGRACIÓN CON EL ENTRENAMIENTO
 // ==========================================================================
 
@@ -208,6 +282,9 @@ function goBackFromHistory() {
         } else {
             renderRoutineList();
         }
+    } else if (historyReturnScreen === 'today') {
+        resetHistoryFilters();
+        switchTab('today');
     } else {
         // Si no hay origen, volver a la pantalla de inicio
         resetHistoryFilters();
@@ -307,6 +384,13 @@ function viewHistoryDetail(id) {
 
 function closeHistoryDetail() {
     historyViewingItem = null;
+
+    if (historyReturnScreen === 'today' && !historyContextDate) {
+        resetHistoryFilters();
+        switchTab('today');
+        return;
+    }
+
     switchTab('history');
     renderHistory();
 }
@@ -338,6 +422,10 @@ function openHistoryEditFromDetail(id) {
 // ==========================================================================
 
 window.initHistoryPage = initHistoryPage;
+window.openHistoryDetailFromToday = openHistoryDetailFromToday;
+window.openHistoryFromTodayDate = openHistoryFromTodayDate;
+window.showAllHistory = showAllHistory;
+window.finishHistoryEditSaveNavigation = finishHistoryEditSaveNavigation;
 window.mostrarHistorialEntrenamientoActual = mostrarHistorialEntrenamientoActual;
 window.cerrarModalHistorialEntrenoActual = cerrarModalHistorialEntrenoActual;
 window.goBackFromHistory = goBackFromHistory;

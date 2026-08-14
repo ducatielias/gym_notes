@@ -91,8 +91,100 @@ let historyFilter = 'todos'; // 'todos', 'hoy', 'semana', 'mes'
 let historyRoutineFilter = 'todos';
 let historySearchTerm = '';
 let historyViewingItem = null;
-let historyReturnScreen = null; // 'workout' o 'session' para saber a dónde volver
+let historyReturnScreen = null; // 'workout', 'session' o 'today' para saber a dónde volver
+let historyContextDate = null; // Fecha local YYYY-MM-DD usada solo durante el contexto abierto desde Hoy
 let historyOriginalRoutineFilter = 'todos'; // Guarda el filtro de rutina original cuando se aplica desde origen
+
+// ==========================================================================
+// NORMALIZACIÓN LOCAL DE FECHAS
+// ==========================================================================
+
+/**
+ * Convierte los formatos admitidos por el historial en una fecha válida.
+ * Las cadenas YYYY-MM-DD se construyen en hora local para evitar que el parser
+ * nativo las interprete como UTC y desplace el día en algunas zonas horarias.
+ */
+function parseHistoryDate(value) {
+    if (value instanceof Date) {
+        const copy = new Date(value.getTime());
+        return Number.isFinite(copy.getTime()) ? copy : null;
+    }
+
+    if (typeof value === 'string') {
+        const candidate = value.trim();
+        if (!candidate) return null;
+
+        const localDateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(candidate);
+        if (localDateMatch) {
+            const year = Number(localDateMatch[1]);
+            const month = Number(localDateMatch[2]) - 1;
+            const day = Number(localDateMatch[3]);
+            const localDate = new Date(year, month, day);
+
+            if (
+                localDate.getFullYear() === year &&
+                localDate.getMonth() === month &&
+                localDate.getDate() === day
+            ) {
+                return localDate;
+            }
+
+            return null;
+        }
+    }
+
+    if (typeof value !== 'string' && typeof value !== 'number') return null;
+
+    const parsedDate = new Date(value);
+    return Number.isFinite(parsedDate.getTime()) ? parsedDate : null;
+}
+
+/**
+ * Devuelve la clave de calendario local YYYY-MM-DD para cualquier fecha válida.
+ */
+function formatHistoryLocalDateKey(value) {
+    const date = parseHistoryDate(value);
+    if (!date) return null;
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function isValidHistoryDateKey(dateKey) {
+    return typeof dateKey === 'string' &&
+        /^\d{4}-\d{2}-\d{2}$/.test(dateKey) &&
+        formatHistoryLocalDateKey(dateKey) === dateKey;
+}
+
+/**
+ * Recupera desde el estado persistido los registros del día local solicitado.
+ */
+function getHistoryRecordsByDateKey(dateKey) {
+    if (!isValidHistoryDateKey(dateKey)) return [];
+
+    return getHistory().filter(record =>
+        record && formatHistoryLocalDateKey(record.fecha) === dateKey
+    );
+}
+
+/**
+ * Actualiza el único contexto temporal de fecha y mantiene el espejo público.
+ */
+function setHistoryContextDate(dateKey) {
+    if (dateKey === null) {
+        historyContextDate = null;
+        window.historyContextDate = null;
+        return true;
+    }
+
+    if (!isValidHistoryDateKey(dateKey)) return false;
+
+    historyContextDate = dateKey;
+    window.historyContextDate = dateKey;
+    return true;
+}
 
 // ==========================================================================
 // FUNCIONES DE ALMACENAMIENTO
@@ -224,6 +316,7 @@ function resetHistoryFilters() {
     window.historyFilter = 'todos';
     historyReturnScreen = null;
     window.historyReturnScreen = null;
+    setHistoryContextDate(null);
     historyOriginalRoutineFilter = 'todos';
     window.historyOriginalRoutineFilter = 'todos';
 }
@@ -238,6 +331,7 @@ window.historyRoutineFilter = historyRoutineFilter;
 window.historySearchTerm = historySearchTerm;
 window.historyViewingItem = historyViewingItem;
 window.historyReturnScreen = historyReturnScreen;
+window.historyContextDate = historyContextDate;
 window.historyOriginalRoutineFilter = historyOriginalRoutineFilter;
 window.saveHistory = saveHistory;
 window.getHistory = getHistory;
@@ -250,3 +344,6 @@ window.getHistoryStats = getHistoryStats;
 window.getUniqueRoutinesFromHistory = getUniqueRoutinesFromHistory;
 window.getUniqueSessionsFromHistory = getUniqueSessionsFromHistory;
 window.resetHistoryFilters = resetHistoryFilters;
+window.formatHistoryLocalDateKey = formatHistoryLocalDateKey;
+window.getHistoryRecordsByDateKey = getHistoryRecordsByDateKey;
+window.setHistoryContextDate = setHistoryContextDate;

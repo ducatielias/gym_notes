@@ -18,10 +18,11 @@ function syncBottomNavVisibility(tabId) {
     if (!bottomNav) return;
 
     const activeTabId = tabId || document.querySelector('.screen:not(.hidden)')?.id?.replace('screen-', '');
-    const isHistoryFromActiveWorkout = activeTabId === 'history' && window.historyReturnScreen === 'workout';
+    const isContextualHistory = activeTabId === 'history'
+        && ['workout', 'session', 'today'].includes(window.historyReturnScreen);
     const shouldHide = internalScreens.includes(activeTabId)
         || routineNavigationActive
-        || isHistoryFromActiveWorkout;
+        || isContextualHistory;
     bottomNav.classList.toggle('hidden-nav', shouldHide);
 }
 

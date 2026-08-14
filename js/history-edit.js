@@ -64,7 +64,7 @@ function openHistoryEdit(id) {
 
 function renderHistoryEdit(container, item) {
     const fecha = new Date(item.fecha);
-    const fechaStr = fecha.toISOString().split('T')[0];
+    const fechaStr = formatHistoryLocalDateKey(item.fecha) || '';
     const horaStr = fecha.toTimeString().split(' ')[0].substring(0, 5);
     
     const contenido = item.contenido_editado || item.contenido_original || '';
@@ -273,9 +273,13 @@ function saveHistoryEdit() {
         historyEditOriginalItem = null;
         historyEditQuillInstance = null;
         
-        // Volver a la lista de historial
-        switchTab('history');
-        renderHistory();
+        // Volver al padre real: Hoy para un viewer directo o la lista que corresponda.
+        if (typeof window.finishHistoryEditSaveNavigation === 'function') {
+            window.finishHistoryEditSaveNavigation();
+        } else {
+            switchTab('history');
+            renderHistory();
+        }
         
         window.showAlert('Entrenamiento actualizado correctamente.', 'Guardado');
         

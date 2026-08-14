@@ -13,6 +13,16 @@
 // RENDERIZADO PRINCIPAL
 // ==========================================================================
 
+function formatHistoryContextDateLabel(dateKey) {
+    const [year, month, day] = dateKey.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+}
+
 function renderHistory() {
     const container = document.getElementById('history-container');
     if (!container) return;
@@ -23,32 +33,30 @@ function renderHistory() {
     const searchTerm = historySearchTerm.toLowerCase().trim();
     const filter = historyFilter;
     const routineFilter = historyRoutineFilter;
+    const hasTodayDateContext = historyReturnScreen === 'today' && Boolean(historyContextDate);
+    const contextualHistory = hasTodayDateContext
+        ? getHistoryRecordsByDateKey(historyContextDate)
+        : history;
 
     console.log('[renderHistory] Filtros aplicados - searchTerm:', searchTerm, 'filter:', filter, 'routineFilter:', routineFilter);
     console.log('[renderHistory] Total registros en historyDB:', history.length);
     console.log('[renderHistory] Origen (historyReturnScreen):', historyReturnScreen);
 
     // Aplicar filtros
-    let filtered = [...history];
+    let filtered = [...contextualHistory];
 
     // Filtro de fecha
-    if (filter === 'hoy') {
+    if (!hasTodayDateContext && filter === 'hoy') {
         const today = new Date().toDateString();
         filtered = filtered.filter(item => new Date(item.fecha).toDateString() === today);
-    } else if (filter === 'semana') {
+    } else if (!hasTodayDateContext && filter === 'semana') {
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);
         filtered = filtered.filter(item => new Date(item.fecha) >= weekAgo);
-    } else if (filter === 'mes') {
+    } else if (!hasTodayDateContext && filter === 'mes') {
         const monthAgo = new Date();
         monthAgo.setMonth(monthAgo.getMonth() - 1);
         filtered = filtered.filter(item => new Date(item.fecha) >= monthAgo);
-    }
-
-    // Filtro de rutina (AHORA SE APLICA CORRECTAMENTE)
-    if (routineFilter !== 'todos') {
-        filtered = filtered.filter(item => item.nombre_rutina === routineFilter);
-        console.log('[renderHistory] Registros después del filtro de rutina:', filtered.length);
     }
 
     // Búsqueda (por nombre de sesión)
@@ -61,6 +69,12 @@ function renderHistory() {
         console.log('[renderHistory] Registros después del filtro de búsqueda:', filtered.length);
     }
 
+    // Filtro de rutina (AHORA SE APLICA CORRECTAMENTE)
+    if (routineFilter !== 'todos') {
+        filtered = filtered.filter(item => item.nombre_rutina === routineFilter);
+        console.log('[renderHistory] Registros después del filtro de rutina:', filtered.length);
+    }
+
     // Ordenar por fecha (más reciente primero)
     filtered.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
@@ -68,9 +82,20 @@ function renderHistory() {
     const stats = getHistoryStats();
 
     // Determinar si mostrar botón de retroceso
-    const showBackButton = historyReturnScreen === 'workout' || historyReturnScreen === 'session';
-    const backButtonLabel = historyReturnScreen === 'workout' ? 'Volver al entrenamiento' : 'Volver a la sesión';
-    const headerMode = showBackButton ? historyReturnScreen : 'default';
+    const showBackButton = ['workout', 'session', 'today'].includes(historyReturnScreen);
+    const backButtonLabels = {
+        workout: 'Volver al entrenamiento',
+        session: 'Volver a la sesión',
+        today: 'Volver a Hoy'
+    };
+    const backButtonLabel = backButtonLabels[historyReturnScreen] || 'Volver';
+    const headerMode = hasTodayDateContext
+        ? `today:${historyContextDate}:${contextualHistory.length}`
+        : (showBackButton ? historyReturnScreen : 'default');
+    const contextDateLabel = hasTodayDateContext
+        ? formatHistoryContextDateLabel(historyContextDate)
+        : '';
+    const contextCountLabel = contextualHistory.length === 1 ? 'entrenamiento' : 'entrenamientos';
     let header = container.querySelector('.history-header');
     const shouldRenderHeader = !header || header.dataset.historyMode !== headerMode;
 
@@ -83,7 +108,18 @@ function renderHistory() {
         <header class="history-header gn-screen-header" data-history-mode="${headerMode}">
             <div class="history-header-top gn-screen-header__row">
                 <div class="gn-header__leading">
-                    ${showBackButton ? `
+                    ${hasTodayDateContext ? `
+                        <button class="gn-back-button" type="button" aria-label="${backButtonLabel}" onclick="goBackFromHistory()" title="${backButtonLabel}">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div class="gn-header__content">
+                            <h1 class="gn-header__title">Historial</h1>
+                            <p class="gn-header__subtitle">
+                                <time datetime="${historyContextDate}">${GymNotesSafe.escapeText(contextDateLabel)}</time>
+                                · ${contextualHistory.length} ${contextCountLabel}
+                            </p>
+                        </div>
+                    ` : showBackButton ? `
                         <button class="gn-back-button" type="button" aria-label="${backButtonLabel}" onclick="goBackFromHistory()" title="${backButtonLabel}">
                             <i class="fa-solid fa-chevron-left"></i>
                         </button>
@@ -96,21 +132,27 @@ function renderHistory() {
                     `}
                 </div>
                 <div class="gn-header-actions history-header__options">
-                    <button class="btn-history-options gn-options-button" type="button" aria-label="Opciones" onclick="toggleHistoryOptionsMenu(event)" title="Opciones">
-                        <i class="fa-solid fa-ellipsis-vertical"></i>
-                    </button>
-                    <div class="history-options-menu hidden" id="historyOptionsMenu" onclick="event.stopPropagation()">
-                        <button class="menu-item" onclick="document.getElementById('file-import-history').click(); closeHistoryOptionsMenu();">
-                            <i class="fa-solid fa-file-import"></i> Importar Historial
+                    ${hasTodayDateContext ? `
+                        <button class="gn-options-button" type="button" aria-label="Ver todo el historial" onclick="showAllHistory()" title="Ver todo el historial">
+                            <i class="fa-solid fa-list"></i>
                         </button>
-                        <button class="menu-item" onclick="exportHistoryJSON(); closeHistoryOptionsMenu();">
-                            <i class="fa-solid fa-file-export"></i> Exportar Historial
+                    ` : `
+                        <button class="btn-history-options gn-options-button" type="button" aria-label="Opciones" onclick="toggleHistoryOptionsMenu(event)" title="Opciones">
+                            <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
-                        <div class="menu-divider"></div>
-                        <button class="menu-item menu-delete" onclick="clearAllHistoryConfirm(); closeHistoryOptionsMenu();" style="color:#ef4444;">
-                            <i class="fa-solid fa-trash-can" style="color:#ef4444;"></i> Borrar todo
-                        </button>
-                    </div>
+                        <div class="history-options-menu hidden" id="historyOptionsMenu" onclick="event.stopPropagation()">
+                            <button class="menu-item" onclick="document.getElementById('file-import-history').click(); closeHistoryOptionsMenu();">
+                                <i class="fa-solid fa-file-import"></i> Importar Historial
+                            </button>
+                            <button class="menu-item" onclick="exportHistoryJSON(); closeHistoryOptionsMenu();">
+                                <i class="fa-solid fa-file-export"></i> Exportar Historial
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button class="menu-item menu-delete" onclick="clearAllHistoryConfirm(); closeHistoryOptionsMenu();" style="color:#ef4444;">
+                                <i class="fa-solid fa-trash-can" style="color:#ef4444;"></i> Borrar todo
+                            </button>
+                        </div>
+                    `}
                 </div>
             </div>
             
@@ -123,12 +165,14 @@ function renderHistory() {
             </div>
             
             <div class="history-filter-bar">
-                <select id="historyFilterSelect" onchange="onHistoryFilterChange()">
-                    <option value="todos" ${filter === 'todos' ? 'selected' : ''}>Todos (${stats.total})</option>
-                    <option value="hoy" ${filter === 'hoy' ? 'selected' : ''}>Hoy</option>
-                    <option value="semana" ${filter === 'semana' ? 'selected' : ''}>Esta semana</option>
-                    <option value="mes" ${filter === 'mes' ? 'selected' : ''}>Este mes</option>
-                </select>
+                ${hasTodayDateContext ? '' : `
+                    <select id="historyFilterSelect" onchange="onHistoryFilterChange()">
+                        <option value="todos" ${filter === 'todos' ? 'selected' : ''}>Todos (${stats.total})</option>
+                        <option value="hoy" ${filter === 'hoy' ? 'selected' : ''}>Hoy</option>
+                        <option value="semana" ${filter === 'semana' ? 'selected' : ''}>Esta semana</option>
+                        <option value="mes" ${filter === 'mes' ? 'selected' : ''}>Este mes</option>
+                    </select>
+                `}
                 <select id="historyRoutineFilterSelect" onchange="onHistoryRoutineFilterChange()">
                     ${buildRoutineFilterOptions(routineFilter)}
                 </select>
@@ -143,11 +187,16 @@ function renderHistory() {
 
     // Lista de entrenamientos
     if (filtered.length === 0) {
+        const emptyMessage = hasTodayDateContext && contextualHistory.length === 0
+            ? 'No hay entrenamientos registrados para este día.'
+            : (history.length === 0
+                ? 'No hay entrenamientos registrados aún.'
+                : 'No se encontraron entrenamientos con estos filtros.');
         html += `
             <div class="history-empty">
                 <i class="fa-solid fa-clock-rotate-left"></i>
-                <p>${history.length === 0 ? 'No hay entrenamientos registrados aún.' : 'No se encontraron entrenamientos con estos filtros.'}</p>
-                ${history.length === 0 ? '<p style="font-size:13px; margin-top:8px;">Finaliza un entrenamiento para que aparezca aquí.</p>' : ''}
+                <p>${emptyMessage}</p>
+                ${history.length === 0 && !hasTodayDateContext ? '<p style="font-size:13px; margin-top:8px;">Finaliza un entrenamiento para que aparezca aquí.</p>' : ''}
             </div>
         `;
     } else {

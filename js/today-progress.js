@@ -444,7 +444,7 @@
         const dateParts = formatRelativeTrainingDate(item.date, now);
         const detail = getRecordDetail(record);
         const comparison = getPreviousComparableChange(item, allRecordsNewestFirst);
-        const hasPublicDetailAction = typeof window.viewHistoryDetail === 'function' &&
+        const hasPublicDetailAction = typeof window.openHistoryDetailFromToday === 'function' &&
             typeof record.id === 'string' && record.id.trim() !== '';
         const tagName = hasPublicDetailAction ? 'button' : 'article';
         const actionAttributes = hasPublicDetailAction
@@ -582,9 +582,9 @@
         if (
             historyCard &&
             container.contains(historyCard) &&
-            typeof window.viewHistoryDetail === 'function'
+            typeof window.openHistoryDetailFromToday === 'function'
         ) {
-            window.viewHistoryDetail(historyCard.dataset.historyId);
+            window.openHistoryDetailFromToday(historyCard.dataset.historyId);
         }
     }
 
