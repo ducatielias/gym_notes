@@ -3,6 +3,9 @@
  * Controla todos los temporizadores del entrenamiento activo
  */
 
+// Estado privado: la preparación no es todavía una fase de trabajo pausable.
+let aw_intervaloPreparando = false;
+
 // ==================== FUNCIONES AUXILIARES ====================
 function formatTime(s) {
     return `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
@@ -63,6 +66,12 @@ function actualizarDisplayDescanso() {
 function actualizarDisplayTrabajo() {
     const el = document.getElementById('aw-timer-trabajo');
     if (el) el.innerText = formatTime(aw_trabajoSeconds);
+}
+
+function setEstadoPreparacionIntervalo(preparando) {
+    aw_intervaloPreparando = preparando;
+    const btnPause = document.getElementById('btn-timer-pause');
+    if (btnPause) btnPause.disabled = preparando;
 }
 
 function iniciarTotalTimer() {
@@ -180,7 +189,7 @@ window.resetearTimer = function() {
 };
 
 function pausarIntervalo() {
-    if (!aw_intervaloActivo || aw_intervaloPausado) return;
+    if (aw_intervaloPreparando || !aw_intervaloActivo || aw_intervaloPausado) return;
     
     aw_estadoIntervaloPausado.tiempoActual = aw_tiempoActualIntervalo;
     aw_estadoIntervaloPausado.trabajo = aw_tiempoTrabajoIntervalo;
@@ -270,6 +279,7 @@ function detenerIntervalo() {
         clearInterval(aw_intervaloTimer);
         aw_intervaloTimer = null;
     }
+    setEstadoPreparacionIntervalo(false);
     aw_intervaloActivo = false;
     aw_intervaloPausado = false;
     const btnPlay = document.getElementById('btn-timer-play');
@@ -292,6 +302,7 @@ function iniciarIntervalo(config) {
     aw_intervaloActivo = true;
     aw_intervaloPausado = false;
     aw_timerActivo = false;
+    setEstadoPreparacionIntervalo(true);
     
     // Fase de preparación de 5 segundos
     const area = document.getElementById('timer-trabajo-area');
@@ -317,6 +328,7 @@ function iniciarIntervalo(config) {
             if (aw_tiempoActualIntervalo <= 3) reproducirSonido('bip');
         } else if (aw_tiempoActualIntervalo === 0) {
             clearInterval(aw_intervaloTimer);
+            setEstadoPreparacionIntervalo(false);
             reproducirSonido('cambio');
             
             if (area) area.style.background = '#d4edda';
