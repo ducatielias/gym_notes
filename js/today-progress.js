@@ -8,7 +8,6 @@
 
     const DEFAULT_PERIOD_DAYS = 7;
     const SUPPORTED_PERIODS = new Set([7, 30]);
-    const STORED_VOLUME_FIELDS = ['volumen_total', 'volumenTotal', 'volumen'];
 
     let selectedPeriodDays = DEFAULT_PERIOD_DAYS;
     let currentContainer = null;
@@ -89,14 +88,6 @@
         };
     }
 
-    function getPreviousPeriodRange(days, now) {
-        const currentRange = getPeriodRange(days, now);
-        return {
-            start: addLocalDays(currentRange.start, -days),
-            end: currentRange.start
-        };
-    }
-
     function prepareDatedRecords(records) {
         return records
             .filter(record => record && typeof record === 'object' && !Array.isArray(record))
@@ -161,152 +152,30 @@
         return remainingMinutes === 0 ? `${hours} h` : `${hours} h ${remainingMinutes} min`;
     }
 
-    function readFirstNonNegativeNumber(source, fields) {
-        if (!source || typeof source !== 'object') return null;
+    /**
+     * Resume la actividad por días locales únicos. Varias sesiones dentro del
+     * mismo día cuentan una sola vez y las fechas inválidas se ignoran.
+     */
+    function calculateConsistency(records, periodDays) {
+        const activeDateKeys = new Set();
 
-        for (const field of fields) {
-            const numericValue = getNonNegativeNumber(source[field]);
-            if (numericValue !== null) return numericValue;
-        }
+        records.forEach(item => {
+            const dateKey = typeof window.formatHistoryLocalDateKey === 'function'
+                ? window.formatHistoryLocalDateKey(item.record.fecha)
+                : null;
 
-        return null;
-    }
-
-    function collectVolumeParts(record) {
-        const exercises = Array.isArray(record.ejercicios)
-            ? record.ejercicios.filter(exercise => exercise && typeof exercise === 'object' && !Array.isArray(exercise))
-            : [];
-        const sources = exercises.length > 0 ? exercises : [record];
-        const totals = {
-            weighted: 0,
-            repetitions: 0,
-            sets: 0,
-            hasWeighted: false,
-            hasRepetitions: false,
-            hasSets: false
-        };
-
-        sources.forEach(source => {
-            if (Array.isArray(source.series)) {
-                source.series.forEach(set => {
-                    if (!set || typeof set !== 'object' || Array.isArray(set)) return;
-
-                    totals.sets += 1;
-                    totals.hasSets = true;
-
-                    const repetitions = readFirstNonNegativeNumber(set, ['repeticiones', 'reps']);
-                    const weight = readFirstNonNegativeNumber(set, ['peso', 'weight']);
-
-                    if (repetitions !== null) {
-                        totals.repetitions += repetitions;
-                        totals.hasRepetitions = true;
-                    }
-
-                    if (repetitions !== null && weight !== null) {
-                        totals.weighted += weight * repetitions;
-                        totals.hasWeighted = true;
-                    }
-                });
-                return;
-            }
-
-            const rawSetCount = readFirstNonNegativeNumber(source, ['series', 'sets']);
-            const setCount = Number.isInteger(rawSetCount) ? rawSetCount : null;
-            const repetitions = readFirstNonNegativeNumber(source, ['repeticiones', 'reps']);
-            const weight = readFirstNonNegativeNumber(source, ['peso', 'weight']);
-            const multiplier = setCount !== null ? setCount : 1;
-
-            if (setCount !== null) {
-                totals.sets += setCount;
-                totals.hasSets = true;
-            }
-
-            if (repetitions !== null) {
-                totals.repetitions += repetitions * multiplier;
-                totals.hasRepetitions = true;
-            }
-
-            if (repetitions !== null && weight !== null) {
-                totals.weighted += weight * repetitions * multiplier;
-                totals.hasWeighted = true;
-            }
+            if (dateKey) activeDateKeys.add(dateKey);
         });
 
-        return totals;
-    }
+        const activeDays = activeDateKeys.size;
+        const percentage = Math.round((activeDays / periodDays) * 100);
 
-    function getRecordVolume(record) {
-        const volumeParts = collectVolumeParts(record);
-
-        if (volumeParts.hasWeighted && Number.isFinite(volumeParts.weighted)) {
-            return { kind: 'weight-repetitions', value: volumeParts.weighted };
-        }
-
-        const storedVolume = readFirstNonNegativeNumber(record, STORED_VOLUME_FIELDS);
-        if (storedVolume !== null) {
-            return { kind: 'stored-volume', value: storedVolume };
-        }
-
-        if (volumeParts.hasRepetitions && Number.isFinite(volumeParts.repetitions)) {
-            return { kind: 'repetitions', value: volumeParts.repetitions };
-        }
-
-        if (volumeParts.hasSets && Number.isFinite(volumeParts.sets)) {
-            return { kind: 'sets', value: volumeParts.sets };
-        }
-
-        return null;
-    }
-
-    function aggregateCompatibleVolume(records) {
-        if (records.length === 0) return null;
-
-        const metrics = records.map(item => getRecordVolume(item.record));
-        if (metrics.some(metric => metric === null)) return null;
-
-        const metricKind = metrics[0].kind;
-        if (metrics.some(metric => metric.kind !== metricKind)) return null;
-
-        const value = metrics.reduce((total, metric) => total + metric.value, 0);
-        return Number.isFinite(value) ? { kind: metricKind, value } : null;
-    }
-
-    function calculatePercentageChange(currentValue, previousValue) {
-        if (
-            !Number.isFinite(currentValue) ||
-            !Number.isFinite(previousValue) ||
-            previousValue <= 0
-        ) {
-            return null;
-        }
-
-        const percentage = Math.round(((currentValue - previousValue) / previousValue) * 100);
-        return Number.isFinite(percentage) ? percentage : null;
-    }
-
-    function calculatePeriodVolumeChange(currentRecords, previousRecords) {
-        const currentMetric = aggregateCompatibleVolume(currentRecords);
-        const previousMetric = aggregateCompatibleVolume(previousRecords);
-
-        if (!currentMetric || !previousMetric || currentMetric.kind !== previousMetric.kind) return null;
-        return calculatePercentageChange(currentMetric.value, previousMetric.value);
-    }
-
-    function formatPercentage(value) {
-        if (!Number.isFinite(value)) return '—';
-        if (value > 0) return `+${value} %`;
-        if (value < 0) return `−${Math.abs(value)} %`;
-        return '0 %';
-    }
-
-    function getPercentageAriaLabel(value, days, prefix = 'Volumen') {
-        if (!Number.isFinite(value)) {
-            return `${prefix}, sin comparación fiable con los ${days} días anteriores`;
-        }
-
-        if (value > 0) return `${prefix}, ${value} por ciento más que en los ${days} días anteriores`;
-        if (value < 0) return `${prefix}, ${Math.abs(value)} por ciento menos que en los ${days} días anteriores`;
-        return `${prefix}, sin cambio frente a los ${days} días anteriores`;
+        return {
+            activeDays,
+            percentage,
+            detail: `${activeDays} de ${periodDays} días`,
+            ariaLabel: `Constancia: ${percentage} por ciento, ${activeDays} de ${periodDays} días con entrenamiento.`
+        };
     }
 
     function getConsistencyMessage(allDatedRecords, now) {
@@ -350,9 +219,10 @@
                         <span class="today-progress__metric-value">${escapeText(model.durationText)}</span>
                         <span class="today-progress__metric-label">Tiempo</span>
                     </div>
-                    <div class="today-progress__metric" role="listitem" aria-label="${escapeText(model.volumeAriaLabel)}">
-                        <span class="today-progress__metric-value">${formatPercentage(model.volumeChange)}</span>
-                        <span class="today-progress__metric-label">Volumen</span>
+                    <div class="today-progress__metric" role="listitem" aria-label="${escapeText(model.consistencyAriaLabel)}">
+                        <span class="today-progress__metric-value">${model.consistencyPercentage} %</span>
+                        <span class="today-progress__metric-label">Constancia</span>
+                        <span class="today-progress__metric-detail">${escapeText(model.consistencyDetail)}</span>
                     </div>
                 </div>
             </section>
@@ -381,20 +251,18 @@
         const currentRecords = sortDatedRecordsNewestFirst(
             filterRecordsByRange(allDatedRecords, getPeriodRange(periodDays, now))
         );
-        const previousRecords = filterRecordsByRange(
-            allDatedRecords,
-            getPreviousPeriodRange(periodDays, now)
-        );
         const duration = sumRecordDurations(currentRecords);
-        const volumeChange = calculatePeriodVolumeChange(currentRecords, previousRecords);
+        const consistency = calculateConsistency(currentRecords, periodDays);
 
         return {
             periodDays,
             now,
             sessionCount: currentRecords.length,
             durationText: formatDuration(duration),
-            volumeChange,
-            volumeAriaLabel: getPercentageAriaLabel(volumeChange, periodDays),
+            activeDays: consistency.activeDays,
+            consistencyPercentage: consistency.percentage,
+            consistencyDetail: consistency.detail,
+            consistencyAriaLabel: consistency.ariaLabel,
             consistencyMessage: getConsistencyMessage(allDatedRecords, now)
         };
     }

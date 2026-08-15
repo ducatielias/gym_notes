@@ -73,6 +73,15 @@
     line-height: var(--gn-line-height-normal);
 }
 
+#screen-today .today-progress__metric-detail {
+    max-inline-size: 100%;
+    color: var(--gn-color-text-muted);
+    font-family: var(--gn-font-body);
+    font-size: var(--gn-font-size-xs);
+    line-height: var(--gn-line-height-normal);
+    white-space: nowrap;
+}
+
 #screen-today .today-progress__period-selector {
     --today-period-shadow-offset: calc(var(--gn-space-sm) - var(--gn-border-width));
 
