@@ -25,8 +25,8 @@
     align-items: stretch;
     width: 100%;
     padding-top: var(--gn-safe-top);
-    padding-inline-start: calc(var(--gn-space-xl) - var(--gn-space-xs) + var(--gn-safe-left));
-    padding-inline-end: calc(var(--gn-space-xl) - var(--gn-space-xs) + var(--gn-safe-right));
+    padding-inline-start: calc(var(--gn-control-inline) + var(--gn-safe-left));
+    padding-inline-end: calc(var(--gn-control-inline) + var(--gn-safe-right));
     background-color: var(--gn-color-background);
     border-bottom: var(--gn-border-width-thin) var(--gn-border-style) var(--gn-color-border-muted);
     box-shadow: var(--gn-shadow-none);
@@ -255,7 +255,12 @@
 
 /* Sesiones: el nombre de la rutina pertenece al flujo de contenido, no al header sticky. */
 #plan-container > .plan-sessions-heading {
-    padding: var(--gn-space-lg) var(--gn-space-xl) var(--gn-space-xs);
+    box-sizing: border-box;
+    width: min(100%, 48rem);
+    margin-inline: auto;
+    padding-block: var(--gn-space-lg) var(--gn-space-xs);
+    padding-inline-start: calc(var(--gn-page-inline) + var(--gn-safe-left));
+    padding-inline-end: calc(var(--gn-page-inline) + var(--gn-safe-right));
 }
 
 #plan-container > .plan-sessions-heading .plan-sessions-heading__title {

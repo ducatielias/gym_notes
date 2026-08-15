@@ -132,7 +132,8 @@
     width: min(100%, 48rem);
     margin-inline: auto;
     padding-top: var(--gn-space-lg);
-    padding-inline: var(--gn-space-lg);
+    padding-inline-start: calc(var(--gn-page-inline) + var(--gn-safe-left));
+    padding-inline-end: calc(var(--gn-page-inline) + var(--gn-safe-right));
     gap: var(--gn-space-lg);
 }
 
@@ -252,7 +253,6 @@
 
 @media (max-width: 30rem) {
     #screen-history .history-grid {
-        padding-inline: var(--gn-space-md);
         gap: var(--gn-space-md);
     }
 

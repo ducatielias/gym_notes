@@ -53,6 +53,10 @@
     --gn-space-2xl: 2rem;
     --gn-space-3xl: 3rem;
 
+    /* Gutters semánticos para contenido de página y controles superiores. */
+    --gn-page-inline: var(--gn-space-lg);
+    --gn-control-inline: calc(var(--gn-space-xl) - var(--gn-space-xs));
+
     /* Safe areas: la superficie puede llegar al borde, los controles no. */
     --gn-safe-top: env(safe-area-inset-top, 0px);
     --gn-safe-right: env(safe-area-inset-right, 0px);
@@ -102,6 +106,12 @@
     --gn-layer-modal: 1000;
     --gn-layer-lightbox: 1100;
     --gn-layer-update: 1200;
+}
+
+@media (max-width: 30rem) {
+    :root {
+        --gn-page-inline: var(--gn-space-md);
+    }
 }
 
 /* En una pestaña convencional el navegador ya descuenta sus barras del viewport. */

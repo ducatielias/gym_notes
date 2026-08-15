@@ -83,7 +83,12 @@
    ========================================================================== */
 
 .cards-grid {
-    padding: 10px 20px var(--gn-space-xl) 20px;
+    box-sizing: border-box;
+    width: min(100%, 48rem);
+    margin-inline: auto;
+    padding-block: 10px var(--gn-space-xl);
+    padding-inline-start: calc(var(--gn-page-inline) + var(--gn-safe-left));
+    padding-inline-end: calc(var(--gn-page-inline) + var(--gn-safe-right));
     display: flex;
     flex-direction: column;
     gap: 12px;

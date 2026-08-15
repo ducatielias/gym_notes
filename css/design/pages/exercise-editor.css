@@ -105,9 +105,9 @@
 #screen-exercise-editor .exercise-editor-body {
     padding:
         var(--gn-space-lg)
-        calc(var(--gn-space-lg) + var(--gn-safe-right))
+        calc(var(--gn-page-inline) + var(--gn-safe-right))
         calc(7.5rem + var(--gn-safe-bottom))
-        calc(var(--gn-space-lg) + var(--gn-safe-left));
+        calc(var(--gn-page-inline) + var(--gn-safe-left));
     background-color: var(--gn-color-background);
 }
 
@@ -271,13 +271,6 @@
     font-family: var(--gn-font-body);
     font-size: var(--gn-font-size-sm);
     line-height: var(--gn-line-height-normal);
-}
-
-@media (max-width: 22.5rem) {
-    #screen-exercise-editor .exercise-editor-body {
-        padding-inline-start: calc(var(--gn-space-md) + var(--gn-safe-left));
-        padding-inline-end: calc(var(--gn-space-md) + var(--gn-safe-right));
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {
