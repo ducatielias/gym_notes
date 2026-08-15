@@ -344,7 +344,7 @@ function renderConfigEjercicios(exercises) {
             </button>
             <div id="iaExercisesContainer" class="ia-expand-container">
                 <div class="ia-expand-content">
-                    <input type="text" class="ia-exercise-search" id="iaExerciseSearch" placeholder="Buscar ejercicio..." oninput="filtrarEjerciciosIA()">
+                    <input type="text" class="ia-exercise-search" id="iaExerciseSearch" placeholder="Buscar ejercicio..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oninput="filtrarEjerciciosIA()">
                     <div class="ia-select-actions">
                         <button onclick="seleccionarTodosEjerciciosIA(true)">Seleccionar todos</button>
                         <button onclick="seleccionarTodosEjerciciosIA(false)">Deseleccionar todos</button>

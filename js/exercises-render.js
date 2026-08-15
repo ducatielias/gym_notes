@@ -89,7 +89,7 @@ function renderExercises() {
                 </div>
                 <div class="exercises-search-wrapper" id="exercisesSearchWrapper">
                     <i class="fa-solid fa-search icon-search"></i>
-                    <input type="text" id="exercisesSearchInput" placeholder="Buscar ejercicio..." autocomplete="off" oninput="onExercisesSearch()" onfocus="onExercisesSearchFocus()">
+                    <input type="text" id="exercisesSearchInput" placeholder="Buscar ejercicio..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oninput="onExercisesSearch()" onfocus="onExercisesSearchFocus()">
                     <button class="clear-input-btn" onclick="clearExercisesSearch()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>

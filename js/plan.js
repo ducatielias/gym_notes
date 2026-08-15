@@ -110,7 +110,7 @@ function openSessionEditor(sessionId, forceEditMode = false) {
 
                 <div class="expandable-wrapper" id="exercisesWrapper">
                     <div class="exercises-content">
-                        <input type="search" class="search-input" id="searchExercise" placeholder="Busca un ejercicio..." oninput="filtrarEjercicios()" onsearch="filtrarEjercicios()">
+                        <input type="search" class="search-input" id="searchExercise" placeholder="Busca un ejercicio..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oninput="filtrarEjercicios()" onsearch="filtrarEjercicios()">
                         <ul class="exercises-list" id="exercisesList"></ul>
                     </div>
                 </div>

@@ -158,7 +158,7 @@ function renderHistory() {
             
             <div class="history-search-wrapper" id="historySearchWrapper">
                 <i class="fa-solid fa-search icon-search"></i>
-                <input type="text" id="historySearchInput" placeholder="Buscar por nombre de sesión..." autocomplete="off" oninput="onHistorySearch()" value="${GymNotesSafe.escapeText(historySearchTerm)}">
+                <input type="text" id="historySearchInput" placeholder="Buscar por nombre de sesión..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oninput="onHistorySearch()" value="${GymNotesSafe.escapeText(historySearchTerm)}">
                 <button class="clear-input-btn" onclick="clearHistorySearch()">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
